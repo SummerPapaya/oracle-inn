@@ -43,7 +43,7 @@ Then open <http://localhost:8000/>. Add `?dev` to the address for a frame counte
 
 | Path | What's there |
 |---|---|
-| `public/` | Everything that gets deployed: `index.html`, the deck gallery `cat-tarot-deck.html`, `404.html` and Cloudflare's `_headers` |
+| `public/` | Everything that gets deployed: `index.html`, the deck gallery `cat-tarot-deck.html`, `404.html`, Cloudflare's `_headers`, the site icons (`favicon.*`, `apple-touch-icon.png`, `icon-*.png`, `site.webmanifest`) and the link-preview images (`og-image.jpg` 1200×630, `share-square.jpg` 600×600) |
 | `public/tent/`, `public/shrine/` | The two rooms baked in Blender for real-time 3D: glTF description, base64 geometry and two light atlases each |
 | `public/deck/` | The 22 card faces and the card back |
 | `src/` | Page source: shell and styles, procedurally painted textures and cards, scenes and interaction |

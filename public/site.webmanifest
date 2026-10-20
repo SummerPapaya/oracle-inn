@@ -1,0 +1,29 @@
+{
+  "name": "借问众神明 · Oracle Inn",
+  "short_name": "借问众神明",
+  "description": "魔法小屋里的一本立体占卜书：推开悬在夜空里的门，翻开立体书，走进星幕帐篷与东方神龛。东西方民俗文化的趣味科普演示，仅供娱乐。",
+  "lang": "zh-CN",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#120c14",
+  "theme_color": "#120c14",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

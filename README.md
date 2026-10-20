@@ -43,7 +43,7 @@ python3 -m http.server 8000
 
 | 路径 | 内容 |
 |---|---|
-| `public/` | 部署的全部内容：`index.html`、牌组展示页 `cat-tarot-deck.html`、`404.html`、Cloudflare 的 `_headers` |
+| `public/` | 部署的全部内容：`index.html`、牌组展示页 `cat-tarot-deck.html`、`404.html`、Cloudflare 的 `_headers`，以及网站图标（`favicon.*`、`apple-touch-icon.png`、`icon-*.png`、`site.webmanifest`）和链接分享图（`og-image.jpg` 1200×630、`share-square.jpg` 600×600） |
 | `public/tent/`、`public/shrine/` | 两间小屋在 Blender 里烘焙好的实时 3D 场景（glTF 描述、base64 几何、两张光照贴图） |
 | `public/deck/` | 二十二张牌面和牌背 |
 | `src/` | 页面源码：外壳与样式、程序化绘制的贴图与牌面、场景、交互 |
