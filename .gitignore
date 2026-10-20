@@ -1,0 +1,28 @@
+# macOS and editors
+.DS_Store
+*.swp
+.vscode/
+.idea/
+
+# build check outputs (python3 build.py --check)
+src/_check.html
+src/.check.mjs
+
+# Blender work files and bake outputs: large, and .blend files store local file paths
+*.blend
+*.blend1
+blender/realtime/
+blender/realtime_shrine/
+blender/renders/
+blender/compare/
+blender/*_log.txt
+blender/*_out.txt
+
+# local tooling
+node_modules/
+.claude/
+*.log
+
+# Python caches
+__pycache__/
+*.pyc

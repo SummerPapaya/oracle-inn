@@ -1,0 +1,169 @@
+function mulberry(a) {
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const hexA = (hex, a) => {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
+};
+/** a true crescent: two circles that cross, so the horns come to points (lit side on the left, opening to the right before rot) */
+function moonPath(g, x, y, R, off = 0.42, k = 0.82, rot = 0) {
+  const d = R * off, r = R * k, px_ = (R * R - r * r + d * d) / (2 * d), py = Math.sqrt(Math.max(0, R * R - px_ * px_));
+  const a = Math.atan2(py, px_), b = Math.atan2(py, px_ - d);
+  g.save(); g.translate(x, y); g.rotate(rot);
+  g.moveTo(Math.cos(a) * R, -Math.sin(a) * R);
+  g.arc(0, 0, R, -a, a, true);
+  g.arc(d, 0, r, b, -b, false);
+  g.closePath(); g.restore();
+}
+function canvas(w, h) {
+  const c = document.createElement('canvas');
+  c.width = Math.max(2, Math.round(w));
+  c.height = Math.max(2, Math.round(h));
+  return c;
+}
+
+/** a painter for one canvas; every coordinate is a fraction of the canvas (x of width, y of height) */
+function painter(c, seed, unit) {
+  const g = c.getContext('2d');
+  const W = c.width, H = c.height, S = unit || W / 1000;
+  const rand = mulberry(seed);
+  const gauss = () => { let u = 0, v = 0; while (!u) u = rand(); while (!v) v = rand(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(TAU * v); };
+  const P = ([x, y]) => [x * W, y * H];
+  function deform(pts, depth, vary) {
+    let out = pts;
+    for (let d = 0; d < depth; d++) {
+      const nx = [];
+      for (let i = 0; i < out.length; i++) {
+        const a = out[i], b = out[(i + 1) % out.length];
+        nx.push(a);
+        const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+        const ang = rand() * TAU, m = gauss() * len * vary;
+        nx.push([(a[0] + b[0]) / 2 + Math.cos(ang) * m, (a[1] + b[1]) / 2 + Math.sin(ang) * m]);
+      }
+      out = nx;
+    }
+    return out;
+  }
+  function path(p, closed = true) {
+    g.beginPath();
+    g.moveTo(p[0][0], p[0][1]);
+    for (let i = 1; i < p.length; i++) g.lineTo(p[i][0], p[i][1]);
+    if (closed) g.closePath();
+  }
+  const api = {
+    W, H, S, rand, gauss, g,
+    /** a watercolour wash: dozens of faint, jittered copies of one shape, with a darker wet edge */
+    wash(poly, color, o = {}) {
+      const layers = o.layers ?? 20, alpha = o.alpha ?? 0.06, vary = o.vary ?? 0.07;
+      const base = deform(poly.map(P), o.depth ?? 3, vary);
+      g.save();
+      if (o.blend) g.globalCompositeOperation = o.blend;
+      g.fillStyle = hexA(color, alpha);
+      for (let i = 0; i < layers; i++) { path(deform(base, 2, vary * 0.55)); g.fill(); }
+      if (o.edge !== 0) {
+        g.strokeStyle = hexA(o.edgeColor ?? color, o.edge ?? 0.22);
+        g.lineWidth = Math.max(1, 1.2 * S);
+        path(deform(base, 1, vary * 0.2));
+        g.stroke();
+      }
+      g.restore();
+    },
+    /** a nearly flat fill, for small solid things */
+    flat(poly, color, a = 0.92) {
+      g.fillStyle = hexA(color, a);
+      path(deform(poly.map(P), 2, 0.015));
+      g.fill();
+    },
+    /** a hand-drawn ink line: densified, gently wobbling, drawn in two light passes */
+    ink(pts, o = {}) {
+      const w = (o.w ?? 1.6) * S, closed = !!o.closed, src = pts.map(P);
+      const dense = [];
+      const n = closed ? src.length : src.length - 1;
+      for (let i = 0; i < n; i++) {
+        const a = src[i], b = src[(i + 1) % src.length];
+        const steps = Math.max(1, Math.round(Math.hypot(b[0] - a[0], b[1] - a[1]) / (5 * S)));
+        for (let k = 0; k < steps; k++) dense.push([a[0] + ((b[0] - a[0]) * k) / steps, a[1] + ((b[1] - a[1]) * k) / steps]);
+      }
+      if (!closed) dense.push(src[src.length - 1]);
+      g.save();
+      g.lineCap = 'round'; g.lineJoin = 'round';
+      g.strokeStyle = hexA(o.color ?? '#4a3528', o.alpha ?? 0.55);
+      for (let pass = 0; pass < (o.passes ?? 2); pass++) {
+        const ph = rand() * TAU, amp = (o.wobble ?? 0.8) * S;
+        g.lineWidth = w * (pass ? 0.65 : 1);
+        g.beginPath();
+        dense.forEach(([x, y], i) => {
+          const xx = x + Math.sin(i * 0.31 + ph) * amp, yy = y + Math.cos(i * 0.27 + ph) * amp;
+          i ? g.lineTo(xx, yy) : g.moveTo(xx, yy);
+        });
+        if (closed) g.closePath();
+        g.stroke();
+      }
+      g.restore();
+    },
+    glow(x, y, r, color, alpha = 0.5, blend = 'lighter') {
+      const [cx, cy] = P([x, y]), R = r * H;
+      const gr = g.createRadialGradient(cx, cy, 0, cx, cy, R);
+      gr.addColorStop(0, hexA(color, alpha)); gr.addColorStop(1, hexA(color, 0));
+      g.save(); g.globalCompositeOperation = blend; g.fillStyle = gr; g.fillRect(cx - R, cy - R, R * 2, R * 2); g.restore();
+    },
+    vgrad(stops, box = [0, 0, 1, 1]) {
+      const [x0, y0, x1, y1] = box;
+      const gr = g.createLinearGradient(0, y0 * H, 0, y1 * H);
+      stops.forEach(([t, col]) => gr.addColorStop(t, col));
+      g.fillStyle = gr;
+      g.fillRect(x0 * W, y0 * H, (x1 - x0) * W, (y1 - y0) * H);
+    },
+    dot(x, y, r, color, a = 1) {
+      g.fillStyle = hexA(color, a); g.beginPath(); g.arc(x * W, y * H, r * H, 0, TAU); g.fill();
+    },
+    sparkle(x, y, r, color, a = 1) {
+      const [cx, cy] = P([x, y]), R = r * H;
+      g.fillStyle = hexA(color, a);
+      g.beginPath();
+      for (let i = 0; i < 8; i++) {
+        const ang = (i * Math.PI) / 4, rr = i % 2 ? R * 0.28 : R;
+        g.lineTo(cx + Math.cos(ang) * rr, cy + Math.sin(ang) * rr);
+      }
+      g.closePath(); g.fill();
+    },
+    stroke(x, y, len, ang, color, w, a) {
+      g.strokeStyle = hexA(color, a); g.lineWidth = w * S; g.lineCap = 'round';
+      g.beginPath(); g.moveTo(x * W, y * H);
+      g.quadraticCurveTo(x * W + Math.cos(ang) * len * H * 0.5 + gauss() * S, y * H + Math.sin(ang) * len * H * 0.5, x * W + Math.cos(ang) * len * H, y * H + Math.sin(ang) * len * H);
+      g.stroke();
+    },
+    circle(cx, cy, r, n = 30) {
+      const rx = (r * H) / W;
+      return Array.from({ length: n }, (_, i) => { const a = (i / n) * TAU; return [cx + Math.cos(a) * rx, cy + Math.sin(a) * r]; });
+    },
+    ell(cx, cy, rx, ry, n = 30) {
+      return Array.from({ length: n }, (_, i) => { const a = (i / n) * TAU; return [cx + Math.cos(a) * rx, cy + Math.sin(a) * ry]; });
+    },
+    rect(x, y, w, h) { return [[x, y], [x + w, y], [x + w, y + h], [x, y + h]]; },
+    /** an arch: square below, a true half-circle on top */
+    arch(x, y, w, h, n = 22) {
+      const r = (w * W) / 2 / H, cx = x + w / 2, cy = y + r;
+      const pts = [[x, y + h]];
+      for (let i = 0; i <= n; i++) { const a = Math.PI + (i / n) * Math.PI; pts.push([cx + (Math.cos(a) * w) / 2, cy + Math.sin(a) * r]); }
+      pts.push([x + w, y + h]);
+      return pts;
+    },
+    cut(poly) {
+      g.save(); g.globalCompositeOperation = 'destination-out'; g.fillStyle = '#000';
+      path(poly.map(P)); g.fill(); g.restore();
+    },
+    paper(base = '#f6ecd6') {
+      g.fillStyle = base; g.fillRect(0, 0, W, H);
+    },
+  };
+  return api;
+}
+
+/* a small tile of paper grain, laid over every page with multiply */
+

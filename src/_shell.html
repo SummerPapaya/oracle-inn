@@ -1,0 +1,212 @@
+<title>借问众神明立体书</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700;900&family=Long+Cang&family=Cormorant+Garamond:ital,wght@1,500;1,600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC&text=%E7%AD%8A&display=swap">
+@@CSS@@
+/* the lamp-lit edge of the desk */
+.vignette { position: fixed; inset: 0; z-index: 1; pointer-events: none; background: radial-gradient(ellipse 75% 70% at 50% 46%, rgba(10, 6, 8, 0) 55%, rgba(10, 6, 8, .6)); }
+.toast { bottom: auto; top: calc(env(safe-area-inset-top, 0px) + 66px); translate: -50% -8px; }
+.toast.show { translate: -50% 0; }
+.chip.on { border-color: var(--gold); background: rgba(70, 48, 40, .9); }
+.hud .sound { pointer-events: auto; margin-top: 6px; font: inherit; font-size: 12px; color: rgba(246, 236, 214, .75); background: none; border: 1px solid rgba(217, 178, 94, .35); border-radius: 999px; padding: 2px 10px; cursor: pointer; }
+/* the portal that opens behind the door */
+.hole .portal { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.intro { background: radial-gradient(ellipse at 50% 40%, #241a3a, var(--night) 70%); }
+.intro .btn:disabled { opacity: .5; }
+/* the night round the floating front door: twinkling stars and rising motes; warm light round the frame and through the seam */
+.intro-stars { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.intro .doorway, .intro .intro-text { z-index: 1; }
+.intro-door { position: absolute; inset: 0; width: 100%; height: 100%; display: block; z-index: 1; pointer-events: none; }
+.intro .intro-text { z-index: 2; }
+/* a gentle reminder under the door, and again in the corner of every room */
+.intro-text .notice { max-width: min(30em, 86vw); margin: 18px auto 0; font-size: 12px; letter-spacing: .04em; line-height: 1.75; color: rgba(246, 236, 214, .6); }
+.intro-text .notice b { display: block; margin-bottom: 2px; font-weight: 700; letter-spacing: .3em; color: rgba(242, 215, 143, .85); }
+.hud #noticeBtn { margin-left: 6px; }
+.panel .notice-list { margin: .2em 0 0; padding-left: 1.2em; font-family: var(--hand); font-size: clamp(15px, 2.3vmin, 17px); line-height: 1.6; color: #fbf1da; }
+.panel .notice-list li + li { margin-top: .4em; }
+/* with the 3D door the flat card only keeps its place in the layout; its portal canvas is painted off screen for the door's texture */
+.intro.door3d .doorway { visibility: hidden; }
+.intro.door3d .doorway .hole { box-shadow: none; }
+.intro .doorway::before { content: ''; position: absolute; inset: -18% -30% -8%; border-radius: 50%; background: radial-gradient(ellipse at 50% 55%, rgba(255, 214, 150, .22), rgba(180, 140, 255, .1) 45%, transparent 70%); pointer-events: none; animation: doorglow 4s ease-in-out infinite; }
+.intro .leafd.l { box-shadow: inset -3px 0 8px -2px rgba(255, 236, 190, .9); } .intro .leafd.r { box-shadow: inset 3px 0 8px -2px rgba(255, 236, 190, .9); }
+.intro .hole::after { content: ''; position: absolute; left: 50%; top: 6%; bottom: 4%; width: 3px; translate: -50% 0; background: linear-gradient(transparent, #fff3cf 20%, #ffe2a0 80%, transparent); box-shadow: 0 0 14px 4px rgba(255, 226, 160, .75); animation: seam 2.6s ease-in-out infinite; transition: opacity .4s; }
+.intro.open .hole::after { opacity: 0; }
+@keyframes doorglow { 50% { opacity: .65; } }
+@keyframes seam { 50% { opacity: .55; box-shadow: 0 0 22px 7px rgba(255, 226, 160, .9); } }
+@media (prefers-reduced-motion: reduce) { .intro .doorway::before, .intro .hole::after { animation: none; } }
+/* stepping into a page: a warm flash of light */
+.flash { background: radial-gradient(circle at 50% 55%, #fff1d6 0%, #f0c98a 32%, #a8708a 68%, #2e1d40 100%); transition: opacity .45s; }
+@media (prefers-reduced-motion: reduce) { .flash { transition: none; } }
+
+/* the reading card beside a drawn card or a pair of thrown blocks */
+.panel {
+  position: fixed; z-index: 15; right: 24px; top: 50%; translate: 0 -50%; width: min(340px, calc(100% - 32px));
+  padding: 18px 20px 16px; border-radius: 14px; background: rgba(26, 18, 22, .86); border: 1px solid rgba(217, 178, 94, .5);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, .45); animation: rise .5s cubic-bezier(.3, .7, .2, 1);
+}
+.panel small { font-family: var(--latin); font-style: italic; font-size: 16px; color: var(--gold); letter-spacing: .06em; }
+.panel h3 { margin: .1em 0 .25em; font-size: clamp(24px, 4.6vmin, 32px); font-weight: 900; letter-spacing: .14em; color: var(--gold-light); }
+.panel p { margin: 0; font-family: var(--hand); font-size: clamp(19px, 3.2vmin, 24px); line-height: 1.5; color: #fbf1da; }
+.panel .note { margin-top: .9em; font-size: 11px; color: rgba(246, 236, 214, .55); letter-spacing: .1em; }
+.panel .row { margin-top: 1em; flex-wrap: wrap; }
+@keyframes rise { from { transform: translateY(18px); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (max-aspect-ratio: 1/1), (max-width: 760px) {
+  .panel { top: auto; translate: none; left: 16px; right: 16px; width: auto; bottom: calc(env(safe-area-inset-bottom, 0px) + 64px); padding: 14px 16px 12px; }
+  .panel p { font-size: 19px; }
+}
+/* a wand for a pointer; the star at its tip brightens over anything you can touch */
+#stage canvas, .ask, .panel, .dock { cursor: var(--wand, auto); }
+body.hot #stage canvas, button, .chip, .slip { cursor: var(--wand-hot, pointer) !important; }
+.trail { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 40; }
+/* the question you may write down before a tarot reading */
+.ask .qlabel { display: block; margin: -.4em 0 .5em; font-size: 13px; letter-spacing: .12em; color: rgba(246, 236, 214, .7); }
+.ask .qbox { display: block; width: min(360px, 100%); margin: 0 auto 1.1em; padding: 10px 12px; border-radius: 10px; resize: none;
+  font: inherit; font-size: 15px; line-height: 1.6; color: #fbf1da; background: rgba(246, 236, 214, .07); border: 1px solid rgba(217, 178, 94, .45); user-select: text; -webkit-user-select: text; }
+.ask .qbox::placeholder { color: rgba(246, 236, 214, .38); }
+.ask .qbox:focus { outline: none; border-color: var(--gold); background: rgba(246, 236, 214, .1); }
+/* how far the shuffle has gone */
+.ritual-meter { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 74px); z-index: 6; translate: -50% 0; width: min(260px, 60vw); height: 4px; border-radius: 4px; background: rgba(246, 236, 214, .15); overflow: hidden; pointer-events: none; }
+.ritual-meter i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--gold), var(--gold-light)); box-shadow: 0 0 10px var(--gold); transition: width .15s; }
+/* the reader's words under a turned card */
+.panel.long { max-height: min(80vh, 640px); overflow: auto; }
+/* a fortune slip from the shrine's drawers: cream paper, a red border, the poem in columns read right to left */
+.qian { margin: .1em 0 .2em; padding: 14px 16px 12px; background: linear-gradient(#f6ebd0, #ecdcb8); color: #2a1a12; border: 2px solid #a8301e; outline: 1px solid rgba(168, 48, 30, .45); outline-offset: 3px; border-radius: 3px; box-shadow: 0 6px 18px rgba(0, 0, 0, .35); }
+.qian .qhead { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(168, 48, 30, .5); padding-bottom: 6px; }
+.qian .qhead b { font-size: clamp(20px, 3.6vmin, 24px); letter-spacing: .2em; font-weight: 900; }
+.qian .qhead i { font-style: normal; font-weight: 900; letter-spacing: .15em; padding: 1px 8px; border-radius: 2px; color: #fff4dc; }
+.qian .ga { background: #b8321e; } .qian .gb { background: #c0582a; } .qian .gc { background: #8a6a2a; } .qian .gd { background: #5a6a5a; } .qian .ge { background: #4a5a78; }
+.qian .qtitle { margin: 8px 0 4px; text-align: center; font-size: 15px; letter-spacing: .5em; color: #7a2a1a; }
+.qian .qpoem { display: flex; flex-direction: row-reverse; justify-content: center; gap: 14px; margin: 6px 0 8px; }
+.qian .qpoem span { writing-mode: vertical-rl; font-size: clamp(20px, 3.4vmin, 24px); letter-spacing: .25em; font-weight: 700; line-height: 1; }
+.qian .qjie { font-family: var(--hand); font-size: clamp(16px, 2.8vmin, 19px); line-height: 1.5; border-top: 1px dashed rgba(168, 48, 30, .45); padding-top: 6px; }
+.qian .qjie b { color: #a8301e; margin-right: .5em; letter-spacing: .2em; }
+.panel .reading { margin-top: .9em; padding-top: .8em; border-top: 1px dashed rgba(217, 178, 94, .45); }
+.panel .reading .r-head { font-size: 12px; letter-spacing: .32em; color: var(--gold); margin-bottom: .5em; }
+.panel .reading .r-body { font-family: var(--hand); font-size: clamp(17px, 2.6vmin, 20px); line-height: 1.62; color: #fbf1da; white-space: pre-wrap; }
+.panel .reading .r-body.wait { color: rgba(246, 236, 214, .55); animation: breathtext 2.4s ease-in-out infinite; }
+.panel .reading .r-note { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: .7em; font-size: 12px; color: rgba(246, 236, 214, .6); }
+.panel .reading .r-note .btn { font-size: 12.5px; padding: 4px 12px; }
+.panel .r-ask { display: block; width: 100%; margin-top: .9em; }
+/* choosing a spread, and the spread laid out */
+.panel p.spread-pick { font-family: inherit; font-size: 14.5px; line-height: 1.9; color: rgba(251, 241, 218, .9); }
+.panel p.spread-pick b { color: var(--gold-light); letter-spacing: .1em; }
+.panel .spread-list { list-style: none; margin: .4em 0 0; padding: 0; display: grid; gap: .6em; }
+.panel .spread-list li { font-size: 14px; line-height: 1.5; color: #fbf1da; }
+.panel .spread-list li b { color: var(--gold-light); letter-spacing: .08em; }
+.panel .spread-list li i { font-family: var(--latin); color: var(--gold); }
+.panel .spread-list li span { display: block; font-family: var(--hand); font-size: 17px; color: rgba(251, 241, 218, .88); }
+.spread-tags { position: fixed; inset: 0; pointer-events: none; z-index: 4; }
+.spread-tag { position: absolute; translate: -50% 0; white-space: nowrap; padding: 2px 10px; border-radius: 999px; font-size: 12px; letter-spacing: .12em;
+  color: var(--gold-light); background: rgba(26, 18, 22, .7); border: 1px solid rgba(217, 178, 94, .4); transition: opacity .4s, border-color .4s; }
+.spread-tag.open { border-color: var(--gold); box-shadow: 0 0 10px rgba(242, 215, 143, .35); }
+@media (max-aspect-ratio: 1/1), (max-width: 760px) { .panel.long { max-height: 62vh; } }
+@media (max-width: 560px) {
+  body.panel-open #actions, body.panel-open .rooms { opacity: 0; pointer-events: none; }      /* on a phone the open panel carries its own buttons */
+  .btn { padding: 7px 12px; font-size: 13.5px; }
+  .row { gap: 6px; }
+  .spread-tag { font-size: 13px; padding: 3px 11px; }
+  .qian { padding: 12px 12px 10px; }
+  .qian .qpoem { gap: 18px; } .qian .qpoem span { font-size: 23px; }
+  .qian .qtitle { font-size: 15px; } .qian .qjie { font-size: 17px; }
+}
+/* before a reading: a quiet moment to hold the question in mind */
+.ask { position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; background: radial-gradient(circle at 50% 50%, rgba(22, 14, 30, .5), rgba(8, 5, 12, .9)); animation: fadein .7s ease; transition: opacity .5s; }
+.ask.out { opacity: 0; }
+.ask .inner { text-align: center; color: #fbf1da; padding: 24px; max-width: 440px; }
+.ask .ring { position: relative; width: 128px; height: 128px; margin: 0 auto 24px; border-radius: 50%; border: 1.5px solid rgba(217, 178, 94, .85); box-shadow: 0 0 46px rgba(242, 215, 143, .35), inset 0 0 34px rgba(242, 215, 143, .25); animation: breathe 6s ease-in-out infinite; }
+.ask .ring::after { content: ''; position: absolute; inset: 22px; border-radius: 50%; border: 1px dashed rgba(217, 178, 94, .55); animation: turn 24s linear infinite; }
+.ask .breath { font-size: 12px; letter-spacing: .4em; color: rgba(246, 236, 214, .6); margin: -8px 0 16px; animation: breathtext 6s ease-in-out infinite; }
+.ask h3 { margin: 0 0 .45em; font-size: clamp(22px, 4.4vmin, 30px); letter-spacing: .2em; color: var(--gold-light); font-weight: 900; }
+.ask p { margin: 0 0 1.3em; font-family: var(--hand); font-size: clamp(18px, 3vmin, 23px); line-height: 1.7; }
+.ask small { display: block; margin-top: 14px; font-size: 11px; letter-spacing: .1em; color: rgba(246, 236, 214, .5); }
+@keyframes breathe { 0%, 100% { transform: scale(.8); opacity: .7; } 50% { transform: scale(1.08); opacity: 1; } }
+@keyframes breathtext { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
+@keyframes turn { to { transform: rotate(360deg); } }
+@keyframes fadein { from { opacity: 0; } }
+/* the little-knowledge panel */
+.panel.lore { width: min(440px, calc(100% - 32px)); max-height: 74vh; overflow: auto; }
+.panel.lore p { font-family: inherit; font-size: 14.5px; line-height: 1.8; margin: 0 0 .7em; color: rgba(251, 241, 218, .92); }
+.panel.lore p b { color: var(--gold-light); font-weight: 700; }
+/* a seal pressed onto a reading, and a folded slip to open */
+.panel .seal + small { display: block; padding-right: 54px; }     /* a heading never runs under the seal */
+.panel .seal { position: absolute; right: 18px; top: 16px; width: 44px; height: 44px; border-radius: 7px; background: #b8322a; color: #f6ecd6; display: grid; place-items: center; font-weight: 900; font-size: 19px; transform: rotate(-8deg); box-shadow: inset 0 0 0 2px rgba(246, 236, 214, .55); animation: stamp .55s cubic-bezier(.3, 1.6, .5, 1) .4s both; }
+@keyframes stamp { from { transform: rotate(-8deg) scale(2.4); opacity: 0; } to { transform: rotate(-8deg) scale(1); opacity: .92; } }
+.slip { display: block; width: 100%; margin-top: .9em; padding: 10px 12px; border-radius: 8px; border: 1px dashed rgba(217, 178, 94, .6); background: rgba(246, 236, 214, .06); color: var(--gold-light); font: inherit; font-size: 13.5px; letter-spacing: .08em; cursor: pointer; text-align: center; }
+.slip:hover { background: rgba(246, 236, 214, .12); }
+.slip.open { cursor: default; border: 1px solid rgba(160, 120, 60, .6); background: linear-gradient(180deg, #f6ecd6, #e6d2aa); color: #3b2418; text-align: left; line-height: 1.75; letter-spacing: .04em; transform-origin: top; animation: unfold .6s cubic-bezier(.3, .7, .2, 1); }
+.slip.open b { color: #8a2a20; }
+@keyframes unfold { from { transform: scaleY(.08); opacity: 0; } to { transform: none; opacity: 1; } }
+</style>
+
+<div id="stage"></div>
+<div class="vignette"></div>
+<header class="hud" id="hud">
+  <div><strong>借问众神明</strong><span>魔法小屋里的一本立体占卜书</span><div class="stats" id="stats"></div><button class="sound" id="sound" type="button">声音 · 开</button><button class="sound" id="noticeBtn" type="button">温馨提示</button></div>
+  <div class="hint" id="hint">点封面翻开</div>
+</header>
+<div class="dock" id="dock">
+  <div class="rooms" id="rooms"></div>
+  <div class="row" id="actions"></div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<div class="panel" id="panel" hidden role="dialog" aria-live="polite"></div>
+<div class="flash" id="flash"></div>
+
+<div class="intro" id="intro">
+  <canvas class="intro-stars" id="introStars" aria-hidden="true"></canvas>
+  <canvas class="intro-door" id="introDoor" aria-hidden="true"></canvas>
+  <div class="doorway">
+    <div class="plate">魔法屋 · Ⅲ°45′</div>
+    <div class="hole">
+      <canvas class="portal" id="portal"></canvas>
+      <div class="leafd l"><div class="arc"></div><svg class="star" viewBox="0 0 52 52" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.2" d="M26 9L28.8 19.2 38 14 32.8 23.2 43 26 32.8 28.8 38 38 28.8 32.8 26 43 23.2 32.8 14 38 19.2 28.8 9 26 19.2 23.2 14 14 23.2 19.2Z"/><circle cx="26" cy="26" r="3" fill="#ffdd94"/></svg><span class="knob"></span></div>
+      <div class="leafd r"><div class="arc"></div><svg class="star" viewBox="0 0 52 52" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.2" d="M26 9L28.8 19.2 38 14 32.8 23.2 43 26 32.8 28.8 38 38 28.8 32.8 26 43 23.2 32.8 14 38 19.2 28.8 9 26 19.2 23.2 14 14 23.2 19.2Z"/><circle cx="26" cy="26" r="3" fill="#ffdd94"/></svg><span class="knob"></span></div>
+    </div>
+  </div>
+  <div class="intro-text">
+    <p>魔法屋悬空的前门，今天停在第 Ⅲ 层。<br>门缝里透出一点星光，好像有人在等你。</p>
+    <button class="btn gold" id="enter" type="button">推门进入</button>
+    <p class="notice"><b>温馨提示</b>这里的占卜是东西方民俗文化的趣味科普演示，抽牌、掷筊、求签的结果均由程序随机生成，仅供休闲娱乐，不是预言，也不构成任何建议。命运掌握在自己手中，请保持理性，自主抉择。</p>
+  </div>
+</div>
+<div class="loading" id="loading">正在点亮蜡烛……</div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+const TAU = Math.PI * 2;
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ================= painting kit (shared with the storybook samples) ================= */
+@@KIT@@
+@@CARDS@@
+@@TEX@@
+@@MAT@@
+@@ART@@
+@@ART2@@
+@@ART3@@
+@@ART4@@
+@@ART5@@
+@@FX@@
+@@BOOK@@
+@@HUT@@
+@@ROOMS@@
+@@MAIN@@
+</script>

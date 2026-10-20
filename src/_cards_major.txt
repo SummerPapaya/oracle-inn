@@ -1,0 +1,362 @@
+/* ================= the rest of the major arcana as cats ================= */
+/*
+ * Each scene keeps the composition and the symbols of the 1909 Smith–Waite card it stands for (public domain),
+ * so the meanings read true: the Magician's four tools and lemniscate, the Empress's crown of twelve stars,
+ * the Moon's crayfish and two towers. The drawing itself is ours: cats, Mucha's frame, muted paper colours.
+ */
+const muPal = (sky1, sky2, halo, bead, petal, col, vine, flower, plaque) => ({ sky1, sky2, halo, bead, petal, col, vine, flower, plaque });
+const CATS = {
+  ginger: { body: '#e3a25e', chest: '#f6ead2', eye: '#8ab870', stripe: '#c27a3a' },
+  white: { body: '#f2ede4', chest: '#fffaf0', eye: '#7ab0d8' },
+  black: { body: '#343040', chest: '#4a4558', eye: '#e8c048' },
+  grey: { body: '#a6a4ac', chest: '#e6e4e8', eye: '#e8c048', stripe: '#77747e' },
+  cream: { body: '#efd8b8', chest: '#fff6e6', eye: '#7aa860' },
+  tabby: { body: '#a87e58', chest: '#efe0c8', eye: '#a8c860', stripe: '#6e4e34' },
+};
+const withCollar = (c, collar) => ({ ...c, collar });
+
+/* ---------- motifs ---------- */
+function muGround(g, y, fill, wave = 16) { muFill(g, () => { g.moveTo(60, y); for (let x = 60; x < 540; x += 48) g.quadraticCurveTo(x + 24, y - wave, x + 48, y); g.lineTo(540, 740); g.lineTo(60, 740); g.closePath(); }, fill, 2.6); }
+function muPeaks(g, base, pts, fill, snow) {
+  muFill(g, () => { g.moveTo(60, base); pts.forEach(([x, y]) => g.lineTo(x, y)); g.lineTo(540, base); g.closePath(); }, fill, 2.4);
+  if (snow) pts.forEach(([x, y], i) => { if (i % 2 === 0 && y < base - 60) muFill(g, () => { g.moveTo(x - 18, y + 26); g.lineTo(x, y); g.lineTo(x + 18, y + 26); g.lineTo(x + 6, y + 20); g.lineTo(x, y + 28); g.lineTo(x - 7, y + 20); g.closePath(); }, snow, 1.4); });
+}
+function muSunFace(g, x, y, r, face = true, rays = 16) {
+  for (let k = 0; k < rays; k++) { const a = (k / rays) * TAU, L = k % 2 ? 1.45 : 1.75; muFill(g, () => { g.moveTo(x + Math.cos(a - 0.11) * r, y + Math.sin(a - 0.11) * r); g.lineTo(x + Math.cos(a) * r * L, y + Math.sin(a) * r * L); g.lineTo(x + Math.cos(a + 0.11) * r, y + Math.sin(a + 0.11) * r); g.closePath(); }, k % 2 ? '#e8a848' : '#f2c060', 1.6); }
+  muFill(g, () => g.arc(x, y, r, 0, TAU), '#f6d27a', 2.6);
+  if (!face) return;
+  [-1, 1].forEach((d) => { muLine(g, () => g.arc(x + d * r * 0.32, y - r * 0.06, r * 0.13, Math.PI * 0.1, Math.PI * 0.9), 2); muFill(g, () => g.arc(x + d * r * 0.52, y + r * 0.22, r * 0.11, 0, TAU), 'rgba(230,120,100,.35)', 0); });
+  muLine(g, () => g.arc(x, y + r * 0.2, r * 0.3, Math.PI * 0.18, Math.PI * 0.82), 2.2);
+}
+function muPillar(g, x, y0, y1, w, fill) {
+  muFill(g, () => g.rect(x - w / 2, y0, w, y1 - y0), fill, 3);
+  muFill(g, () => g.rect(x - w / 2 - 9, y0 - 16, w + 18, 18), fill, 2.6); muFill(g, () => g.rect(x - w / 2 - 9, y1 - 6, w + 18, 16), fill, 2.6);
+  for (let k = 1; k < 4; k++) muLine(g, () => { g.moveTo(x - w / 2 + (w * k) / 4, y0 + 8); g.lineTo(x - w / 2 + (w * k) / 4, y1 - 10); }, 1, 'rgba(58,38,24,.3)');
+}
+function muCup(g, x, y, s, fill = MU.goldL) {
+  muFill(g, () => { g.moveTo(x - 22 * s, y - 42 * s); g.quadraticCurveTo(x - 20 * s, y - 8 * s, x, y - 6 * s); g.quadraticCurveTo(x + 20 * s, y - 8 * s, x + 22 * s, y - 42 * s); g.closePath(); }, fill, 2.2);
+  muFill(g, () => g.rect(x - 3.5 * s, y - 7 * s, 7 * s, 16 * s), fill, 1.8); muFill(g, () => g.ellipse(x, y + 10 * s, 15 * s, 5 * s, 0, 0, TAU), fill, 1.8);
+}
+function muWand(g, x1, y1, x2, y2) {
+  muLine(g, () => { g.moveTo(x1, y1); g.lineTo(x2, y2); }, 9); muLine(g, () => { g.moveTo(x1, y1); g.lineTo(x2, y2); }, 5.4, '#b07a48');
+  [0.3, 0.62].forEach((t, i) => { const x = x1 + (x2 - x1) * t, y = y1 + (y2 - y1) * t; muFill(g, () => g.ellipse(x + (i ? 8 : -8), y, 8, 3.6, i ? 0.6 : -0.6, 0, TAU), '#7aa860', 1.2); });
+}
+/** a sword with its guard at (x, y), pointing along `ang` (default: straight up) */
+function muSword(g, x, y, len, ang = -Math.PI / 2, s = 1) {
+  g.save(); g.translate(x, y); g.rotate(ang + Math.PI / 2);
+  muFill(g, () => { g.moveTo(-5 * s, 0); g.lineTo(-5 * s, -len); g.lineTo(0, -len - 16 * s); g.lineTo(5 * s, -len); g.lineTo(5 * s, 0); g.closePath(); }, '#dfe6ee', 2);
+  muLine(g, () => { g.moveTo(0, -8); g.lineTo(0, -len + 2); }, 1, 'rgba(58,38,24,.35)');
+  muFill(g, () => g.rect(-20 * s, -2 * s, 40 * s, 7 * s), MU.goldL, 2); muFill(g, () => g.rect(-3.5 * s, 5 * s, 7 * s, 24 * s), '#8a5a34', 1.8); muFill(g, () => g.arc(0, 32 * s, 6 * s, 0, TAU), MU.goldL, 1.8);
+  g.restore();
+}
+function starPath(g, x, y, R, r, n = 5, rot = -Math.PI / 2) { return () => { starPx(x, y, R, r, n, rot).forEach(([a, b], i) => (i ? g.lineTo(a, b) : g.moveTo(a, b))); g.closePath(); }; }
+function muCoin(g, x, y, r) { muFill(g, () => g.arc(x, y, r, 0, TAU), MU.goldL, 2.2); muLine(g, () => g.arc(x, y, r * 0.8, 0, TAU), 1.2); muLine(g, starPath(g, x, y, r * 0.7, r * 0.27), 1.4); }
+function muRose(g, x, y, r, fill = '#c8504a') { for (let k = 0; k < 5; k++) { const a = (k / 5) * TAU - Math.PI / 2; muFill(g, () => g.arc(x + Math.cos(a) * r * 0.52, y + Math.sin(a) * r * 0.52, r * 0.55, 0, TAU), fill, 1.4); } muFill(g, () => g.arc(x, y, r * 0.38, 0, TAU), '#f2c860', 1.2); }
+function muLily(g, x, y, s) { muLine(g, () => { g.moveTo(x, y); g.lineTo(x, y + 34 * s); }, 2, '#5a7a52'); [-1, 0, 1].forEach((d) => muFill(g, () => g.ellipse(x + d * 8 * s, y - 8 * s, 6 * s, 15 * s, d * 0.5, 0, TAU), '#f6f1e6', 1.4)); }
+function muCrown(g, x, y, s, fill = MU.goldL) {
+  muFill(g, () => { g.moveTo(x - 22 * s, y); g.lineTo(x - 25 * s, y - 20 * s); g.lineTo(x - 12 * s, y - 10 * s); g.lineTo(x, y - 27 * s); g.lineTo(x + 12 * s, y - 10 * s); g.lineTo(x + 25 * s, y - 20 * s); g.lineTo(x + 22 * s, y); g.closePath(); }, fill, 2);
+  [-12, 0, 12].forEach((o) => muFill(g, () => g.arc(x + o * s, y - 5 * s, 2.8 * s, 0, TAU), '#c8504a', 0));
+}
+function muInfinity(g, x, y, s) { [3.4, 1.6].forEach((w, i) => muLine(g, () => { g.ellipse(x - 13 * s, y, 13 * s, 7 * s, 0, 0, TAU); g.moveTo(x + 26 * s, y); g.ellipse(x + 13 * s, y, 13 * s, 7 * s, 0, 0, TAU); }, w, i ? MU.goldL : MU.ink)); }
+function muWings(g, x, y, s, fill = '#f2ece0') {
+  [-1, 1].forEach((d) => {
+    muFill(g, () => { g.moveTo(x, y); g.bezierCurveTo(x + d * 60 * s, y - 92 * s, x + d * 150 * s, y - 74 * s, x + d * 172 * s, y - 22 * s); g.bezierCurveTo(x + d * 132 * s, y - 10 * s, x + d * 122 * s, y + 20 * s, x + d * 92 * s, y + 30 * s); g.bezierCurveTo(x + d * 62 * s, y + 42 * s, x + d * 30 * s, y + 30 * s, x, y + 12 * s); g.closePath(); }, fill, 2.6);
+    for (let k = 1; k < 5; k++) muLine(g, () => { g.moveTo(x + d * (18 + k * 24) * s, y + (8 - k * 3) * s); g.quadraticCurveTo(x + d * (40 + k * 27) * s, y - (28 + k * 6) * s, x + d * (62 + k * 26) * s, y - (40 + k * 5) * s); }, 1.2, 'rgba(58,38,24,.4)');
+  });
+}
+function muCloud(g, x, y, s, fill = '#f4eee2') { muFill(g, () => { g.moveTo(x - 62 * s, y); g.arc(x - 34 * s, y - 6 * s, 28 * s, Math.PI, Math.PI * 1.9); g.arc(x + 4 * s, y - 18 * s, 34 * s, Math.PI * 1.15, Math.PI * 1.95); g.arc(x + 40 * s, y - 2 * s, 26 * s, Math.PI * 1.25, Math.PI * 2.05); g.lineTo(x + 66 * s, y + 4 * s); g.closePath(); }, fill, 2.4); }
+/** a paw raised beside a sitting cat, holding something up */
+function muPaw(g, x, y, s, fill) { muFill(g, () => g.ellipse(x, y, 17 * s, 22 * s, 0, 0, TAU), fill, 2.4 * s); [-6, 0, 6].forEach((o) => muLine(g, () => { g.moveTo(x + o * s, y - 18 * s); g.lineTo(x + o * s, y - 10 * s); }, 1.2, 'rgba(58,38,24,.55)')); }
+function muStars(g, seed, n, y1 = 520) { const r = mulberry(seed); for (let i = 0; i < n; i++) muFill(g, () => g.arc(80 + r() * 440, 110 + r() * (y1 - 110), 0.8 + r() * 1.7, 0, TAU), 'rgba(246,236,200,.85)', 0); }
+function muCape(g, x, y, s, fill) { muFill(g, () => { g.moveTo(x - 46 * s, y - 250 * s); g.bezierCurveTo(x - 120 * s, y - 160 * s, x - 128 * s, y - 40 * s, x - 112 * s, y + 4 * s); g.lineTo(x + 112 * s, y + 4 * s); g.bezierCurveTo(x + 128 * s, y - 40 * s, x + 120 * s, y - 160 * s, x + 46 * s, y - 250 * s); g.closePath(); }, fill, 3 * s); }
+function muDrop(g, x, y, s, fill = MU.goldL) { muFill(g, () => { g.moveTo(x, y - 12 * s); g.bezierCurveTo(x + 8 * s, y - 2 * s, x + 7 * s, y + 8 * s, x, y + 8 * s); g.bezierCurveTo(x - 7 * s, y + 8 * s, x - 8 * s, y - 2 * s, x, y - 12 * s); }, fill, 1.2); }
+function muTower(g, x, y0, y1, w, fill, roof) {
+  muFill(g, () => g.rect(x - w / 2, y0, w, y1 - y0), fill, 2.6);
+  for (let k = 0; k < 4; k++) muFill(g, () => g.rect(x - w / 2 - 4 + (k * (w + 8)) / 4, y0 - 12, (w + 8) / 4 - 6, 14), fill, 2);
+  if (roof) muFill(g, () => { g.moveTo(x - w / 2 - 6, y0 - 12); g.lineTo(x, y0 - 12 - w * 0.9); g.lineTo(x + w / 2 + 6, y0 - 12); g.closePath(); }, roof, 2.4);
+  muFill(g, muRound(g, x - 7, y0 + 30, 14, 26, 7), '#2a2a3a', 1.4);
+}
+function muWheat(g, x, y, h, s = 1) { muLine(g, () => { g.moveTo(x, y); g.quadraticCurveTo(x + 4, y - h * 0.5, x + 2, y - h); }, 1.6, '#a88a3a'); for (let k = 0; k < 5; k++) [-1, 1].forEach((d) => muFill(g, () => g.ellipse(x + 2 + d * 4 * s, y - h + 6 + k * 8 * s, 3 * s, 6 * s, d * 0.5, 0, TAU), '#e8c060', 0.9)); }
+
+/* ---------- the cards ---------- */
+Object.assign(CAT_TAROT, {
+  1: (w) => muchaCard(w, muPal('#f4dcb4', '#e6c49c', '#f6e2b8', '#c8504a', '#f0b090', '#b05040', '#5a7a52', '#f6efe0', '#9a3a32'), 'I', '魔术师', 'The Magician', (g) => {
+    for (let x = 90; x < 520; x += 46) { muRose(g, x, 118 + (x % 3) * 6, 15); muFill(g, () => g.ellipse(x + 20, 132, 10, 4, 0.5, 0, TAU), '#5a7a52', 1); }
+    muHalo(g, 300, 330, 190, { halo: '#f6e2b8', bead: '#c8504a', petal: '#f0b090' });
+    muInfinity(g, 300, 176, 2.2);
+    muCape(g, 300, 600, 0.8, '#b8463e');
+    catFront(g, 300, 600, 0.8, withCollar(CATS.white, '#c8504a'));
+    muWand(g, 368, 352, 404, 214); muPaw(g, 366, 360, 0.9, CATS.white.body);
+    muFill(g, () => { g.moveTo(110, 560); g.lineTo(490, 560); g.lineTo(476, 628); g.lineTo(124, 628); g.closePath(); }, '#d8b47a', 3);
+    muFill(g, () => g.rect(110, 548, 380, 16), '#c49a5a', 2.6);
+    muCup(g, 172, 546, 1.1); muCoin(g, 246, 524, 22); muSword(g, 300, 538, 92, 0, 0.8); muWand(g, 418, 542, 478, 518);
+    for (let x = 96; x < 520; x += 58) { muLily(g, x, 664, 1.1); muRose(g, x + 29, 690, 13); }
+  }),
+  3: (w) => muchaCard(w, muPal('#eee8b8', '#b8cc98', '#f4e8c0', '#d8a050', '#f2d0a0', '#8aa06a', '#4f6f42', '#f6efe0', '#6a7a3a'), 'III', '皇后', 'The Empress', (g) => {
+    for (let k = 0; k < 9; k++) muFill(g, () => g.arc(90 + k * 55, 170 + (k % 2) * 28, 46, 0, TAU), k % 2 ? '#5f8452' : '#6f9660', 2);
+    muFill(g, () => g.rect(452, 150, 44, 470), '#a8d0e0', 2.4); for (let y = 170; y < 610; y += 26) muLine(g, () => { g.moveTo(460, y); g.lineTo(488, y + 14); }, 1.2, 'rgba(255,255,255,.75)');
+    muHalo(g, 300, 330, 180, { halo: '#f4e8c0', bead: '#d8a050', petal: '#f2d0a0' });
+    muFill(g, () => g.ellipse(300, 470, 150, 150, 0, Math.PI, TAU), '#c8504a', 3); muFill(g, () => g.ellipse(300, 600, 170, 56, 0, 0, TAU), '#d8686a', 3);
+    for (let k = 0; k < 12; k++) { const a = Math.PI + 0.18 + (k / 11) * (Math.PI - 0.36); muFill(g, starPath(g, 300 + Math.cos(a) * 82, 214 + Math.sin(a) * 40, 9, 3.6), MU.goldL, 1.2); }
+    catFront(g, 300, 604, 0.78, withCollar(CATS.cream, '#d8a050'));
+    muLine(g, () => { g.moveTo(380, 330); g.lineTo(404, 200); }, 6); muLine(g, () => { g.moveTo(380, 330); g.lineTo(404, 200); }, 3.2, MU.goldL); muFill(g, () => g.arc(405, 194, 13, 0, TAU), MU.goldL, 2); muPaw(g, 378, 344, 0.9, CATS.cream.body);
+    muFill(g, () => { g.moveTo(150, 520); g.bezierCurveTo(110, 490, 120, 450, 150, 466); g.bezierCurveTo(180, 450, 190, 490, 150, 520); }, '#c8504a', 2.6);
+    muLine(g, () => { g.arc(150, 478, 10, 0, TAU); g.moveTo(150, 488); g.lineTo(150, 506); g.moveTo(142, 498); g.lineTo(158, 498); }, 2, MU.goldL);
+    for (let x = 76; x < 530; x += 15) muWheat(g, x, 728, 62 + (x % 4) * 6);
+  }),
+  4: (w) => muchaCard(w, muPal('#f2b878', '#d8784e', '#f4d8a8', '#c8504a', '#e8a070', '#9a5a3a', '#6a4a2a', '#f6e2c0', '#8a2e24'), 'IV', '皇帝', 'The Emperor', (g) => {
+    muPeaks(g, 640, [[60, 430], [120, 330], [176, 410], [236, 300], [300, 400], [366, 290], [430, 380], [492, 320], [540, 410]], '#c87a4e');
+    muFill(g, () => g.rect(170, 250, 260, 420), '#a8a4a0', 3); muFill(g, () => g.rect(150, 236, 300, 26), '#b8b4b0', 2.6);
+    [[176, 248], [424, 248]].forEach(([x, y]) => { muFill(g, () => g.arc(x, y, 22, 0, TAU), '#c8c4c0', 2.4); [-1, 1].forEach((d) => muLine(g, () => g.arc(x + d * 14, y - 4, 10, d > 0 ? -Math.PI * 0.6 : Math.PI * 0.6, d > 0 ? Math.PI * 0.8 : -Math.PI * 0.8 + TAU, d < 0), 3)); });
+    muCape(g, 300, 650, 0.86, '#b8463e');
+    catFront(g, 300, 650, 0.86, withCollar(CATS.grey, '#c8504a'));
+    muCrown(g, 300, 368, 1.3);
+    muLine(g, () => { g.moveTo(392, 410); g.lineTo(404, 250); }, 6); muLine(g, () => { g.moveTo(392, 410); g.lineTo(404, 250); }, 3.2, MU.goldL);
+    muLine(g, () => { g.ellipse(406, 236, 10, 14, 0, 0, TAU); g.moveTo(392, 254); g.lineTo(420, 254); }, 4, MU.goldL); muPaw(g, 390, 420, 0.95, CATS.grey.body);
+    muFill(g, () => g.arc(204, 540, 26, 0, TAU), MU.goldL, 2.4); muLine(g, () => { g.moveTo(204, 514); g.lineTo(204, 496); g.moveTo(196, 504); g.lineTo(212, 504); }, 3, MU.gold); muPaw(g, 214, 572, 0.9, CATS.grey.body);
+  }),
+  5: (w) => muchaCard(w, muPal('#ece0cc', '#c8b8a8', '#f2e6cc', '#c8504a', '#e8b0a0', '#8a7a6a', '#5a4a3a', '#f6efe0', '#8a2e24'), 'V', '教皇', 'The Hierophant', (g) => {
+    muPillar(g, 128, 220, 690, 54, '#a8a4a0'); muPillar(g, 472, 220, 690, 54, '#a8a4a0');
+    muHalo(g, 300, 320, 170, { halo: '#f2e6cc', bead: '#c8504a', petal: '#e8b0a0' });
+    muCape(g, 300, 610, 0.78, '#b8463e');
+    catFront(g, 300, 610, 0.78, withCollar(CATS.white, MU.goldL));
+    [0, 1, 2].forEach((k) => { const y = 358 - k * 24, hw = 38 - k * 7; muFill(g, () => { g.moveTo(300 - hw, y); g.lineTo(300 + hw, y); g.lineTo(300 + hw - 5, y - 24); g.lineTo(300 - hw + 5, y - 24); g.closePath(); }, MU.goldL, 2.2); muLine(g, () => { g.moveTo(300 - hw + 2, y - 4); g.lineTo(300 + hw - 2, y - 4); }, 3, '#c8504a'); });
+    muFill(g, () => g.arc(300, 286, 17, Math.PI, TAU), MU.goldL, 2); muLine(g, () => { g.moveTo(300, 270); g.lineTo(300, 260); }, 3.2, MU.gold); muFill(g, () => g.arc(300, 253, 7, 0, TAU), MU.goldL, 1.8);   // an orb, not a cross
+    muPaw(g, 376, 370, 0.9, CATS.white.body); muLine(g, () => { g.moveTo(370, 352); g.lineTo(368, 334); g.moveTo(378, 350); g.lineTo(378, 330); }, 2.4);
+    [[-0.5, '#e8c060'], [0.5, '#c8ccd4']].forEach(([a, col]) => { g.save(); g.translate(300, 664); g.rotate(a); muFill(g, () => g.arc(0, -34, 12, 0, TAU), col, 2); muFill(g, () => g.rect(-3, -22, 6, 52), col, 1.6); muFill(g, () => g.rect(0, 18, 12, 6), col, 1.4); g.restore(); });
+    catSide(g, 170, 706, 0.42, withCollar(CATS.tabby, '#c8504a'), -1, 0.4); catSide(g, 430, 706, 0.42, withCollar(CATS.ginger, '#5a7a52'), 1, 0.4);
+  }),
+  6: (w) => muchaCard(w, muPal('#f8dcaa', '#a8c8e0', '#f6e6c0', '#e8a050', '#f2c0a0', '#8ab0c8', '#5a7a52', '#f6efe0', '#3a6a8a'), 'VI', '恋人', 'The Lovers', (g) => {
+    muSunFace(g, 300, 170, 46, false, 20);
+    muFill(g, () => { g.moveTo(212, 640); g.lineTo(300, 430); g.lineTo(388, 640); g.closePath(); }, '#9aa8b8', 2.4);
+    muWings(g, 300, 274, 0.82, '#e8d0e8');
+    muFill(g, () => { g.moveTo(270, 262); g.quadraticCurveTo(300, 240, 330, 262); g.lineTo(344, 330); g.quadraticCurveTo(300, 344, 256, 330); g.closePath(); }, '#9a7ab8', 2.4);
+    muFill(g, () => g.ellipse(300, 236, 30, 26, 0, 0, TAU), CATS.ginger.body, 2.4); [-1, 1].forEach((d) => { muFill(g, () => { g.moveTo(300 + d * 26, 222); g.lineTo(300 + d * 22, 196); g.lineTo(300 + d * 8, 214); g.closePath(); }, CATS.ginger.body, 2); muLine(g, () => g.arc(300 + d * 11, 236, 5, Math.PI * 0.1, Math.PI * 0.9), 1.8); });
+    // the tree of knowledge with its little snake, the tree of flames
+    muLine(g, () => { g.moveTo(130, 700); g.lineTo(134, 470); }, 10); muLine(g, () => { g.moveTo(130, 700); g.lineTo(134, 470); }, 7, '#8a5a34');
+    muFill(g, () => g.arc(134, 440, 62, 0, TAU), '#6f9660', 2.6); [[110, 420], [156, 430], [128, 466], [160, 466]].forEach(([x, y]) => muFill(g, () => g.arc(x, y, 7, 0, TAU), '#c8504a', 1.4));
+    muLine(g, () => { g.moveTo(130, 600); g.bezierCurveTo(150, 590, 112, 570, 134, 556); g.bezierCurveTo(152, 546, 118, 530, 136, 516); }, 6, '#6aa060'); muFill(g, () => g.arc(137, 512, 5, 0, TAU), '#6aa060', 1.2);
+    muLine(g, () => { g.moveTo(470, 700); g.lineTo(466, 470); }, 10); muLine(g, () => { g.moveTo(470, 700); g.lineTo(466, 470); }, 7, '#8a5a34');
+    for (let k = 0; k < 12; k++) { const x = 432 + (k % 4) * 24, y = 410 + Math.floor(k / 4) * 34; muFill(g, () => { g.moveTo(x, y + 14); g.quadraticCurveTo(x - 10, y, x, y - 14); g.quadraticCurveTo(x + 10, y, x, y + 14); }, k % 2 ? '#f2a040' : '#e8703a', 1.4); }
+    catSide(g, 208, 704, 0.62, withCollar(CATS.white, '#e8a0b0'), -1, 0.35); catSide(g, 392, 704, 0.62, withCollar(CATS.ginger, '#3a6a8a'), 1, 0.35);
+  }),
+  7: (w) => muchaCard(w, muPal('#dce4f2', '#8aa0c8', '#ece4c8', '#6a8ac8', '#c8d4f0', '#5a6a9a', '#3a4a6a', '#e8e2f2', '#2f3f6a'), 'VII', '战车', 'The Chariot', (g) => {
+    muFill(g, () => g.rect(60, 470, 480, 80), '#c8c0b0', 2.4); [100, 200, 400, 500].forEach((x) => muTower(g, x, 420, 550, 40, '#c8c0b0', '#b0604a'));
+    [[200, 0], [400, 1]].forEach(([x]) => muLine(g, () => { g.moveTo(x, 260); g.lineTo(x, 520); }, 5, MU.ink));
+    muFill(g, () => { g.moveTo(186, 268); g.quadraticCurveTo(300, 236, 414, 268); g.lineTo(414, 300); g.quadraticCurveTo(300, 274, 186, 300); g.closePath(); }, '#2f3f6a', 2.6);
+    for (let k = 0; k < 9; k++) muFill(g, starPath(g, 206 + k * 24, 280 - Math.sin((k / 8) * Math.PI) * 10, 5, 2), MU.goldL, 0.8);
+    catFront(g, 300, 560, 0.66, withCollar(CATS.tabby, '#6a8ac8'));
+    [-1, 1].forEach((d) => muFill(g, () => moonPath(g, 300 + d * 52, 434, 13, 0.42, 0.82, d > 0 ? Math.PI : 0), MU.goldL, 1.6));
+    muCrown(g, 300, 380, 0.9);
+    muWand(g, 356, 470, 372, 340); muPaw(g, 356, 476, 0.8, CATS.tabby.body);
+    muFill(g, () => g.rect(170, 500, 260, 120), '#9aa0b0', 3); muFill(g, () => g.rect(160, 488, 280, 18), '#b8bcc8', 2.4);
+    muWings(g, 300, 552, 0.32, MU.goldL); muFill(g, () => g.arc(300, 552, 12, 0, TAU), '#f2c060', 1.8);
+    [[196, 'black'], [404, 'white']].forEach(([x, k]) => { muFill(g, () => { g.moveTo(x - 46, 610); g.lineTo(x, 560); g.lineTo(x + 46, 610); g.closePath(); }, k === 'black' ? '#5a6a9a' : '#e6c870', 2); catFront(g, x, 716, 0.38, CATS[k]); });
+  }),
+  8: (w) => muchaCard(w, muPal('#f8e6a8', '#e8c870', '#f8ecc8', '#e8a050', '#f2d090', '#c8a050', '#6a8a42', '#f6efe0', '#a86a2a'), 'VIII', '力量', 'Strength', (g) => {
+    muPeaks(g, 600, [[60, 560], [180, 470], [300, 540], [420, 480], [540, 560]], '#8aa8c8');
+    muGround(g, 600, '#8aac6a');
+    muHalo(g, 230, 330, 140, { halo: '#f8ecc8', bead: '#e8a050', petal: '#f2d090' });
+    muInfinity(g, 230, 214, 1.8);
+    // the lion: a great soft mane, eyes half closed, at ease
+    for (let k = 0; k < 18; k++) { const a = (k / 18) * TAU; muFill(g, () => g.ellipse(400 + Math.cos(a) * 58, 530 + Math.sin(a) * 58, 24, 36, a + Math.PI / 2, 0, TAU), k % 2 ? '#d88a3a' : '#c27a32', 1.6); }
+    muFill(g, () => g.ellipse(470, 640, 90, 50, 0, 0, TAU), '#e0a050', 3);
+    muFill(g, () => g.arc(400, 530, 56, 0, TAU), '#eab060', 3);
+    [-1, 1].forEach((d) => { muLine(g, () => g.arc(400 + d * 20, 520, 8, Math.PI * 0.15, Math.PI * 0.85), 2.4); muFill(g, () => g.arc(400 + d * 44, 488, 11, 0, TAU), '#eab060', 2); });
+    muFill(g, () => { g.moveTo(392, 546); g.lineTo(408, 546); g.lineTo(400, 556); g.closePath(); }, '#8a4a3a', 1.4); muLine(g, () => { g.moveTo(400, 556); g.quadraticCurveTo(392, 568, 382, 562); g.moveTo(400, 556); g.quadraticCurveTo(408, 568, 418, 562); }, 1.8);
+    catSide(g, 236, 708, 0.86, withCollar(CATS.white, '#e8a050'), -1, 0.1);
+    for (let k = 0; k < 7; k++) { const a = Math.PI * 1.1 + k * 0.14; muRose(g, 200 + Math.cos(a) * 40, 470 + Math.sin(a) * 16, 8, k % 2 ? '#f2b0b8' : '#f6f1e6'); }
+    muPaw(g, 352, 552, 0.8, CATS.white.body);
+    for (let x = 80; x < 330; x += 34) muRose(g, x, 700 - (x % 3) * 6, 9, '#f2b0b8');
+  }),
+  9: (w) => muchaCard(w, muPal('#344462', '#7a8aa8', '#d8d4c0', '#8aa0b8', '#c8ccd8', '#5a6a80', '#2f3f52', '#e8eef2', '#3a4a64'), 'IX', '隐士', 'The Hermit', (g) => {
+    muStars(g, 9901, 70, 460);
+    muPeaks(g, 740, [[60, 600], [140, 520], [230, 590], [330, 470], [430, 560], [540, 500]], '#e6ecf2');
+    muFill(g, () => { g.moveTo(244, 520); g.bezierCurveTo(226, 430, 268, 410, 304, 408); g.bezierCurveTo(330, 396, 372, 380, 392, 360); g.bezierCurveTo(388, 420, 380, 470, 372, 540); g.closePath(); }, '#6a6a78', 2.8);
+    catSide(g, 340, 700, 0.9, withCollar(CATS.grey, '#5a6a80'), 1, 0.05);
+    muFill(g, () => { g.moveTo(388, 470); g.bezierCurveTo(400, 560, 420, 640, 420, 704); g.lineTo(300, 704); g.bezierCurveTo(330, 640, 350, 560, 352, 520); g.closePath(); }, '#6a6a78', 2.6);
+    muLine(g, () => { g.moveTo(420, 380); g.lineTo(446, 712); }, 7); muLine(g, () => { g.moveTo(420, 380); g.lineTo(446, 712); }, 4, '#b07a48');
+    const lx = 196, ly = 420, glow = g.createRadialGradient(lx, ly, 6, lx, ly, 110); glow.addColorStop(0, 'rgba(255,236,170,.75)'); glow.addColorStop(1, 'rgba(255,220,140,0)');
+    g.fillStyle = glow; g.fillRect(lx - 110, ly - 110, 220, 220);
+    muLine(g, () => { g.moveTo(lx, ly - 46); g.quadraticCurveTo(lx + 30, ly - 70, 262, 432); }, 2.4);
+    muFill(g, () => { g.moveTo(lx - 26, ly - 30); g.lineTo(lx + 26, ly - 30); g.lineTo(lx + 22, ly + 32); g.lineTo(lx - 22, ly + 32); g.closePath(); }, '#fbe6a6', 2.6);
+    muFill(g, () => { g.moveTo(lx - 30, ly - 30); g.lineTo(lx, ly - 50); g.lineTo(lx + 30, ly - 30); g.closePath(); }, '#8a7a5a', 2.2); muFill(g, () => g.rect(lx - 28, ly + 30, 56, 10), '#8a7a5a', 2);
+    muLine(g, starPath(g, lx, ly, 14, 14, 3), 1.8, MU.gold); muLine(g, starPath(g, lx, ly, 14, 14, 3, Math.PI / 2), 1.8, MU.gold);
+    muPaw(g, 262, 440, 0.85, CATS.grey.body);
+  }),
+  10: (w) => muchaCard(w, muPal('#a8c0e0', '#e8d0a0', '#f2e6c8', '#e8a050', '#c8d8f0', '#6a8ab0', '#3a5a7a', '#f6efe0', '#3a5a8a'), 'X', '命运之轮', 'Wheel of Fortune', (g) => {
+    [[124, 190], [476, 190], [124, 640], [476, 640]].forEach(([x, y], i) => { muCloud(g, x, y, 0.8); muFill(g, () => { g.moveTo(x - 20, y - 8); g.lineTo(x, y - 2); g.lineTo(x + 20, y - 8); g.lineTo(x + 20, y + 10); g.lineTo(x, y + 16); g.lineTo(x - 20, y + 10); g.closePath(); }, ['#e8c060', '#c8a07a', '#a8885a', '#e8a050'][i], 1.6); });
+    const cx = 300, cy = 410;
+    muFill(g, () => g.arc(cx, cy, 160, 0, TAU), '#e8a050', 3.2); muFill(g, () => g.arc(cx, cy, 128, 0, TAU), '#f2dca8', 2.4); muFill(g, () => g.arc(cx, cy, 62, 0, TAU), '#e8c070', 2.4); muFill(g, () => g.arc(cx, cy, 16, 0, TAU), MU.goldL, 2);
+    for (let k = 0; k < 8; k++) { const a = (k / 8) * TAU; muLine(g, () => { g.moveTo(cx + Math.cos(a) * 16, cy + Math.sin(a) * 16); g.lineTo(cx + Math.cos(a) * 128, cy + Math.sin(a) * 128); }, 2.4); }
+    g.fillStyle = MU.ink; g.font = 'italic 600 30px "Cormorant Garamond", serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    ['T', 'A', 'R', 'O'].forEach((ch, k) => { const a = -Math.PI / 2 + (k * Math.PI) / 2; g.fillText(ch, cx + Math.cos(a) * 144, cy + Math.sin(a) * 144); });
+    ['☿', '♄', '△', '♒'].forEach((ch, k) => { const a = -Math.PI / 4 + (k * Math.PI) / 2; g.font = '22px serif'; g.fillText(ch, cx + Math.cos(a) * 96, cy + Math.sin(a) * 96); });
+    muLine(g, () => { g.moveTo(150, 260); g.bezierCurveTo(110, 320, 170, 370, 130, 430); g.bezierCurveTo(100, 480, 150, 520, 140, 560); }, 9, '#c8a040'); muFill(g, () => g.ellipse(140, 566, 9, 12, 0, 0, TAU), '#c8a040', 1.6);
+    catSide(g, 468, 600, 0.5, withCollar({ body: '#c8704a', chest: '#f2d8c0', eye: '#e8c048' }, MU.goldL), 1, 0.6);
+    muSword(g, 324, 230, 60, -Math.PI / 2 + 0.3, 0.7);
+    catFront(g, 300, 252, 0.42, withCollar(CATS.cream, '#3a5a8a'));
+  }),
+  11: (w) => muchaCard(w, muPal('#cab0da', '#9a7ab8', '#f2e2c8', '#c8504a', '#e0c0e8', '#8a5a8a', '#4a3a5a', '#f6efe0', '#7a2a3a'), 'XI', '正义', 'Justice', (g) => {
+    muFill(g, () => g.rect(120, 200, 360, 520), '#7a4a8a', 2.4); for (let x = 140; x < 470; x += 30) muLine(g, () => { g.moveTo(x, 210); g.quadraticCurveTo(x + 8, 450, x, 700); }, 1.2, 'rgba(255,255,255,.18)');
+    muPillar(g, 120, 220, 700, 46, '#a8a4a0'); muPillar(g, 480, 220, 700, 46, '#a8a4a0');
+    muHalo(g, 300, 330, 160, { halo: '#f2e2c8', bead: '#c8504a', petal: '#e0c0e8' });
+    muCape(g, 300, 640, 0.84, '#b8463e');
+    catFront(g, 300, 640, 0.84, withCollar(CATS.tabby, MU.goldL));
+    muFill(g, () => g.rect(270, 330, 60, 22), MU.goldL, 2); [-20, 0, 20].forEach((o) => muFill(g, () => g.rect(300 + o - 6, 316, 12, 16), MU.goldL, 1.6));
+    muSword(g, 394, 470, 210, -Math.PI / 2, 1.05); muPaw(g, 394, 488, 0.9, CATS.tabby.body);
+    const sx = 196, sy = 420; muLine(g, () => { g.moveTo(sx, sy - 40); g.lineTo(sx, sy + 70); g.moveTo(sx - 70, sy - 20); g.lineTo(sx + 70, sy - 20); }, 3.4, MU.gold);
+    [-70, 70].forEach((d) => { muLine(g, () => { g.moveTo(sx + d, sy - 20); g.lineTo(sx + d - 22, sy + 30); g.moveTo(sx + d, sy - 20); g.lineTo(sx + d + 22, sy + 30); }, 1.6, MU.gold); muFill(g, () => g.ellipse(sx + d, sy + 32, 26, 9, 0, 0, Math.PI), MU.goldL, 2); });
+    muPaw(g, 206, 482, 0.9, CATS.tabby.body);
+  }),
+  12: (w) => muchaCard(w, muPal('#cadce2', '#a8c0b8', '#f2eace', '#8ab0a0', '#d8e8e0', '#6a8a7a', '#3a5a4a', '#f6efe0', '#3a5a5a'), 'XII', '倒吊人', 'The Hanged Man', (g) => {
+    muGround(g, 680, '#8aac7a');
+    muLine(g, () => { g.moveTo(150, 720); g.lineTo(160, 170); }, 14); muLine(g, () => { g.moveTo(150, 720); g.lineTo(160, 170); }, 10, '#9a6a3e');
+    muLine(g, () => { g.moveTo(450, 720); g.lineTo(440, 170); }, 14); muLine(g, () => { g.moveTo(450, 720); g.lineTo(440, 170); }, 10, '#9a6a3e');
+    muLine(g, () => { g.moveTo(130, 176); g.lineTo(470, 170); }, 16); muLine(g, () => { g.moveTo(130, 176); g.lineTo(470, 170); }, 11, '#9a6a3e');
+    [[150, 160], [210, 162], [380, 158], [450, 156], [158, 300], [446, 360]].forEach(([x, y], i) => muFill(g, () => g.ellipse(x, y, 13, 6, i % 2 ? 0.6 : -0.6, 0, TAU), '#6aa060', 1.4));
+    const hy = 466, glow = g.createRadialGradient(300, hy, 30, 300, hy, 110); glow.addColorStop(0, 'rgba(255,236,160,.85)'); glow.addColorStop(1, 'rgba(255,220,130,0)');
+    g.fillStyle = glow; g.fillRect(190, hy - 110, 220, 220);
+    muLine(g, () => { g.moveTo(300, 172); g.lineTo(300, 236); }, 3, '#8a7a5a');
+    g.save(); g.translate(300, 236); g.rotate(Math.PI); catFront(g, 0, 0, 0.82, withCollar(CATS.ginger, '#3a5a5a')); g.restore();
+  }),
+  13: (w) => muchaCard(w, muPal('#f2caa2', '#6a7a9a', '#e8e0d0', '#8a8aa0', '#d8d0e0', '#4a4a5a', '#2a2a34', '#f6efe0', '#2a2a34'), 'XIII', '死神', 'Death', (g) => {
+    muSunFace(g, 430, 562, 40, false, 14);
+    muTower(g, 372, 470, 580, 32, '#4a4a5a'); muTower(g, 488, 470, 580, 32, '#4a4a5a');
+    muFill(g, () => g.rect(60, 576, 480, 50), '#6a8aa8', 2.2); for (let x = 90; x < 520; x += 46) muLine(g, () => { g.moveTo(x, 598); g.quadraticCurveTo(x + 12, 592, x + 24, 598); }, 1.2, 'rgba(240,240,250,.6)');
+    muGround(g, 640, '#8a9a7a');
+    muLine(g, () => { g.moveTo(312, 712); g.lineTo(310, 230); }, 7); muLine(g, () => { g.moveTo(312, 712); g.lineTo(310, 230); }, 4, '#8a7a6a');
+    muFill(g, () => { g.moveTo(310, 240); g.quadraticCurveTo(370, 226, 430, 246); g.lineTo(430, 350); g.quadraticCurveTo(370, 334, 310, 352); g.closePath(); }, '#24222c', 2.8);
+    muRose(g, 370, 296, 26, '#f6f1e6');
+    muFill(g, () => { g.moveTo(126, 560); g.bezierCurveTo(112, 470, 150, 380, 206, 372); g.bezierCurveTo(262, 380, 300, 470, 286, 560); g.closePath(); }, '#1e1c26', 2.8);
+    catFront(g, 206, 712, 0.82, withCollar(CATS.black, '#f6f1e6'));
+    g.save(); g.translate(436, 690); g.rotate(0.5); muCrown(g, 0, 0, 0.9); g.restore();
+    muLine(g, () => { g.moveTo(480, 706); g.quadraticCurveTo(476, 680, 482, 664); }, 2, '#5a7a52'); muFill(g, () => g.ellipse(482, 660, 7, 9, 0, 0, TAU), '#f2b0b8', 1.2);
+  }),
+  14: (w) => muchaCard(w, muPal('#f4e2c2', '#a8c8d8', '#f6ecd0', '#e8a050', '#e0d0f0', '#8ab0c8', '#4f7a6a', '#f6efe0', '#4a6a8a'), 'XIV', '节制', 'Temperance', (g) => {
+    muPeaks(g, 560, [[60, 520], [170, 450], [300, 520], [430, 430], [540, 500]], '#a8b8c8');
+    const glow = g.createRadialGradient(440, 420, 4, 440, 420, 70); glow.addColorStop(0, 'rgba(255,236,170,.9)'); glow.addColorStop(1, 'rgba(255,220,140,0)'); g.fillStyle = glow; g.fillRect(370, 350, 140, 140); muCrown(g, 440, 430, 0.8);
+    muGround(g, 590, '#9ab87a');
+    muLine(g, () => { g.moveTo(330, 728); g.bezierCurveTo(380, 660, 360, 600, 430, 450); }, 14, '#e8dcc0');
+    muFill(g, () => g.ellipse(170, 700, 110, 34, 0, 0, TAU), '#7ab0c8', 2.6);
+    for (let x = 84; x < 200; x += 28) { muLine(g, () => { g.moveTo(x, 690); g.lineTo(x, 640); }, 2, '#5a7a52'); [-1, 1].forEach((d) => muFill(g, () => g.ellipse(x + d * 6, 636, 6, 11, d * 0.5, 0, TAU), '#8a6ac8', 1.2)); }
+    muWings(g, 300, 470, 1.0, '#f4eee6');
+    catFront(g, 300, 640, 0.82, withCollar(CATS.white, '#e8a050'));
+    muFill(g, () => { g.moveTo(286, 470); g.lineTo(314, 470); g.lineTo(300, 446); g.closePath(); }, '#e8a050', 1.6);
+    muCup(g, 222, 488, 1.0); muCup(g, 382, 548, 1.0);
+    muLine(g, () => { g.moveTo(232, 450); g.bezierCurveTo(300, 452, 330, 470, 372, 510); }, 6, 'rgba(140,200,230,.95)'); muLine(g, () => { g.moveTo(232, 450); g.bezierCurveTo(300, 452, 330, 470, 372, 510); }, 1.4, 'rgba(255,255,255,.85)');
+    muPaw(g, 226, 500, 0.8, CATS.white.body); muPaw(g, 384, 560, 0.8, CATS.white.body);
+  }),
+  15: (w) => muchaCard(w, muPal('#2c2432', '#5a3a4a', '#d8c8b8', '#8a4a5a', '#c8a0b0', '#4a2a3a', '#2a1a24', '#e8d8e0', '#3a1a24'), 'XV', '恶魔', 'The Devil', (g) => {
+    muStars(g, 1515, 40, 400);
+    muFill(g, starPath(g, 300, 196, 34, 13, 5, Math.PI / 2), MU.goldL, 2);
+    [-1, 1].forEach((d) => muFill(g, () => { g.moveTo(300, 330); g.quadraticCurveTo(300 + d * 90, 220, 300 + d * 186, 240); g.lineTo(300 + d * 160, 270); g.lineTo(300 + d * 170, 300); g.lineTo(300 + d * 140, 320); g.lineTo(300 + d * 146, 352); g.lineTo(300 + d * 110, 360); g.quadraticCurveTo(300 + d * 60, 380, 300, 380); g.closePath(); }, '#4a3a5a', 2.6));
+    muFill(g, () => g.rect(230, 470, 140, 110), '#1e1a24', 3); muFill(g, () => g.arc(300, 520, 9, 0, TAU), MU.gold, 1.6);
+    catFront(g, 300, 476, 0.6, withCollar({ body: '#5a4a6a', chest: '#7a6a88', eye: '#f2c060' }, '#8a4a5a'));
+    [-1, 1].forEach((d) => muFill(g, () => { g.moveTo(300 + d * 18, 312); g.quadraticCurveTo(300 + d * 34, 288, 300 + d * 28, 272); g.quadraticCurveTo(300 + d * 26, 292, 300 + d * 8, 306); g.closePath(); }, '#e8d8c0', 1.6));
+    muLine(g, () => { g.moveTo(232, 420); g.lineTo(206, 520); }, 6); muLine(g, () => { g.moveTo(232, 420); g.lineTo(206, 520); }, 3.4, '#8a5a34');
+    muFill(g, () => { g.moveTo(206, 522); g.quadraticCurveTo(190, 548, 204, 560); g.quadraticCurveTo(218, 548, 206, 522); }, '#f2a040', 1.6);
+    [[180, 'cream'], [420, 'ginger']].forEach(([x, k], i) => {
+      catFront(g, x, 718, 0.42, withCollar(CATS[k], '#8a8a96'));
+      // the chains hang slack: either kitten could slip its head free
+      muLine(g, () => { g.moveTo(300 + (i ? 9 : -9), 524); g.quadraticCurveTo((300 + x) / 2, 640, x, 612); }, 2.2, '#9a9aa6');
+      for (let t = 0.12; t < 1; t += 0.12) { const px_ = (1 - t) * (1 - t) * (300 + (i ? 9 : -9)) + 2 * (1 - t) * t * ((300 + x) / 2) + t * t * x, py = (1 - t) * (1 - t) * 524 + 2 * (1 - t) * t * 640 + t * t * 612; muLine(g, () => g.ellipse(px_, py, 4, 2.6, 0.4, 0, TAU), 1.2, '#b8b8c4'); }
+    });
+  }),
+  16: (w) => muchaCard(w, muPal('#3a3a58', '#7a6a8a', '#e0d8c8', '#e8c048', '#d8c8e8', '#5a5a7a', '#2a2a40', '#f6efe0', '#3a3050'), 'XVI', '高塔', 'The Tower', (g) => {
+    muFill(g, () => { g.moveTo(150, 740); g.lineTo(190, 600); g.lineTo(250, 560); g.lineTo(360, 556); g.lineTo(420, 610); g.lineTo(460, 740); g.closePath(); }, '#6a5a6a', 2.8);
+    muFill(g, () => g.rect(250, 250, 100, 330), '#a8a0a0', 3);
+    for (let y = 280; y < 570; y += 30) muLine(g, () => { g.moveTo(250, y); g.lineTo(350, y); }, 1, 'rgba(58,38,24,.3)');
+    [[270, 320], [318, 400], [276, 480]].forEach(([x, y]) => { muFill(g, () => g.rect(x, y, 22, 32), '#2a2030', 1.6); muFill(g, () => { g.moveTo(x + 2, y + 30); g.quadraticCurveTo(x + 11, y - 6, x + 20, y + 30); }, '#f2a040', 1.2); });
+    muFill(g, () => { g.moveTo(130, 120); g.lineTo(230, 200); g.lineTo(206, 210); g.lineTo(300, 262); g.lineTo(220, 226); g.lineTo(242, 214); g.lineTo(150, 150); g.closePath(); }, '#fbe6a6', 2.2);
+    g.save(); g.translate(352, 214); g.rotate(0.6); muCrown(g, 0, 0, 1.2); g.restore();
+    const r = mulberry(1616); for (let k = 0; k < 22; k++) muDrop(g, 90 + r() * 420, 130 + r() * 380, 0.9);
+    [[176, 400, 0.7, 'grey'], [440, 450, -0.8, 'tabby']].forEach(([x, y, a, k]) => { muCloud(g, x, y + 90, 0.7, '#d8d0e0'); g.save(); g.translate(x, y); g.rotate(a); catFront(g, 0, 60, 0.32, withCollar(CATS[k], '#e8c048')); g.restore(); });
+  }),
+  18: (w) => muchaCard(w, muPal('#2c3c5c', '#5a7a8a', '#e8e2c8', '#8aa0c8', '#c8d4e8', '#4a6a8a', '#2a3a4a', '#e8eef2', '#2a3a5a'), 'XVIII', '月亮', 'The Moon', (g) => {
+    muStars(g, 1818, 50, 380);
+    for (let k = 0; k < 16; k++) { const a = (k / 16) * TAU; muLine(g, () => { g.moveTo(300 + Math.cos(a) * 66, 220 + Math.sin(a) * 66); g.lineTo(300 + Math.cos(a) * (k % 2 ? 86 : 100), 220 + Math.sin(a) * (k % 2 ? 86 : 100)); }, 2.4, '#e8dca0'); }
+    muFill(g, () => g.arc(300, 220, 64, 0, TAU), '#f2ecd0', 2.8); muFill(g, () => moonPath(g, 300, 220, 56, 0.4, 0.86), '#e8dca0', 0);
+    muLine(g, () => g.arc(282, 210, 9, Math.PI * 0.15, Math.PI * 0.85), 2); muLine(g, () => g.arc(286, 246, 12, Math.PI * 0.2, Math.PI * 0.8), 1.8);
+    const r = mulberry(1819); for (let k = 0; k < 12; k++) muDrop(g, 220 + r() * 160, 310 + r() * 90, 0.7, '#e8dca0');
+    muTower(g, 112, 380, 640, 46, '#b8b4ac', '#8a8a96'); muTower(g, 488, 380, 640, 46, '#b8b4ac', '#8a8a96');
+    muPeaks(g, 560, [[140, 520], [240, 470], [340, 510], [460, 470]], '#5a6a7a');
+    muGround(g, 590, '#6a8a6a');
+    muLine(g, () => { g.moveTo(290, 700); g.bezierCurveTo(250, 650, 340, 620, 300, 560); g.bezierCurveTo(270, 520, 310, 500, 300, 480); }, 12, '#e8dcc0');
+    muFill(g, () => g.ellipse(300, 712, 140, 30, 0, 0, TAU), '#4a8aa8', 2.6);
+    muFill(g, () => g.ellipse(300, 704, 16, 10, 0, 0, TAU), '#d8704a', 2); [-1, 1].forEach((d) => muFill(g, () => g.ellipse(300 + d * 18, 690, 8, 6, d * 0.6, 0, TAU), '#d8704a', 1.6));
+    catSide(g, 196, 664, 0.5, withCollar(CATS.black, '#8aa0c8'), -1, 0.75); catSide(g, 404, 664, 0.5, withCollar(CATS.white, '#8aa0c8'), 1, 0.75);
+  }),
+  19: (w) => muchaCard(w, muPal('#faeaa8', '#f2c870', '#fbf0c8', '#e8a050', '#f8d890', '#d8a050', '#7a8a42', '#fff6e0', '#c87a2a'), 'XIX', '太阳', 'The Sun', (g) => {
+    muSunFace(g, 300, 224, 68, true, 22);
+    muFill(g, () => g.rect(60, 500, 480, 90), '#c8b8a0', 2.6); for (let y = 520; y < 590; y += 22) for (let x = 60 + ((y / 22) % 2) * 22; x < 540; x += 44) muLine(g, () => g.rect(x, y - 22, 44, 22), 1, 'rgba(58,38,24,.35)');
+    [130, 230, 370, 470].forEach((x) => { muLine(g, () => { g.moveTo(x, 520); g.lineTo(x, 450); }, 3, '#5a7a52'); for (let k = 0; k < 12; k++) { const a = (k / 12) * TAU; muFill(g, () => g.ellipse(x + Math.cos(a) * 18, 440 + Math.sin(a) * 18, 9, 4, a, 0, TAU), '#f2c040', 1); } muFill(g, () => g.arc(x, 440, 11, 0, TAU), '#8a5a2a', 1.4); });
+    muGround(g, 600, '#a8c070');
+    // a white pony, the kitten riding bareback with the red banner
+    muFill(g, () => g.ellipse(300, 640, 92, 40, 0, 0, TAU), '#f6f2ea', 3);
+    [[236, 0], [262, 0], [338, 0], [364, 0]].forEach(([x]) => muFill(g, muRound(g, x - 8, 664, 16, 56, 7), '#f6f2ea', 2.4));
+    muFill(g, () => { g.moveTo(218, 640); g.quadraticCurveTo(196, 600, 206, 566); g.lineTo(236, 560); g.quadraticCurveTo(240, 600, 250, 630); g.closePath(); }, '#f6f2ea', 2.6);
+    muFill(g, () => g.ellipse(196, 566, 30, 18, -0.4, 0, TAU), '#f6f2ea', 2.6); muFill(g, () => g.arc(192, 560, 3, 0, TAU), MU.ink, 0);
+    muLine(g, () => { g.moveTo(232, 560); g.quadraticCurveTo(248, 590, 244, 624); }, 7, '#e8c060');
+    catFront(g, 300, 618, 0.4, withCollar(CATS.ginger, '#c8504a'));
+    muLine(g, () => { g.moveTo(340, 600); g.lineTo(360, 420); }, 5); muLine(g, () => { g.moveTo(340, 600); g.lineTo(360, 420); }, 2.6, '#8a5a34');
+    muFill(g, () => { g.moveTo(360, 424); g.bezierCurveTo(420, 400, 460, 450, 500, 430); g.lineTo(492, 500); g.bezierCurveTo(450, 516, 412, 470, 354, 490); g.closePath(); }, '#c8504a', 2.6);
+  }),
+  20: (w) => muchaCard(w, muPal('#cadaf2', '#8aa8d0', '#f2e8d0', '#8aa0c8', '#e0e8f8', '#6a8ab0', '#3a5a7a', '#f6efe0', '#3a5a8a'), 'XX', '审判', 'Judgement', (g) => {
+    muCloud(g, 170, 300, 1.1); muCloud(g, 430, 300, 1.1); muCloud(g, 300, 330, 1.3);
+    muWings(g, 300, 240, 0.9, '#f2ece0');
+    muFill(g, () => { g.moveTo(272, 228); g.quadraticCurveTo(300, 210, 328, 228); g.lineTo(338, 300); g.quadraticCurveTo(300, 312, 262, 300); g.closePath(); }, '#8aa0c8', 2.4);
+    muFill(g, () => g.ellipse(300, 204, 28, 24, 0, 0, TAU), CATS.cream.body, 2.4); [-1, 1].forEach((d) => { muFill(g, () => { g.moveTo(300 + d * 24, 190); g.lineTo(300 + d * 20, 166); g.lineTo(300 + d * 7, 184); g.closePath(); }, CATS.cream.body, 2); muLine(g, () => g.arc(300 + d * 10, 204, 5, Math.PI * 1.1, Math.PI * 1.9), 1.8); });
+    muFill(g, () => { g.moveTo(316, 218); g.lineTo(452, 336); g.lineTo(472, 312); g.lineTo(476, 352); g.lineTo(440, 348); g.lineTo(306, 228); g.closePath(); }, MU.goldL, 2.2);
+    muFill(g, () => g.rect(390, 300, 44, 44), '#f6f1e6', 2); muFill(g, () => g.arc(412, 322, 10, 0, TAU), '#e8b84a', 1.4); muLine(g, () => { for (let k = 0; k < 8; k++) { const a = k * Math.PI / 4; g.moveTo(412 + Math.cos(a) * 13, 322 + Math.sin(a) * 13); g.lineTo(412 + Math.cos(a) * 18, 322 + Math.sin(a) * 18); } }, 2, '#e8b84a');   // a sun, not a red cross
+    muPeaks(g, 560, [[60, 520], [150, 450], [250, 510], [360, 440], [470, 500], [540, 470]], '#b8c4d8', '#f6f8fa');
+    muFill(g, () => g.rect(60, 590, 480, 140), '#6a9ac0', 2.4); for (let x = 80; x < 520; x += 40) muLine(g, () => { g.moveTo(x, 612); g.quadraticCurveTo(x + 10, 606, x + 20, 612); }, 1.2, 'rgba(240,248,255,.6)');
+    [[176, 'grey'], [300, 'white'], [424, 'tabby']].forEach(([x, k]) => {
+      catFront(g, x, 676, 0.36, withCollar(CATS[k], '#8aa0c8'));
+      [-1, 1].forEach((d) => muFill(g, () => g.ellipse(x + d * 40, 552, 9, 13, d * 0.3, 0, TAU), CATS[k].body, 1.6));
+      muFill(g, () => g.rect(x - 52, 664, 104, 40), '#9a7a5a', 2.6); muLine(g, () => g.rect(x - 52, 664, 104, 40), 1, 'rgba(58,38,24,.4)');
+    });
+  }),
+  21: (w) => muchaCard(w, muPal('#dccbe8', '#a8b8d8', '#f2e8d0', '#8a6ab0', '#e0d0f0', '#7a6a9a', '#4f6f52', '#f6efe0', '#4a3a6a'), 'XXI', '世界', 'The World', (g) => {
+    const heads = [[128, 196, '#f2d8c8'], [472, 196, '#a87a50'], [128, 650, '#a87a50'], [472, 650, '#e8a050']];
+    heads.forEach(([x, y, col], i) => {
+      muCloud(g, x, y + 24, 0.7);
+      muFill(g, () => g.arc(x, y, 24, 0, TAU), col, 2.2);
+      if (i === 0) { muLine(g, () => g.arc(x, y - 30, 14, 0, TAU), 1.6, MU.goldL); [-1, 1].forEach((d) => muLine(g, () => g.arc(x + d * 8, y, 4, Math.PI * 1.1, Math.PI * 1.9), 1.6)); }
+      if (i === 1) { muFill(g, () => { g.moveTo(x + 14, y); g.lineTo(x + 34, y + 6); g.lineTo(x + 14, y + 10); g.closePath(); }, '#e8c060', 1.4); muFill(g, () => g.arc(x + 6, y - 6, 3, 0, TAU), MU.ink, 0); }
+      if (i === 2) { [-1, 1].forEach((d) => muLine(g, () => { g.moveTo(x + d * 18, y - 14); g.quadraticCurveTo(x + d * 34, y - 24, x + d * 30, y - 40); }, 4, '#efe3c8')); muFill(g, () => g.ellipse(x, y + 10, 12, 8, 0, 0, TAU), '#d8b090', 1.4); }
+      if (i === 3) for (let k = 0; k < 12; k++) { const a = (k / 12) * TAU; muFill(g, () => g.ellipse(x + Math.cos(a) * 26, y + Math.sin(a) * 26, 8, 12, a + Math.PI / 2, 0, TAU), '#c27a32', 1); }
+    });
+    for (let k = 0; k < 64; k++) { const a = (k / 64) * TAU; muFill(g, () => g.ellipse(300 + Math.cos(a) * 140, 414 + Math.sin(a) * 214, 7, 16, a, 0, TAU), k % 2 ? '#5f8452' : '#6f9660', 1); }
+    [[300, 200], [300, 628]].forEach(([x, y]) => { [-1, 1].forEach((d) => muFill(g, () => { g.moveTo(x, y); g.bezierCurveTo(x + d * 30, y - 24, x + d * 40, y + 20, x, y); }, '#c8504a', 1.8)); muFill(g, () => g.arc(x, y, 6, 0, TAU), '#c8504a', 1.4); });
+    muFill(g, () => { g.moveTo(240, 380); g.bezierCurveTo(300, 360, 340, 440, 372, 560); g.lineTo(330, 566); g.bezierCurveTo(310, 470, 280, 420, 236, 410); g.closePath(); }, '#9a7ab8', 2.4);
+    catFront(g, 300, 560, 0.58, withCollar(CATS.cream, '#9a7ab8'));
+    muWand(g, 214, 470, 196, 360); muWand(g, 386, 470, 404, 360); muPaw(g, 218, 470, 0.7, CATS.cream.body); muPaw(g, 382, 470, 0.7, CATS.cream.body);
+  }),
+});
+
+/* gentle reversed readings: when a card comes up upside down, its light is turned inward or held back for now */
+const MAJOR_REV = [
+  '先别急着跳，看清脚下再出发也来得及。',
+  '工具都在，只是还没找到用法，慢慢试。',
+  '心里有些声音被忽略了，留一点安静给自己。',
+  '照顾别人之前，也记得照顾自己。',
+  '规则太紧了，可以松一松，给自己留点余地。',
+  '不必事事照着旧方法，听听自己的想法。',
+  '选择让你犹豫，先弄清自己真正在意什么。',
+  '方向有些乱，停下来理一理再走。',
+  '今天有点累也没关系，温柔地对待自己的情绪。',
+  '独处太久了，也可以向外伸出手。',
+  '事情暂时不顺，等一等，风还会转。',
+  '对自己公平一点，不必苛责。',
+  '卡住的时候，换个角度，或干脆放下一会儿。',
+  '有些结束拖得太久了，可以轻轻放手。',
+  '节奏乱了，先把一件小事做好。',
+  '你已经在松开那些束缚了，再勇敢一点。',
+  '变化正慢慢发生，不一定要一下子推倒重来。',
+  '希望还在，只是今晚云多了一些。',
+  '迷雾正在散去，答案会越来越清楚。',
+  '阳光被遮住一会儿，也会再出来。',
+  '还没准备好回应也没关系，慢慢来。',
+  '只差最后一步，别忘了收尾。',
+];

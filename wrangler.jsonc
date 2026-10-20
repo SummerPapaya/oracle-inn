@@ -1,0 +1,10 @@
+// Cloudflare Workers with static assets: `npx wrangler deploy` publishes public/.
+// (For Cloudflare Pages instead: no build command, build output directory `public`.)
+{
+  "name": "oracle-inn",
+  "compatibility_date": "2025-09-01",
+  "assets": {
+    "directory": "./public",
+    "not_found_handling": "404-page"
+  }
+}

@@ -1,0 +1,34 @@
+/* ================= materials ================= */
+
+const STEPS = new THREE.DataTexture(new Uint8Array([88, 168, 255]), 3, 1, THREE.RedFormat);
+STEPS.minFilter = STEPS.magFilter = THREE.NearestFilter; STEPS.generateMipmaps = false; STEPS.needsUpdate = true;
+let M;
+const INK = 0x2e1f1a;
+let HULL, HULL_THIN;
+/** an ink outline: a back-facing copy pushed out along the normals */
+function outline(mesh, thin = false) {
+  const mat = thin ? HULL_THIN : HULL;
+  const h = mesh.isInstancedMesh ? new THREE.InstancedMesh(mesh.geometry, mat, mesh.count) : new THREE.Mesh(mesh.geometry, mat);
+  if (mesh.isInstancedMesh) h.instanceMatrix = mesh.instanceMatrix;
+  h.raycast = () => {};
+  mesh.add(h);
+  return mesh;
+}
+
+/* ================= geometry helpers ================= */
+
+const UP = new THREE.Vector3(0, 1, 0);
+function mat4(pos, rotY = 0, rotX = 0, rotZ = 0, sx = 1, sy = 1, sz = 1) {
+  const q = new THREE.Quaternion().setFromEuler(new THREE.Euler(rotX, rotY, rotZ, 'YXZ'));
+  return new THREE.Matrix4().compose(pos, q, new THREE.Vector3(sx, sy, sz));
+}
+/** gathers transformed copies of geometry and merges them into one mesh per material */
+class Batch {
+  constructor() { this.parts = []; }
+  add(geo, m) { const g = (geo.index ? geo.toNonIndexed() : geo.clone()); g.applyMatrix4(m); if (!g.attributes.uv) g.setAttribute('uv', new THREE.Float32BufferAttribute(new Float32Array(g.attributes.position.count * 2), 2)); this.parts.push(g); return this; }
+  mesh(material) { const m = new THREE.Mesh(mergeGeometries(this.parts, false), material); m.castShadow = false; return m; }
+}
+function scaleUV(geo, sx, sy) { const uv = geo.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * sx, uv.getY(i) * sy); return geo; }
+const box = (w, h, d, uw = 1, uh = 1) => scaleUV(new THREE.BoxGeometry(w, h, d), uw, uh);
+function archPath(w, h) { const p = new THREE.Path(); p.moveTo(-w / 2, 0); p.lineTo(-w / 2, h); p.absarc(0, h, w / 2, Math.PI, 0, true); p.lineTo(w / 2, 0); p.lineTo(-w / 2, 0); return p; }
+

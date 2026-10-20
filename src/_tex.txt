@@ -1,0 +1,35 @@
+/* ================= painted textures ================= */
+
+function tex(c, rx = 1, ry = 1) {
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.repeat.set(rx, ry);
+  t.anisotropy = 4;
+  return t;
+}
+function blocks(c, rand, rowH, wMin, wMax, colors, mortar, ink) {
+  const g = c.getContext('2d'), W = c.width, H = c.height;
+  g.fillStyle = mortar; g.fillRect(0, 0, W, H);
+  for (let y = 0; y < H; y += rowH) {
+    let x = -rand() * wMax;
+    while (x < W) {
+      const w = wMin + rand() * (wMax - wMin), col = colors[Math.floor(rand() * colors.length)];
+      for (const dx of [0, -W]) {
+        g.fillStyle = col;
+        g.beginPath(); g.roundRect(x + dx + 3, y + 3, w - 6, rowH - 6, 6); g.fill();
+        g.strokeStyle = ink; g.lineWidth = 2; g.stroke();
+      }
+      x += w;
+    }
+  }
+}
+function glowTex() {
+  const c = canvas(128, 128), g = c.getContext('2d');
+  const gr = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+  gr.addColorStop(0, 'rgba(255,248,220,1)'); gr.addColorStop(0.25, 'rgba(255,214,140,.85)'); gr.addColorStop(1, 'rgba(255,170,80,0)');
+  g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
+
+

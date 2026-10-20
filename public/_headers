@@ -1,0 +1,16 @@
+# Cloudflare Pages / Workers static assets: response headers
+
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://cdn.jsdelivr.net; worker-src 'self' blob:; media-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'self'
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+  Cross-Origin-Opener-Policy: same-origin
+
+# baked scenes and card faces: every rebake gets a new file name, so they can be cached for good
+/tent/*
+  Cache-Control: public, max-age=31536000, immutable
+/shrine/*
+  Cache-Control: public, max-age=31536000, immutable
+/deck/*
+  Cache-Control: public, max-age=86400
