@@ -1,8 +1,12 @@
 <title>借问众神明 · Oracle Inn</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700;900&family=Long+Cang&family=Cormorant+Garamond:ital,wght@1,500;1,600&display=swap">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC&text=%E7%AD%8A&display=swap">
+<link rel="stylesheet" href="@@FONTS@@">
+<script type="importmap">
+{ "imports": {
+  "three": "./vendor/three/0.169.0/build/three.module.js",
+  "three/addons/": "./vendor/three/0.169.0/examples/jsm/"
+} }
+</script>
+<link rel="modulepreload" href="vendor/three/0.169.0/build/three.module.js">
 @@CSS@@
 /* the lamp-lit edge of the desk */
 .vignette { position: fixed; inset: 0; z-index: 1; pointer-events: none; background: radial-gradient(ellipse 75% 70% at 50% 46%, rgba(10, 6, 8, 0) 55%, rgba(10, 6, 8, .6)); }
@@ -173,12 +177,6 @@ body.hot #stage canvas, button, .chip, .slip { cursor: var(--wand-hot, pointer) 
 </div>
 <div class="loading" id="loading">正在点亮蜡烛……</div>
 
-<script type="importmap">
-{ "imports": {
-  "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
-  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
-} }
-</script>
 <script type="module">
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';

@@ -46,8 +46,10 @@ python3 -m http.server 8000
 | `public/` | 部署的全部内容：`index.html`、牌组展示页 `cat-tarot-deck.html`、`404.html`、Cloudflare 的 `_headers`，以及网站图标（`favicon.*`、`apple-touch-icon.png`、`icon-*.png`、`site.webmanifest`）和链接分享图（`og-image.jpg` 1200×630、`share-square.jpg` 600×600） |
 | `public/tent/`、`public/shrine/` | 两间小屋在 Blender 里烘焙好的实时 3D 场景（glTF 描述、base64 几何、两张光照贴图） |
 | `public/deck/` | 二十二张牌面和牌背 |
+| `public/vendor/` | 随站点一起托管的 three.js r169 和网页字体子集（附各自的许可文本） |
 | `src/` | 页面源码：外壳与样式、程序化绘制的贴图与牌面、场景、交互 |
 | `build.py` | 把 `src/` 拼成 `public/index.html` |
+| `tools/` | 重新下载 three.js（`fetch_three.py`）和网页字体子集（`fetch_fonts.py`）的脚本 |
 | `blender/` | 帐篷与神龛的建模、贴图绘制、烘焙脚本，以及用到的贴图和开源字体子集 |
 | `docs/` | README 头图与社交分享预览图 |
 
@@ -57,6 +59,8 @@ python3 -m http.server 8000
 python3 build.py              # 生成 public/index.html
 python3 build.py --check      # 另外生成 src/.check.mjs，可以再跑一次 node --check src/.check.mjs
 ```
+
+网页字体只保留了页面用到的字。改了文案以后，如果 `build.py` 提示有字不在字体子集里，运行一次 `python3 tools/fetch_fonts.py` 重新生成 `public/vendor/fonts/`，再构建。
 
 ## 3D 场景（可选）
 
@@ -76,12 +80,12 @@ blender/pipeline_shrine.sh       # 东方神龛（先用 blender/shrine_tex.py �
 - **Cloudflare Pages**：连接这个仓库，构建命令留空，输出目录填 `public`，然后在 Custom domains 里绑定子域名。
 - **Cloudflare Workers**：仓库里有 `wrangler.jsonc`，运行 `npx wrangler deploy` 即可发布 `public/`。
 
-`public/_headers` 设置了内容安全策略（只允许 jsDelivr 和 Google Fonts 这两个外部来源），并让带版本号的场景文件长期缓存。
+`public/_headers` 设置了内容安全策略（只允许加载本站的资源），并让带版本号的场景文件、three.js 和字体长期缓存。
 
 ## 依赖与致谢
 
-- [three.js](https://threejs.org/) r169（MIT），从 jsDelivr 加载。
-- 网页字体来自 Google Fonts，都是 SIL Open Font License：Noto Serif SC、Long Cang、LXGW WenKai TC（补「筊」字）、Cormorant Garamond。
+- [three.js](https://threejs.org/) r169（MIT），放在 `public/vendor/three/`，随站点一起托管。
+- 网页字体都是 SIL Open Font License：Noto Serif SC（思源宋体）、Long Cang（龙藏体）、LXGW WenKai TC（霞鹜文楷，补「筊」字）、Cormorant Garamond。字体子集取自 Google Fonts，放在 `public/vendor/fonts/`，随站点一起托管。
 - 神龛的匾额、对联、签号与挂轴题字，用开源的 Noto Serif TC（思源宋体）和 LXGW WenKai TC（霞鹜文楷）绘制，字体子集和许可文本在 `blender/fonts/`。
 - 塔罗牌的构图与象征参考 1909 年 Pamela Colman Smith 绘制的经典塔罗（公有领域），画面是重新绘制的。
 - 页面里所有的贴图、牌面和场景都是用代码画出来，或用 Blender 脚本建出来的，没有使用外部图片素材。
@@ -89,7 +93,7 @@ blender/pipeline_shrine.sh       # 东方神龛（先用 blender/shrine_tex.py �
 ## 隐私
 
 - 不使用 Cookie，不做统计，不向任何服务器发送你的问题或占卜结果。
-- 页面会从 Google Fonts 和 jsDelivr 加载字体和 three.js，这两个服务会看到你的 IP 地址。
+- 页面不向任何第三方发出请求：three.js 和字体都从本站加载。
 - 「请占卜师细读」（AI 解读）只在 Claude 的 Artifact 里可用：由查看者自己的 Claude 账号生成，页面不保存任何内容。在普通网页里，这个按钮和写问题的输入框都不会出现。
 
 ## 许可

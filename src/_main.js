@@ -691,7 +691,7 @@ $('enter').addEventListener('click', async () => {
 async function boot() {
   const words = Object.values(PAGE_TEXT).flat().join('') + Object.values(ROOMS).map((r) => r.name + r.methods).join('') + '借问众神明一本立体占卜书翻开它每一页是一间小屋轻点小屋走进去看看这一间还在装订中仅供娱乐不构成任何建议下次翻开时再来坐坐往这边走问心吉安福' + MAJOR.map((m) => m[0]).join('');
   try {
-    // wait for the web fonts, but never more than a few seconds: where Google Fonts is slow or blocked the page goes on with system fonts
+    // wait for the web fonts, but never more than a few seconds: on a slow connection the page goes on with system fonts
     await Promise.race([new Promise((r) => setTimeout(r, 4000)), Promise.all([
       document.fonts.load('900 64px "Noto Serif SC"', words), document.fonts.load('500 30px "Noto Serif SC"', words),
       document.fonts.load('400 34px "Long Cang"', words + 'z'), document.fonts.load('400 34px "LXGW WenKai TC"', '筊'), document.fonts.load('italic 600 30px "Cormorant Garamond"', 'Oracle Inn Tarot'),

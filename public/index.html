@@ -1,8 +1,12 @@
 <!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="description" content="魔法小屋里的一本立体占卜书：推开悬在夜空里的门，翻开立体书，走进星幕帐篷与东方神龛。东西方民俗文化的趣味科普演示，仅供娱乐。"><meta name="color-scheme" content="dark"><meta name="theme-color" content="#120c14"><link rel="icon" href="favicon.ico" sizes="48x48"><link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="apple-touch-icon.png"><link rel="manifest" href="site.webmanifest"><link rel="canonical" href="https://oracle-inn.summercommences.com/"><meta property="og:type" content="website"><meta property="og:site_name" content="借问众神明 · Oracle Inn"><meta property="og:locale" content="zh_CN"><meta property="og:title" content="借问众神明 · Oracle Inn"><meta property="og:description" content="魔法小屋里的一本立体占卜书：推开悬在夜空里的门，翻开立体书，走进星幕帐篷与东方神龛。东西方民俗文化的趣味科普演示，仅供娱乐。"><meta property="og:url" content="https://oracle-inn.summercommences.com/"><meta property="og:image" content="https://oracle-inn.summercommences.com/og-image.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="借问众神明 · Oracle Inn：拱形金框窗里是一本摊开的立体书，书页上立着紫色的星幕帐篷"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="借问众神明 · Oracle Inn"><meta name="twitter:description" content="魔法小屋里的一本立体占卜书：推开悬在夜空里的门，翻开立体书，走进星幕帐篷与东方神龛。东西方民俗文化的趣味科普演示，仅供娱乐。"><meta name="twitter:image" content="https://oracle-inn.summercommences.com/og-image.jpg"><meta name="twitter:image:alt" content="借问众神明 · Oracle Inn：拱形金框窗里是一本摊开的立体书，书页上立着紫色的星幕帐篷"><meta itemprop="name" content="借问众神明 · Oracle Inn"><meta itemprop="description" content="魔法小屋里的一本立体占卜书：推开悬在夜空里的门，翻开立体书，走进星幕帐篷与东方神龛。东西方民俗文化的趣味科普演示，仅供娱乐。"><meta itemprop="image" content="https://oracle-inn.summercommences.com/share-square.jpg"><title>借问众神明 · Oracle Inn</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700;900&family=Long+Cang&family=Cormorant+Garamond:ital,wght@1,500;1,600&display=swap">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC&text=%E7%AD%8A&display=swap">
+<link rel="stylesheet" href="vendor/fonts/fonts.css?v=ac28774d">
+<script type="importmap">
+{ "imports": {
+  "three": "./vendor/three/0.169.0/build/three.module.js",
+  "three/addons/": "./vendor/three/0.169.0/examples/jsm/"
+} }
+</script>
+<link rel="modulepreload" href="vendor/three/0.169.0/build/three.module.js">
 <style>
 /* Layout: the 3D hall fills the screen; a thin title bar on top, a row of room buttons at the
    bottom, and each room opens full-screen over the hall. One warm candlelit look on purpose. */
@@ -272,12 +276,6 @@ body.hot #stage canvas, button, .chip, .slip { cursor: var(--wand-hot, pointer) 
 </div>
 <div class="loading" id="loading">正在点亮蜡烛……</div>
 
-<script type="importmap">
-{ "imports": {
-  "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
-  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
-} }
-</script>
 <script type="module">
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
@@ -7090,7 +7088,7 @@ $('enter').addEventListener('click', async () => {
 async function boot() {
   const words = Object.values(PAGE_TEXT).flat().join('') + Object.values(ROOMS).map((r) => r.name + r.methods).join('') + '借问众神明一本立体占卜书翻开它每一页是一间小屋轻点小屋走进去看看这一间还在装订中仅供娱乐不构成任何建议下次翻开时再来坐坐往这边走问心吉安福' + MAJOR.map((m) => m[0]).join('');
   try {
-    // wait for the web fonts, but never more than a few seconds: where Google Fonts is slow or blocked the page goes on with system fonts
+    // wait for the web fonts, but never more than a few seconds: on a slow connection the page goes on with system fonts
     await Promise.race([new Promise((r) => setTimeout(r, 4000)), Promise.all([
       document.fonts.load('900 64px "Noto Serif SC"', words), document.fonts.load('500 30px "Noto Serif SC"', words),
       document.fonts.load('400 34px "Long Cang"', words + 'z'), document.fonts.load('400 34px "LXGW WenKai TC"', '筊'), document.fonts.load('italic 600 30px "Cormorant Garamond"', 'Oracle Inn Tarot'),

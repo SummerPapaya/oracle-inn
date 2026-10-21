@@ -2,9 +2,9 @@
 
 ## 代码 · Code — MIT
 
-本仓库中的程序代码采用 [MIT 许可证](LICENSE)，包括：`src/` 下的脚本、样式与页面外壳，`build.py`，以及 `blender/` 下的 Python 与 Shell 脚本。
+本仓库中的程序代码采用 [MIT 许可证](LICENSE)，包括：`src/` 下的脚本、样式与页面外壳，`build.py`、`tools/` 下的脚本，以及 `blender/` 下的 Python 与 Shell 脚本。
 
-The source code in this repository is released under the [MIT License](LICENSE): the scripts, styles and page shell in `src/`, `build.py`, and the Python and shell scripts in `blender/`.
+The source code in this repository is released under the [MIT License](LICENSE): the scripts, styles and page shell in `src/`, `build.py`, the scripts in `tools/`, and the Python and shell scripts in `blender/`.
 
 ## 美术与创作内容 · Artwork and creative content — 保留所有权利 · All rights reserved
 
@@ -28,7 +28,9 @@ The MIT License covers the code only. Running the code may reproduce parts of th
 
 - `blender/fonts/` 中的字体子集：Noto Serif TC 与 LXGW WenKai TC，采用 SIL Open Font License 1.1，许可文本见同目录。
   The font subsets in `blender/fonts/` (Noto Serif TC and LXGW WenKai TC) are under the SIL Open Font License 1.1; the license texts are alongside them.
-- 页面运行时从 jsDelivr 加载 [three.js](https://github.com/mrdoob/three.js)（MIT），从 Google Fonts 加载网页字体（SIL OFL）。它们不包含在本仓库中。
-  At runtime the page loads [three.js](https://github.com/mrdoob/three.js) (MIT) from jsDelivr and web fonts (SIL OFL) from Google Fonts; they are not part of this repository.
+- `public/vendor/three/`：[three.js](https://github.com/mrdoob/three.js) r169，采用 MIT 许可证，许可文本见同目录 `LICENSE`。
+  `public/vendor/three/` holds [three.js](https://github.com/mrdoob/three.js) r169 under the MIT License; see `LICENSE` there.
+- `public/vendor/fonts/` 中的网页字体子集：Noto Serif SC、Long Cang、LXGW WenKai TC 与 Cormorant Garamond，采用 SIL Open Font License 1.1，许可文本见同目录。
+  The web-font subsets in `public/vendor/fonts/` (Noto Serif SC, Long Cang, LXGW WenKai TC and Cormorant Garamond) are under the SIL Open Font License 1.1; the license texts are alongside them.
 - 塔罗牌的构图与象征参考 1909 年 Pamela Colman Smith 绘制的塔罗（公有领域），画面为重新绘制。
   The tarot compositions follow the 1909 Pamela Colman Smith deck (public domain); the images are newly drawn.

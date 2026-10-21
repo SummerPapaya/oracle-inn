@@ -46,8 +46,10 @@ Then open <http://localhost:8000/>. Add `?dev` to the address for a frame counte
 | `public/` | Everything that gets deployed: `index.html`, the deck gallery `cat-tarot-deck.html`, `404.html`, Cloudflare's `_headers`, the site icons (`favicon.*`, `apple-touch-icon.png`, `icon-*.png`, `site.webmanifest`) and the link-preview images (`og-image.jpg` 1200×630, `share-square.jpg` 600×600) |
 | `public/tent/`, `public/shrine/` | The two rooms baked in Blender for real-time 3D: glTF description, base64 geometry and two light atlases each |
 | `public/deck/` | The 22 card faces and the card back |
+| `public/vendor/` | three.js r169 and the web-font subsets, hosted with the site (with their licenses) |
 | `src/` | Page source: shell and styles, procedurally painted textures and cards, scenes and interaction |
 | `build.py` | Stitches `src/` into `public/index.html` |
+| `tools/` | Scripts that fetch three.js (`fetch_three.py`) and the web-font subsets (`fetch_fonts.py`) again |
 | `blender/` | Modelling, texture-painting and baking scripts for the tent and the shrine, with their textures and open font subsets |
 | `docs/` | The README hero and the social preview image |
 
@@ -57,6 +59,8 @@ Then open <http://localhost:8000/>. Add `?dev` to the address for a frame counte
 python3 build.py              # writes public/index.html
 python3 build.py --check      # also writes src/.check.mjs for: node --check src/.check.mjs
 ```
+
+The web fonts hold only the characters the pages use. If `build.py` reports characters missing from the subsets after you change the text, run `python3 tools/fetch_fonts.py` to regenerate `public/vendor/fonts/`, then build again.
 
 ## 3D scenes (optional)
 
@@ -76,12 +80,12 @@ Each run gives its output a new time-stamped name, so browsers never show a stal
 - **Cloudflare Pages**: connect this repository, leave the build command empty, set the output directory to `public`, and add the subdomain under Custom domains.
 - **Cloudflare Workers**: `wrangler.jsonc` is included, so `npx wrangler deploy` publishes `public/`.
 
-`public/_headers` sets a Content Security Policy that allows only jsDelivr and Google Fonts as outside sources, and lets the versioned scene files be cached for a long time.
+`public/_headers` sets a Content Security Policy that allows only the site's own files, and lets the versioned scene files, three.js and the fonts be cached for a long time.
 
 ## Credits
 
-- [three.js](https://threejs.org/) r169 (MIT), loaded from jsDelivr.
-- Web fonts from Google Fonts, all under the SIL Open Font License: Noto Serif SC, Long Cang, LXGW WenKai TC (for the character 筊) and Cormorant Garamond.
+- [three.js](https://threejs.org/) r169 (MIT), hosted with the site in `public/vendor/three/`.
+- Web fonts, all under the SIL Open Font License: Noto Serif SC, Long Cang, LXGW WenKai TC (for the character 筊) and Cormorant Garamond. The subsets come from Google Fonts and are hosted with the site in `public/vendor/fonts/`.
 - The shrine's plaque, couplets, slip numbers and scroll titles are set in the open fonts Noto Serif TC and LXGW WenKai TC. The subsets and their licenses are in `blender/fonts/`.
 - The tarot compositions and symbols follow the 1909 deck drawn by Pamela Colman Smith (public domain). The images are newly drawn.
 - Every texture, card and scene in the page is painted by code or built by Blender scripts. No outside image assets are used.
@@ -89,7 +93,7 @@ Each run gives its output a new time-stamped name, so browsers never show a stal
 ## Privacy
 
 - No cookies, no analytics. Your questions and readings are never sent anywhere.
-- The page loads fonts from Google Fonts and three.js from jsDelivr, so those services see your IP address.
+- The page makes no third-party requests: three.js and the fonts load from the site itself.
 - The "ask the reader" AI reading only works inside a Claude Artifact, where the viewer's own Claude account writes it and nothing is kept. On the open web the button and the question box don't appear.
 
 ## License

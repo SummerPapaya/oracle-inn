@@ -19,7 +19,22 @@ HEAD = ('<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta nam
         '<link rel="icon" href="favicon.ico" sizes="48x48"><link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="apple-touch-icon.png"><link rel="manifest" href="site.webmanifest">'
         # the card a shared link shows (Open Graph, Twitter/X; itemprop for WeChat and QQ)
         '<link rel="canonical" href="https://oracle-inn.summercommences.com/"><meta property="og:type" content="website"><meta property="og:site_name" content="借问众神明 · Oracle Inn"><meta property="og:locale" content="zh_CN"><meta property="og:title" content="借问众神明 · Oracle Inn"><meta property="og:description" content="魔法小屋里的一本立体占卜书：推开悬在夜空里的门，翻开立体书，走进星幕帐篷与东方神龛。东西方民俗文化的趣味科普演示，仅供娱乐。"><meta property="og:url" content="https://oracle-inn.summercommences.com/"><meta property="og:image" content="https://oracle-inn.summercommences.com/og-image.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="借问众神明 · Oracle Inn：拱形金框窗里是一本摊开的立体书，书页上立着紫色的星幕帐篷"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="借问众神明 · Oracle Inn"><meta name="twitter:description" content="魔法小屋里的一本立体占卜书：推开悬在夜空里的门，翻开立体书，走进星幕帐篷与东方神龛。东西方民俗文化的趣味科普演示，仅供娱乐。"><meta name="twitter:image" content="https://oracle-inn.summercommences.com/og-image.jpg"><meta name="twitter:image:alt" content="借问众神明 · Oracle Inn：拱形金框窗里是一本摊开的立体书，书页上立着紫色的星幕帐篷"><meta itemprop="name" content="借问众神明 · Oracle Inn"><meta itemprop="description" content="魔法小屋里的一本立体占卜书：推开悬在夜空里的门，翻开立体书，走进星幕帐篷与东方神龛。东西方民俗文化的趣味科普演示，仅供娱乐。"><meta itemprop="image" content="https://oracle-inn.summercommences.com/share-square.jpg">')
-(root / 'public' / 'index.html').write_text(HEAD + out)     # a complete page; public/ is what gets deployed
+# self-hosted fonts: the sheet's URL carries its hash, so it (and the files it names) can be cached for good
+import hashlib
+pub = root / 'public'; fcss = (pub / 'vendor' / 'fonts' / 'fonts.css').read_text()
+furl = 'vendor/fonts/fonts.css?v=' + hashlib.sha1(fcss.encode()).hexdigest()[:8]
+out = out.replace('@@FONTS@@', furl)
+(pub / 'index.html').write_text(HEAD + out)     # a complete page; public/ is what gets deployed
+deck = pub / 'cat-tarot-deck.html'; dt = deck.read_text(); deck.write_text(re.sub(r'vendor/fonts/fonts\.css(\?v=[0-9a-f]+)?', furl, dt))
+# the subsets only hold the characters the pages used when they were cut: warn about any new ones
+covered = set()
+for fam, rng in re.findall(r"font-family: '([^']+)';[^}]*unicode-range: ([^;]+);", fcss):
+    if fam != 'Noto Serif SC': continue
+    for part in rng.split(','):
+        a_, _, b_ = part.strip()[2:].partition('-'); covered.update(range(int(a_, 16), int(b_ or a_, 16) + 1))
+used = set(ord(c) for f in ('index.html', 'cat-tarot-deck.html', '404.html') for c in (pub / f).read_text() if ord(c) >= 0x2E80)
+missing = ''.join(sorted(chr(c) for c in used - covered))
+if missing: print(f'note: {len(missing)} characters are not in the font subsets ({missing[:40]}…); run python3 tools/fetch_fonts.py')
 import sys
 if '--check' not in sys.argv: print('built public/index.html', len(out)); sys.exit(0)
 (d / '_check.html').write_text('<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">' + out)
