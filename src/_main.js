@@ -54,7 +54,9 @@ function resize() {
 function setupInput() {
   const el = renderer.domElement, pts = new Map();
   let down = null;
-  el.addEventListener('pointerdown', (e) => { el.setPointerCapture(e.pointerId); pts.set(e.pointerId, { x: e.clientX, y: e.clientY }); down = { t: performance.now(), moved: 0 }; });
+  // a tap is a finger that stays near where it went down (a fingertip wobbles a few pixels) and lifts soon after,
+  // by the events' own times: a busy phone runs these handlers late
+  el.addEventListener('pointerdown', (e) => { el.setPointerCapture(e.pointerId); pts.set(e.pointerId, { x: e.clientX, y: e.clientY }); down = { t: e.timeStamp, x: e.clientX, y: e.clientY, far: 0 }; });
   el.addEventListener('pointermove', (e) => {
     const p = pts.get(e.pointerId);
     if (!p) { if (e.pointerType === 'mouse') hoverAt(e); return; }
@@ -64,11 +66,11 @@ function setupInput() {
       p.x = e.clientX; p.y = e.clientY;
       const [c, d] = [...pts.values()], after = Math.hypot(c.x - d.x, c.y - d.y);
       if (mode === 'book') user.zoom = THREE.MathUtils.clamp(user.zoom * (before / Math.max(1, after)), 0.5, 1.4);
-      if (down) down.moved += 20;
+      if (down) down.far = Infinity;                           // a pinch is never a tap
       return;
     }
     p.x = e.clientX; p.y = e.clientY;
-    if (down) down.moved += Math.abs(dx) + Math.abs(dy);
+    if (down) down.far = Math.max(down.far, Math.hypot(e.clientX - down.x, e.clientY - down.y));
     if (rigTween) return;
     if (mode === 'room') {
       if (ritual?.phase === 'shuffle') { ritualSwipe(dx); return; }
@@ -83,7 +85,7 @@ function setupInput() {
   });
   const end = (e) => {
     pts.delete(e.pointerId);
-    if (down && down.moved < 8 && performance.now() - down.t < 450) tap(e);
+    if (down && down.far < (e.pointerType === 'mouse' ? 6 : 16) && e.timeStamp - down.t < 900) tap(e);
     if (!pts.size) down = null;
   };
   el.addEventListener('pointerup', end);
@@ -490,6 +492,7 @@ function setUI(state) {
       return;
     }
     if (baked && tent) act.append(roomInside ? button('开始占卜', showSpreadChooser, true) : button('坐到桌前', roomSit, true));
+    if (tent && cards.length) cardButtons(act);
     if (baked && !tent && !roomInside) act.append(button('走到供桌前', roomSit, true));
     if (baked && roomInside) act.append(button('起身看看', roomStand));
     act.append(button(`ⓘ ${LORE[roomId][0]}小知识`, () => showLore(roomId)), button('回到书里', leaveRoom));

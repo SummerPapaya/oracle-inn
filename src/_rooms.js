@@ -650,6 +650,7 @@ function drawCards(from0) {
     return { k, rev, group: g, from: from.clone(), to, t: -i * 0.12, flip: 0, flipping: false, spin: (i - 1) * 0.12, fwd, camUp };
   });
   toast('挑一张，翻开看看');
+  cardsChanged();
 }
 function updateCards(dt) {
   for (const c of cards) {
@@ -672,7 +673,7 @@ function flipCard(i) {
   const kd = cardReach();
   const c = cards[i];
   if (!c || cards.some((o) => o.flipping)) return;
-  c.flipping = true; sfx('page');
+  c.flipping = true; sfx('page'); cardsChanged();
   const wide = camera.aspect > 1 && innerWidth > 760, deck = rooms.tent.deck;
   cards.forEach((o) => {
     o.from = o.group.position.clone(); o.t = 0;
@@ -685,7 +686,29 @@ function flipCard(i) {
   const [name, en, , up] = MAJOR[c.k], line = c.rev ? MAJOR_REV[c.k] : up;
   setTimeout(() => { sfx('chime'); burstAt(sparks, c.group.position, 40, { speed: 0.35, up: 0.4, size: 0.018 }); showPanel(`<span class="seal">星</span><small>${ROMAN[c.k]} · ${en} · ${c.rev ? '逆位' : '正位'}</small><h3>${name}</h3><p>${line}</p><div class="note">仅供娱乐 · 不构成任何建议</div>`, [['收下这张牌', () => keepCard(c), true], ['再抽一张', () => { clearCards(); hidePanel(); setTimeout(startRitual, 200); }], ['合上', () => { clearCards(); hidePanel(); }]]); addSlip(); addReading(c.k, c.rev); }, 850);
 }
-function clearCards() { cards.forEach((c) => c.group.parent?.remove(c.group)); cards = []; endRitual(); spreadTags(false); }
+function clearCards() { cards.forEach((c) => c.group.parent?.remove(c.group)); cards = []; endRitual(); spreadTags(false); cardsChanged(); }
+/** the buttons under the room follow the cards on the table */
+function cardsChanged() { if (mode === 'room' && roomId === 'tent' && !busy) setUI('room'); }
+/** the cards turn by buttons as well as by a tap on them (setUI puts these in front of the room's own buttons) */
+function cardButtons(act) {
+  if (cards.some((c) => c.leaving)) return;
+  if (cards[0].spread) {
+    const i = cards.findIndex((c) => !c.flipping);
+    if (i < 0) return;
+    $('hint').textContent = '点牌，或按下面的按钮，一张一张翻开';
+    act.prepend(button(`翻开「${cards[i].slot.name}」`, () => whenDealt(i, () => flipSpreadCard(i)), true));
+  } else if (!cards.some((c) => c.flipping)) {
+    $('hint').textContent = '凭直觉点一张牌，或按下面的按钮';
+    act.prepend(button('左边这张', () => whenDealt(0, () => flipCard(0))), button('中间这张', () => whenDealt(1, () => flipCard(1)), true), button('右边这张', () => whenDealt(2, () => flipCard(2))));
+  }
+}
+/** a card turns only once it has landed: a button pressed while the cards still fly waits for it */
+function whenDealt(i, fn) {
+  const c = cards[i];
+  if (!c) return;
+  if (c.t < 1) { setTimeout(() => whenDealt(i, fn), 120); return; }
+  fn();
+}
 /* ---------- spreads: several cards, each set in a place that gives it its meaning ---------- */
 /*
  * After the shuffle and the cut, the cards come up in the shape of the chosen spread and hang in the air before
@@ -753,12 +776,13 @@ function dealSpread(from0) {
   });
   spreadTags(true);
   toast(`${S.name}牌阵摆好了 · 一张一张点开`);
+  cardsChanged();
 }
 /** turn one card of a spread over where it hangs; when the last one is open, show the whole spread */
 function flipSpreadCard(i) {
   const c = cards[i];
   if (!c || c.flipping || c.t < 1) return;
-  c.flipping = true; sfx('page');
+  c.flipping = true; sfx('page'); cardsChanged();
   const [name] = MAJOR[c.k];
   setTimeout(() => {
     burstAt(sparks, c.group.position, 24, { speed: 0.3, up: 0.35, size: 0.016 });
