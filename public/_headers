@@ -18,6 +18,10 @@
 /vendor/*
   Cache-Control: public, max-age=31536000, immutable
 
+# the page's script, named by its hash
+/js/*
+  Cache-Control: public, max-age=31536000, immutable
+
 # baked scenes and card faces: every rebake gets a new file name, so they can be cached for good
 /tent/*
   Cache-Control: public, max-age=31536000, immutable

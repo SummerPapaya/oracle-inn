@@ -543,10 +543,11 @@ function opened(P) {
   SPREAD_FX[P.id]?.open?.(P);
 }
 let prefetchTimer;
+/** paint spreads ahead of time, never while something moves: from the hut only the first (the book opens on it), the rest once the book is open */
 function prefetch() {
   clearTimeout(prefetchTimer);
-  const next = [cur + 1, cur - 1, cur + 2, 1, 2, 3, 4, 5, 6].find((k) => k >= 1 && k <= NS && !spreads[k]);
-  if (next) prefetchTimer = setTimeout(() => { if (!busy && !turn) ensureSpread(next); prefetch(); }, 700);
+  const next = (mode === 'book' ? [cur + 1, cur - 1, cur + 2, 1, 2, 3, 4, 5, 6] : [1]).find((k) => k >= 1 && k <= NS && !spreads[k]);
+  if (next) prefetchTimer = setTimeout(() => { if (!busy && !turn && !rigTween && mode !== 'room') ensureSpread(next); prefetch(); }, 700);
 }
 /** each frame: magic for whichever spread lies open */
 let starClock = 4;

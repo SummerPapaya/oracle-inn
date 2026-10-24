@@ -49,7 +49,7 @@ Then open <http://localhost:8000/>. Add `?dev` to the address for a frame counte
 | `public/deck/` | The 22 card faces and the card back |
 | `public/vendor/` | three.js r169 and the web-font subsets, hosted with the site (with their licenses) |
 | `src/` | Page source: shell and styles, procedurally painted textures and cards, scenes and interaction |
-| `build.py` | Stitches `src/` into `public/index.html` |
+| `build.py` | Stitches `src/` into `public/index.html`, with the page's script in `public/js/app.<hash>.js` |
 | `tools/` | Scripts that fetch three.js (`fetch_three.py`) and the web-font subsets (`fetch_fonts.py`) again |
 | `blender/` | Modelling, texture-painting and baking scripts for the tent and the shrine, with their textures and open font subsets |
 | `docs/` | The README hero and the social preview image |

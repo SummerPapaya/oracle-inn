@@ -9,14 +9,24 @@ const DEV = /[?&]dev\b/.test(location.search);
 const $ = (id) => document.getElementById(id);
 let mode = 'hut', renderer, scene, camera, clock;
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), drawSize = new THREE.Vector2();
+// phones draw a little coarser (about a quarter fewer pixels to light) and refresh the shadows every other frame
+const MAX_PR = lowPower ? 1.5 : 1.75;
+let shadowTick = 0;
 
-function setup() {
+/** while the room is built: now and then let a frame through, so the door outside keeps moving */
+let sliceAt = 0;
+function slice() {
+  if (performance.now() - sliceAt < 40) return null;
+  return new Promise((r) => requestAnimationFrame(() => setTimeout(() => { sliceAt = performance.now(); r(); })));
+}
+async function setup() {
   renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, MAX_PR));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.NeutralToneMapping;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.autoUpdate = !lowPower;
   $('stage').appendChild(renderer.domElement);
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0x0d0a14);
@@ -28,10 +38,13 @@ function setup() {
   clock = new THREE.Clock();
   sparks = new Sparks(1400); smoke = new Sparks(240, true);
   scene.add(sparks.points, smoke.points);
+  await slice();
   buildLights();
-  buildHut();
+  await buildHut();
+  await slice();
   buildBook();
   scene.add(bookGroup);
+  await slice();
   setupComposer();
   resize();
   window.addEventListener('resize', resize);
@@ -42,7 +55,7 @@ function setup() {
   renderer.setAnimationLoop(frame);
 }
 function resize() {
-  const w = window.innerWidth, h = window.innerHeight, pr = Math.min(window.devicePixelRatio, 1.75);
+  const w = window.innerWidth, h = window.innerHeight, pr = Math.min(window.devicePixelRatio, MAX_PR);
   renderer.setSize(w, h, false);
   composer.setPixelRatio(pr); composer.setSize(w, h);
   camera.aspect = w / h;
@@ -281,6 +294,7 @@ function setupWand() {
 /* ---------- the frame ---------- */
 let frames = 0, statAt = 0;
 function frame() {
+  if (!$('intro').hidden) return;                          // the door still covers the room: nothing to draw yet
   const dt = Math.min(0.05, clock.getDelta()), t = clock.elapsedTime;
   TIME.value = t;
   if (mode === 'room') {
@@ -296,6 +310,7 @@ function frame() {
   renderer.getDrawingBufferSize(drawSize);
   SPARK_SCALE.value = drawSize.y / (2 * Math.tan((camera.fov * DEG) / 2));
   sparks.update(dt); smoke.update(dt);
+  if (lowPower) renderer.shadowMap.needsUpdate = (shadowTick++ & 1) === 0;
   composer.render(dt);
   frames++;
   const now = performance.now();
@@ -693,6 +708,7 @@ $('enter').addEventListener('click', async () => {
   $('flash').classList.remove('on');
   await tweenRig(home(), 3.8);
   setUI('hut');
+  prefetch();
 });
 
 /* ---------- boot ---------- */
@@ -706,10 +722,9 @@ async function boot() {
       document.fonts.ready,
     ])]);
   } catch (e) { /* fall back to system fonts */ }
-  setup();
+  await setup();
   setupWand();
   getSample();          // learn early whether a Claude reader is available here
-  ensureSpread(1);
   buildChips();
   const m = location.hash.match(/^#page(\d)$/);
   if (m || location.hash === '#book') { mode = 'book'; cur = m ? Math.min(NS, +m[1]) : 0; ensureSpread(cur); layout(); Object.assign(rig, home()); }
@@ -718,7 +733,17 @@ async function boot() {
   setUI(mode === 'hut' ? 'hut' : cur === 0 ? 'closed' : 'open');
   if (mode === 'hut' && !$('intro').hidden) $('actions').innerHTML = '';
   if (DEV) window.__book = { goTo, openBook, backToHut, enterRoom, leaveRoom, tentSit, tentStand, roomSit, roomStand, preloadBakedTent, preloadBaked, get inside() { return roomInside; }, startLots, lotsShake, lotsConfirm: (force) => { if (force) forceBei = 'holy'; lotsAsk(); }, get lots() { return lots; }, get look() { return look; }, startRitual, ritualSwipe, chooseCut, showSpreadChooser, pickSpread, flipSpreadCard, get cards() { return cards; }, get ritual() { return ritual; }, setSample: (fn) => { samplePromise = Promise.resolve(fn); }, setQuestion: (q) => { userQuestion = q; }, showRoom: (id) => { showRoom(id); busy = false; setUI('room'); }, drawCards, flipCard, throwBei, ensureSpread, spreads, user, rig, tweenRig, props: PROPS, tex3: () => Object.fromEntries(['wall', 'velvet', 'skirt', 'clothTop', 'roundRug', 'sunHanging', 'moonHanging', 'moonFace', 'sign', 'mat', 'valance', 'runner'].map((k) => [k, T3[k]().toDataURL('image/png')]).concat([['cardBack', catTarotBack(300).toDataURL('image/png')], ['card0', catTarot(0, 300).toDataURL('image/png')], ['card2', catTarot(2, 300).toDataURL('image/png')], ['card17', catTarot(17, 300).toDataURL('image/png')]])), catCard: (k, w = 300) => catTarot(k, w).toDataURL('image/png'), cardSamples: () => [catTarot(0, 600), catTarot(2, 600), catTarot(17, 600), catTarotBack(600)].map((c) => c.toDataURL('image/png')), get camera() { return camera; }, get rooms() { return rooms; }, get scenes() { return [scene, ...Object.values(rooms).map((r) => r.scene)]; }, get state() { return { cur, mode, busy, turning: !!turn, roomId }; } };
+  // before the door opens, a little at a time: compile every material, send every texture to the GPU, then draw the room
+  // once from where the walk in starts and once from where it ends, so it shows without a stall
+  for (const o of [...scene.children]) { renderer.compile(o, camera, scene); await slice(); }
+  await renderer.compileAsync(scene, camera).catch(() => {});        // where the browser compiles side by side, wait for it to finish
+  const maps = new Set();
+  scene.traverse((o) => [o.material].flat().forEach((m) => m && Object.values(m).forEach((v) => v?.isTexture && maps.add(v))));
+  for (const t of maps) { renderer.initTexture(t); await slice(); }
+  const start = { ...rig };
+  renderer.shadowMap.needsUpdate = true; composer.render(0); await slice();
+  Object.assign(rig, home()); updateRig(0); composer.render(0); Object.assign(rig, start); updateRig(0);
   const load = $('loading'); load.style.opacity = '0'; setTimeout(() => load.remove(), 650);
-  prefetch();
+  if ($('intro').hidden) prefetch();
 }
 const booted = boot();

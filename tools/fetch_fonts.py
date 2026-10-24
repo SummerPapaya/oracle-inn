@@ -1,11 +1,11 @@
 # Fetches woff2 subsets from Google Fonts holding only the characters the pages use, and writes a fonts.css for them.
 # Run it again whenever the pages gain new characters (build.py warns when they do):  python3 tools/fetch_fonts.py
-import re, sys, os, subprocess, urllib.parse, hashlib
+import re, sys, os, subprocess, urllib.parse, hashlib, glob
 PUB = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'public'); OUT = os.path.join(PUB, 'vendor', 'fonts')
 os.makedirs(OUT, exist_ok=True)
 for old in [n for n in os.listdir(OUT) if n.endswith('.woff2')]: os.remove(os.path.join(OUT, old))
 UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36'
-text = ''.join(open(os.path.join(PUB, f), encoding='utf-8').read() for f in ('index.html', 'cat-tarot-deck.html', '404.html'))
+text = ''.join(open(f, encoding='utf-8').read() for f in [os.path.join(PUB, n) for n in ('index.html', 'cat-tarot-deck.html', '404.html')] + glob.glob(os.path.join(PUB, 'js', 'app.*.js')))
 ascii_ = ''.join(chr(c) for c in range(32, 127))
 other = sorted(set(ch for ch in text if ord(ch) > 126))
 latin_extra = ''.join(ch for ch in other if ord(ch) < 0x2E80)            # ·, —, …, ’, “”, é and the like

@@ -49,7 +49,7 @@ python3 -m http.server 8000
 | `public/deck/` | 二十二张牌面和牌背 |
 | `public/vendor/` | 随站点一起托管的 three.js r169 和网页字体子集（附各自的许可文本） |
 | `src/` | 页面源码：外壳与样式、程序化绘制的贴图与牌面、场景、交互 |
-| `build.py` | 把 `src/` 拼成 `public/index.html` |
+| `build.py` | 把 `src/` 拼成 `public/index.html`，页面脚本单独写成 `public/js/app.<hash>.js` |
 | `tools/` | 重新下载 three.js（`fetch_three.py`）和网页字体子集（`fetch_fonts.py`）的脚本 |
 | `blender/` | 帐篷与神龛的建模、贴图绘制、烘焙脚本，以及用到的贴图和开源字体子集 |
 | `docs/` | README 头图与社交分享预览图 |

@@ -127,7 +127,7 @@ function starShape(R, r, n = 5) { const s = new THREE.Shape(); starPx(0, 0, R, r
 function moonShape(R, off = 0.42, k = 0.82) { const d = R * off, r = R * k, px_ = (R * R - r * r + d * d) / (2 * d), py = Math.sqrt(R * R - px_ * px_), a = Math.atan2(py, px_), b = Math.atan2(py, px_ - d), s = new THREE.Shape(); s.moveTo(px_, py); s.absarc(0, 0, R, a, TAU - a, false); s.absarc(d, 0, r, TAU - b, b, true); return s; }
 
 /* ---------- the room ---------- */
-function buildHut() {
+async function buildHut() {
   const W = HUT_W, D = HUT_FRONT - HUT_BACK, back = HUT_BACK, front = HUT_FRONT, top = HUT_TOP;
   const winW = 3.4, winBot = FLOOR + 4.6, winArch = FLOOR + 11.2, winR = winW, winY = 5.4;
   const darkWood = std('darkwood', { color: 0x4a2c1a, roughness: 0.5 }), panelWood = std('panel', { map: tx(grainCanvas('#5a3622', '#1e0f08', 1220), 2, 1), bumpMap: tx(grainCanvas('#5a3622', '#1e0f08', 1220), 2, 1, false), bumpScale: 2, roughness: 0.45 });
@@ -144,6 +144,7 @@ function buildHut() {
   glowWalls.push(sidePaper);
   [[-W / 2, Math.PI / 2], [W / 2, -Math.PI / 2]].forEach(([x, ry]) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(D, top - FLOOR - 4), sidePaper); m.position.set(x, (top + FLOOR + 4) / 2, (back + front) / 2); m.rotation.y = ry; m.receiveShadow = true; scene.add(m); });
   const fw = new THREE.Mesh(new THREE.PlaneGeometry(W, top - FLOOR), sidePaper); fw.position.set(0, (top + FLOOR) / 2, front); fw.rotation.y = Math.PI; scene.add(fw);
+  await slice();
   // wood panelling below a chair rail, all round
   const wains = (len, cx, cz, ry) => {
     const g = group(cx, FLOOR, cz, ry);
@@ -157,6 +158,7 @@ function buildHut() {
   for (const z of [-7.5, -2.5, 2.5, 7.5]) add(rbox(W, 0.7, 0.6, 0.06), midWood, 0, top - 0.35, z);
   add(rbox(W, 0.5, 0.5, 0.08), darkWood, 0, top - 0.25, back + 0.25);
 
+  await slice();
   // a tall arched window in brass, art-nouveau lines curling up it; the night outside; velvet curtains drawn back
   outdoors(6.4, winW + 1);
   const pane = new THREE.Mesh(new THREE.ShapeGeometry(windowArch(new THREE.Shape(), winW - 0.05, winBot, winArch), 48), new THREE.MeshPhysicalMaterial({ color: 0xcfd8ff, roughness: 0.05, transparent: true, opacity: 0.06, clearcoat: 1, depthWrite: false }));
@@ -173,6 +175,7 @@ function buildHut() {
   // moonlight falling in through it, dust turning in the beams
   moonShafts(winW, winBot, winArch);
 
+  await slice();
   // the fireplace: brick, a mantel crowded with candles, a ball of magic fire, a cat asleep in the warmth
   const brick = std('brick', { map: tx(brickCanvas(), 2, 3), roughness: 0.85, bumpMap: tx(brickCanvas(), 2, 3, false), bumpScale: 2 });
   const fz = -3, fx = -W / 2;
@@ -190,6 +193,7 @@ function buildHut() {
   prop(sleepyCat.g, '橘猫 · 摸摸它', () => { catAnswer(); burstAt(sparks, sleepyCat.g.getWorldPosition(V(0, 0, 0)).add(V(0, 0.9, 0)), 18, { speed: 0.3, up: 0.5, size: 0.05, color: new THREE.Color(1.8, 0.9, 1.1) }); });
   garland(V(fx + 1.75, FLOOR + 12.6, fz - 3.2), V(fx + 1.75, FLOOR + 12.6, fz + 3.2), 1.2, 13);
 
+  await slice();
   // back left: a tall walnut bookcase with drawers, gold stars and moons painted on
   const decal = std('decal', { map: tx(decalCanvas('#4e3022', '#d9a441', 1230), 1, 2), roughness: 0.55 });
   const bc = group(-8.5, FLOOR, back + 1.0);
@@ -205,6 +209,7 @@ function buildHut() {
   add(lathe([[0, 0], [0.4, 0.05], [0.5, 0.3], [0.45, 0.42], [0, 0.42]], 24), std('mortar', { color: 0x8d9aa6, roughness: 0.8 }), 1.35, 7.74, 0.1, bc);
   books(bc, -1.8, 1.8, 9.79, 0, 1.3, 0.9, 1.5, 1233, 0.15);
 
+  await slice();
   // back right: a chest of drawers, a celestial globe and a telescope by the window
   const dWood = std('dresserWood', { map: tx(grainCanvas('#9a6642', '#4a2a16', 1241), 1, 1), roughness: 0.5 });
   const dr = group(6.7, FLOOR, back + 1.2);
@@ -227,12 +232,14 @@ function buildHut() {
   for (let k = 0; k < 6; k++) { const a = -0.5 + k * 0.2, pts = [V(2.55, 5.2, -0.5), V(2.55 + Math.sin(a) * 0.6, 6.1, -0.5 + Math.cos(a + 1) * 0.2), V(2.55 + Math.sin(a) * 1.1, 6.7 + k * 0.08, -0.5)]; add(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 10, 0.02, 5), darkWood, 0, 0, 0, dr); scatter(dr, new THREE.SphereGeometry(0.07, 8, 6), std('blossom', { color: 0xf2b8c8, emissive: 0x3a1a20 }), pts.slice(1).flatMap((p) => [[p.clone().add(V(0.05, 0.03, 0))], [p.clone().add(V(-0.06, -0.05, 0.03))]])); }
   prop(telescope(V(-2.0, FLOOR, -6.4), 7.6, V(0.15, 0.6, -0.78)), '望远镜 · 看看窗外', () => peekSky());
 
+  await slice();
   // a tufted velvet wingback, carved and gilded, in the foreground, drawn up to the desk with its back to us; a tartan throw over one arm
   wingChair(0.3, 3.55, Math.PI, 0.9);
 
   // the big rug under the desk
   add(new THREE.CylinderGeometry(6.2, 6.2, 0.05, 72), std('rug', { map: tx(sunMoonRug()), roughness: 0.95 }), 0.3, FLOOR + 0.025, -0.4);
 
+  await slice();
   // a treasure chest spilling coins, jewels and pearls
   const ch = group(-8.3, FLOOR, 4.6, 1.2), chWood = std('chest', { map: tx(grainCanvas('#7a4a2a', '#2a160c', 1260), 1, 1), roughness: 0.6 });
   prop(ch, '宝箱 · 打开看看', () => { play.chest = 1; sfx('coin'); burstAt(sparks, ch.localToWorld(V(0, 1.9, 0.2)), 60, { speed: 0.7, up: 1.3, size: 0.07, color: GOLD }); toast('叮——一枚古金币跳了出来，又落回箱子里'); });
@@ -251,6 +258,7 @@ function buildHut() {
   scatter(ch, new THREE.SphereGeometry(0.07, 12, 8), std('pearl', { color: 0xf6f0e8, roughness: 0.2, metalness: 0.1 }), pearls);
   const glint = new THREE.PointLight(0xffc860, 4, 5, 1.6); glint.position.set(0, 2.6, 0.4); ch.add(glint);
 
+  await slice();
   // a gramophone on a little cabinet against the right wall
   const gr = group(W / 2 - 1.5, FLOOR, -2.8, -Math.PI / 2);
   prop(gr, '留声机 · 放首歌', () => { play.music = !play.music; musicBox(play.music); toast(play.music ? '♪ 留声机唱起一首老歌' : '留声机安静下来了'); });
@@ -270,6 +278,7 @@ function buildHut() {
   gr.updateMatrixWorld(true); play.hornMouth = gr.localToWorld(neckEnd.clone().addScaledVector(hornDir, 2.2));
   add(new THREE.TorusGeometry(1.27, 0.035, 8, 64), BRASS(), neckEnd.x + hornDir.x * 2.3, neckEnd.y + hornDir.y * 2.3, neckEnd.z + hornDir.z * 2.3, gr).quaternion.setFromUnitVectors(V(0, 0, 1), hornDir);
 
+  await slice();
   // a wishing tree hung with paper slips and small lanterns, and a monstera by the fire
   const wt = group(9.85, FLOOR, -5.0);                    // in the corner, clear of the neon sign
   prop(wt, '许愿树 · 挂一个愿望', () => { play.tree = 1; sfx('chime'); for (let k = 0; k < 40; k++) sparks.emit(wt.localToWorld(V(rnd(-1, 1), rnd(4, 8), rnd(-0.6, 0.6))), tmpW.set(rnd(-0.1, 0.1), rnd(0.2, 0.5), rnd(-0.1, 0.1)), { life: rnd(1.2, 2.2), size: rnd(0.04, 0.07), color: k % 2 ? GOLD : ROSE }); toast('一张许愿签轻轻转了个圈，灯笼更亮了'); });
@@ -298,6 +307,7 @@ function buildHut() {
     lf.rotation.set(-0.9 - (k % 3) * 0.2, -a + Math.PI / 2, 0, 'YXZ');
   }
 
+  await slice();
   // things hung from the beams: strings of glass beads, pierced lanterns, glowing orbs, stars and moons
   const beadCluster = (cx, cz, sx, sz, n, seed) => {
     const r = mulberry(seed), items = [], g = group(cx, 0, cz);
@@ -327,6 +337,7 @@ function buildHut() {
     scene.add(g); floaters.push(g);
   }
 
+  await slice();
   // pictures, a crystal pair and a banner, in 3D frames
   frame3d(pictureCanvas('crane', 2.4, 3.0, 962), 2.4, 3.0, 'gold', 8.7, FLOOR + 10.5, back + 0.32, -0.02);
   frame3d(crystalArt(963), 1.2, 1.5, 'black', 5.35, FLOOR + 7.4, back + 0.32, 0.03);
@@ -343,6 +354,7 @@ function buildHut() {
   const fr = []; for (let k = 0; k < 24; k++) fr.push([V(0, 0, -1.15 + k * 0.1)]);
   const fringe = scatter(scene, new THREE.BoxGeometry(0.02, 0.35, 0.03), GOLDM(), fr); fringe.position.set(W / 2 - 0.3, FLOOR + 6.95, -6.6);
 
+  await slice();
   // the desk: rounded walnut, turned legs, an old map under the book, and the things left lying on it
   const walnut = std('walnut', { map: tx(fineWood()), roughness: 0.4 });
   add(rbox(6.4, 0.32, 4.6, 0.12), [darkWood, darkWood, walnut, darkWood, darkWood, darkWood], 0.3, -0.16, -0.1);
@@ -371,6 +383,7 @@ function buildHut() {
   [[-0.85, 0.95, 6], [-0.65, 1.25, 4], [-1.0, 1.5, 3]].forEach(([x, z, n]) => { for (let k = 0; k < n; k++) dc.push([V(x + (rd() - 0.5) * 0.01, 0.012 + k * 0.017, z)]); });
   for (let k = 0; k < 9; k++) dc.push([V(-1.3 + rd() * 0.9, 0.012, 0.8 + rd() * 1.2), [(rd() - 0.5) * 0.3, 0, (rd() - 0.5) * 0.3]]);
   scatter(scene, new THREE.CylinderGeometry(0.075, 0.075, 0.016, 24), GOLDM(), dc);
+  await slice();
   // a second chart, rolled up and tied with a red ribbon, behind the first
   const sc2 = group(2.0, 0.075, -1.98, 0.12), parch = std('scroll', { color: 0xe6d2a4, roughness: 0.85 });
   add(new THREE.CylinderGeometry(0.075, 0.075, 1.1, 20), parch, 0, 0, 0, sc2, [0, 0, Math.PI / 2]);
@@ -391,10 +404,13 @@ function buildHut() {
   prop(ballG, '水晶球 · 看一眼', () => { play.ball = 1; sfx('soft'); toast(BALL_LINES[Math.floor(Math.random() * BALL_LINES.length)]); });
   add(lathe([[0, 0], [0.16, 0], [0.12, 0.05], [0.08, 0.12], [0.12, 0.16], [0, 0.16]], 24), BRASS(), 0, 0, 0, ballG);
   for (let k = 0; k < 3; k++) { const a = (k / 3) * TAU; add(new THREE.ConeGeometry(0.025, 0.16, 6), BRASS(), Math.cos(a) * 0.11, 0.2, Math.sin(a) * 0.11, ballG, [Math.sin(a) * 0.5, 0, -Math.cos(a) * 0.5]); }
-  add(new THREE.SphereGeometry(0.19, 32, 24), new THREE.MeshPhysicalMaterial({ color: 0xe6dcff, roughness: 0.02, transmission: 1, thickness: 0.3, ior: 1.45, clearcoat: 1 }), 0, 0.34, 0, ballG).castShadow = false;
+  // true refracting glass on a computer; a phone gets glowing glass instead, as refraction draws the whole room a second time every frame
+  const glass = lowPower ? std('ballglass', { color: 0x3c3080, emissive: 0x8a6ad8, emissiveIntensity: 0.77, roughness: 0.08 }) : new THREE.MeshPhysicalMaterial({ color: 0xe6dcff, roughness: 0.02, transmission: 1, thickness: 0.3, ior: 1.45, clearcoat: 1 });
+  add(new THREE.SphereGeometry(0.19, 32, 24), glass, 0, 0.34, 0, ballG).castShadow = false;
   add(new THREE.SphereGeometry(0.07, 16, 12), std('ballcore', { color: 0xd8c8ff, emissive: 0x8a6ad8, emissiveIntensity: 1.4 }), 0, 0.34, 0, ballG).castShadow = false;
   place(ballG, glowSprite(0.8, new THREE.Color(1.0, 0.85, 1.6)), 0, 0.34, 0);
 
+  await slice();
   // an art-nouveau tulip lamp on the desk, its frosted shade glowing
   const tl = group(-1.05, 0, -1.8, 0.35); tl.scale.setScalar(1.6);             // a lamp you notice on the desk
   add(lathe([[0, 0], [0.22, 0], [0.24, 0.03], [0.1, 0.07], [0.05, 0.1], [0, 0.1]], 28), BRASS(), 0, 0, 0, tl);
@@ -404,6 +420,7 @@ function buildHut() {
   add(lathe([[0.2, 0], [0.23, 0.05], [0.21, 0.15], [0.14, 0.25], [0.05, 0.3], [0, 0.31]], 32), shadeMat, 0.42, 0.9, 0, tl).castShadow = false;
   const tg = place(tl, glowSprite(0.9, new THREE.Color(1.7, 1.15, 0.5)), 0.42, 0.98, 0);
   prop(tl, '台灯 · 开关', () => { lampOn = !lampOn; sfx('soft'); shadeMat.emissiveIntensity = lampOn ? 1.3 : 0.05; tg.visible = lampOn; });
+  await slice();
   // the great armillary sphere, hung on chains in front of the window
   orrery = armillary(0.3, 7.0, -0.7, 2.0);
   prop(orrery, '浑天仪 · 拨一下', () => { play.orrery = 1; sfx('soft'); toast('浑天仪的星环转了起来'); });
@@ -1086,6 +1103,7 @@ function updateHut(dt, t) {
   if (play.music && (play.notes -= dt) < 0) { play.notes = rnd(0.25, 0.45); sparks.emit(tmpV.copy(play.hornMouth).add(V(rnd(-0.4, 0.4), rnd(-0.4, 0.4), rnd(-0.4, 0.4))), tmpW.set(rnd(-0.5, -0.2), rnd(0.25, 0.5), rnd(-0.1, 0.3)), { life: rnd(1.6, 2.4), size: rnd(0.07, 0.11), color: Math.random() < 0.5 ? GOLD : LILAC, drag: 0.3 }); }
   play.ball = Math.max(0, play.ball - dt * 0.25);
   MATS.ballcore.emissiveIntensity = 1.4 + play.ball * 4; if (play.ball > 0) { MATS.ballcore.emissive.setHSL((t * 0.4) % 1, 0.7, 0.5); if (Math.random() < dt * 40) { const a = t * 5 + Math.random(); sparks.emit(tmpV.set(2.7 + Math.cos(a) * 0.3, 0.34 + rnd(-0.1, 0.2), -1.55 + Math.sin(a) * 0.3), tmpW.set(0, rnd(0.1, 0.3), 0), { life: 0.9, size: 0.03, color: LILAC }); } } else MATS.ballcore.emissive.setHex(0x8a6ad8);
+  if (MATS.ballglass) { MATS.ballglass.emissive.copy(MATS.ballcore.emissive); MATS.ballglass.emissiveIntensity = MATS.ballcore.emissiveIntensity * 0.55; }     // the phone's glass glows with the core
   play.tree = Math.max(0, play.tree - dt * 0.3); MATS.paperlamp.emissiveIntensity = 1.2 + play.tree * 2.5;
   updateNeon(dt, t);
   // now and then, a twinkle over something you could poke
