@@ -3865,7 +3865,7 @@ const TEASE = {
 const FLOOR = -3.8, HUT_W = 22, HUT_BACK = -10, HUT_FRONT = 15, HUT_TOP = FLOOR + 15.5;
 let gears = [], shafts = [], glowWalls = [], spinners = [], fireLining, pages, lampOn = true, lamp, roomSpot, hemi, moonSpot, fireLight, candleLight, orrery, bookHalo, sparks, smoke, globeSphere, record, fireCore, fireGlow, fireSparks, sleepyCat;
 /** things in the hut you can poke: each with a tip for the hint line and something it does */
-const PROPS = [], play = { music: false, notes: 0, cat: 0, globe: 0, orrery: 0, ball: 0, tree: 0, chest: 0, cue: 3, neon: 0, neonOn: false, neonT: 0 };
+const PROPS = [], play = { music: false, notes: 0, cat: 0, globe: 0, orrery: 0, ball: 0, tree: 0, chest: 0, cue: 3, neon: 0, neonOn: false };
 const BALL_LINES = ['水晶球里浮出一句：慢一点也没关系。', '水晶球里浮出一句：今天适合喝一杯热茶。', '水晶球里浮出一句：好消息正在路上。', '水晶球里浮出一句：给自己一个拥抱吧。', '水晶球里浮出一句：答案就在下一次深呼吸里。'];
 const FIRE_COLS = [new THREE.Color(1.9, 1.15, 0.45), new THREE.Color(1.9, 0.62, 0.22), new THREE.Color(1.3, 0.9, 1.9), new THREE.Color(0.7, 1.6, 1.5)];
 function prop(obj, tip, act) { const p = { obj, tip, act: () => { p.tried = true; act(); } }; PROPS.push(p); }
@@ -4291,11 +4291,11 @@ async function buildHut() {
 function pictureCanvas(kind, w, h, seed) { const c = canvas(Math.round(w * 200), Math.round(h * 200)), p = painter(c, seed, 1.2); PICTURE[kind](px(p, c.width, c.height), p.g, 0, 0, c.width, c.height); return c; }
 /**
  * The 人生海海 neon sign (neonSignCanvas): a tribute to Mayday's album, on a clear acrylic board held off the wall by
- * four brass standoffs. Off, it keeps a faint glow, the tubes and the box just alight; a tap switches it on with a few
- * stuttering flickers, and it lights the wall round it blue; another tap turns it back down to the glow.
+ * four brass standoffs. Off, it keeps a faint glow, the tubes and the box just alight; a tap lights it, steady, and it
+ * lights the wall round it blue; another tap turns it back down to the glow.
  */
 let NEON = null;
-const NEON_IDLE = 0.22;                                  // switched off, the lit face still shows this much: a faint glow
+const NEON_IDLE = 0.22, NEON_LIT = 0.86;                 // how much of the lit face shows: switched off (a faint glow), and lit
 function neonSign(x, y, z, w = 2.2) {
   const h = (w * 1080) / 1380, g = group(x, y, z);
   const offTex = tx(neonSignCanvas(0)), onTex = tx(neonSignCanvas(1));
@@ -4307,7 +4307,7 @@ function neonSign(x, y, z, w = 2.2) {
   const wash = place(g, glowSprite(w * 2, new THREE.Color(0.18, 0.42, 0.9)), 0, 0, 0.2); wash.material.opacity = 0;   // the blue light it throws on the wall
   const hit = new THREE.Mesh(new THREE.BoxGeometry(w, h, 0.3), new THREE.MeshBasicMaterial({ visible: false })); g.add(hit);
   prop(hit, '霓虹灯 · 致敬五月天《人生海海》', () => {
-    play.neonOn = !play.neonOn; play.neonT = 0; sfx(play.neonOn ? 'bell' : 'soft');
+    play.neonOn = !play.neonOn; sfx(play.neonOn ? 'bell' : 'soft');
     toast(play.neonOn ? '嗡——霓虹灯亮了。愿你在海海人生里，找到自己的方向。' : '霓虹灯暗了下来');
   });
   NEON = { onMat, wash, repaint: () => { offTex.image = neonSignCanvas(0); onTex.image = neonSignCanvas(1); offTex.needsUpdate = onTex.needsUpdate = true; } };
@@ -4315,15 +4315,10 @@ function neonSign(x, y, z, w = 2.2) {
   document.fonts?.load("300px 'Long Cang'", '人生海海').then(() => NEON.repaint()).catch(() => {});
   return g;
 }
-/** switching on: a short run of flickers, then steady with a faint hum; switching off: down to the glow at once */
-function updateNeon(dt, t) {
+/** a quick, smooth fade between the glow and lit, either way */
+function updateNeon(dt) {
   if (!NEON) return;
-  play.neonT += dt;
-  let k;
-  if (!play.neonOn) k = NEON_IDLE;
-  else if (play.neonT < 0.9) { const s = play.neonT; k = Math.max(NEON_IDLE, s < 0.08 ? 1 : s < 0.2 ? 0.1 : s < 0.28 ? 0.9 : s < 0.45 ? 0 : s < 0.52 ? 1 : s < 0.62 ? 0.3 : 1); }
-  else k = 0.94 + 0.06 * Math.sin(t * 37) * Math.sin(t * 11.3);
-  play.neon += (k - play.neon) * Math.min(1, dt * (play.neonOn ? 40 : 12));
+  play.neon += ((play.neonOn ? NEON_LIT : NEON_IDLE) - play.neon) * Math.min(1, dt * 12);
   NEON.onMat.opacity = play.neon; NEON.onMat.color.setScalar(0.96 + 0.27 * play.neon);     // lit, a little over 1: the bloom picks up the white tubes
   NEON.wash.material.opacity = play.neon * 0.44;
 }
@@ -4962,7 +4957,7 @@ function updateHut(dt, t) {
   MATS.ballcore.emissiveIntensity = 1.4 + play.ball * 4; if (play.ball > 0) { MATS.ballcore.emissive.setHSL((t * 0.4) % 1, 0.7, 0.5); if (Math.random() < dt * 40) { const a = t * 5 + Math.random(); sparks.emit(tmpV.set(2.7 + Math.cos(a) * 0.3, 0.34 + rnd(-0.1, 0.2), -1.55 + Math.sin(a) * 0.3), tmpW.set(0, rnd(0.1, 0.3), 0), { life: 0.9, size: 0.03, color: LILAC }); } } else MATS.ballcore.emissive.setHex(0x8a6ad8);
   if (MATS.ballglass) { MATS.ballglass.emissive.copy(MATS.ballcore.emissive); MATS.ballglass.emissiveIntensity = MATS.ballcore.emissiveIntensity * 0.55; }     // the phone's glass glows with the core
   play.tree = Math.max(0, play.tree - dt * 0.3); MATS.paperlamp.emissiveIntensity = 1.2 + play.tree * 2.5;
-  updateNeon(dt, t);
+  updateNeon(dt);
   // now and then, a twinkle over something you could poke
   if (mode === 'hut' && (play.cue -= dt) < 0) { play.cue = rnd(3.5, 6.5); const pr = PROPS[Math.floor(Math.random() * PROPS.length)]; pr.box ??= new THREE.Box3().setFromObject(pr.obj).getCenter(V(0, 0, 0)); burstAt(sparks, pr.box, 10, { speed: 0.25, up: 0.3, size: 0.05, life: 1 }); }
   floaters.forEach((g) => { g.position.y = g.userData.base.y + Math.sin(t * 0.8 + g.userData.ph) * 0.18; });
@@ -5417,6 +5412,14 @@ function tentGlow(inner, outer) {
   r.addColorStop(0, inner); r.addColorStop(0.25, outer); r.addColorStop(1, 'rgba(0,0,0,0)');
   g.fillStyle = r; g.fillRect(0, 0, 128, 128); return tex(c);
 }
+/** a gold arrow pointing down, softly glowing: the hint over something to tap */
+function cueArrow() {
+  const c = canvas(96, 128), g = c.getContext('2d'), gr = g.createLinearGradient(0, 12, 0, 112);
+  gr.addColorStop(0, '#fff3cc'); gr.addColorStop(1, '#e2a845');
+  g.beginPath(); g.moveTo(37, 14); g.lineTo(59, 14); g.lineTo(59, 60); g.lineTo(80, 60); g.lineTo(48, 110); g.lineTo(16, 60); g.lineTo(37, 60); g.closePath();
+  g.shadowColor = 'rgba(255,205,110,.95)'; g.shadowBlur = 14; g.fillStyle = gr; g.fill();
+  return tex(c);
+}
 function tentFlame() {
   const c = canvas(64, 128), g = c.getContext('2d'), r = g.createRadialGradient(32, 84, 2, 32, 74, 46);
   r.addColorStop(0, 'rgba(255,250,225,1)'); r.addColorStop(0.35, 'rgba(255,190,90,.9)'); r.addColorStop(1, 'rgba(255,120,40,0)');
@@ -5575,6 +5578,11 @@ async function buildBakedShrineRoom() {
     const body = new THREE.Mesh(new THREE.BoxGeometry(0.008, h, 0.003).translate(0, h / 2, 0), stickM), tip = new THREE.Mesh(new THREE.BoxGeometry(0.0086, 0.04, 0.0036).translate(0, h - 0.02, 0), tipM);
     body.userData.cup = tip.userData.cup = true; st.add(body, tip); st.userData.home = st.position.clone(); st.userData.rot = st.rotation.clone(); cup.add(st); sticks.push(st);
   }
+  // the hint that the cup can be tapped too, not only the moon blocks (updateLots shows it)
+  const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: warm, color: new THREE.Color(0.9, 0.65, 0.3), blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, opacity: 0, fog: false }));
+  const arrow = new THREE.Sprite(new THREE.SpriteMaterial({ map: cueArrow(), color: new THREE.Color(1.25, 1.18, 1.05), transparent: true, depthWrite: false, opacity: 0, fog: false }));
+  halo.scale.setScalar(0.32); halo.userData.cup = arrow.userData.cup = true;
+  const cue = new THREE.Group(); cue.add(halo, arrow); cue.position.copy(cupAt).add(V(0, 0.56, 0)); cue.visible = false; s.add(cue);
   // the drawer that slides out of the slip cabinet when a lot is granted (row-major from the top left, as painted)
   const cabAt = cab0 ?? V(-1.567, 0.93, -0.05), CWd = 1.32, CHd = 1.62 * 0.92, cwd = CWd / 10, chd = CHd / 6;
   const drawerAt = (n) => { const r = Math.floor((n - 1) / 10), c = (n - 1) % 10; return V(cabAt.x, cabAt.y + CHd / 2 - (r + 0.5) * chd, cabAt.z + CWd / 2 - (c + 0.5) * cwd); };
@@ -5602,7 +5610,7 @@ async function buildBakedShrineRoom() {
     // low mist drifting off the podium
     if (Math.random() < dt * 2) { const a = rnd(0, TAU); smoke.emit(tmpV.set(Math.cos(a) * rnd(2.6, 3.4), rnd(-0.1, 0.15), Math.sin(a) * rnd(1.8, 2.4)), tmpW.set(Math.cos(a) * 0.05, 0.005, Math.sin(a) * 0.05), { life: rnd(5, 8), size: 0.34, color: new THREE.Color(0.12, 0.14, 0.2), drag: 0.03 }); }
   };
-  return { scene: s, bei, table, cup, sticks, cupTilt: 0, drawer, slip, drawerGlow, drawerAt, setDrawer, hits: [table, ...bei.map((b) => b.children).flat(), cupBody], warm: { intensity: 0 }, warmBase: 0, mobiles: [], flames: [], glow: [], lanterns: [], baked: true, update,
+  return { scene: s, bei, table, cup, sticks, cupTilt: 0, cue, cueK: 0, cueY: cue.position.y, cupTried: false, drawer, slip, drawerGlow, drawerAt, setDrawer, hits: [table, ...bei.map((b) => b.children).flat(), cupBody], warm: { intensity: 0 }, warmBase: 0, mobiles: [], flames: [], glow: [], lanterns: [], baked: true, update,
     moon: moonGlow ? { material: { set opacity(v) { moonGlow.dim = v; } } } : { material: {} }, beiCfg, incensePos: incense, moonPos: moonGlow?.sp.position, setGlow: (g) => lamps.forEach((f) => { f.dim = g / 0.9; }) };
 }
 
@@ -5636,7 +5644,7 @@ async function roomSit() {
   busy = true; hidePanel(); setUI('moving'); sfx('soft');
   await flyRoom(BAKED[roomId].view().inside, 1500);
   roomInside = true; busy = false; setUI('room');
-  toast(roomId === 'tent' ? '点一下桌上的牌堆，开始占卜' : '默念你的问题，再点一下木筊');
+  toast(roomId === 'tent' ? '点一下桌上的牌堆，开始占卜' : '默念你的问题，点签筒求签，或点木筊掷筊');
 }
 /** stand up and step back out to the cut-away view */
 async function roomStand() {
@@ -6145,7 +6153,7 @@ function startLots() {
   if (roomId !== 'shrine' || !R?.baked || throwing || busy) return;
   if (!roomInside) { roomSit(); return; }
   resetLots(); hidePanel(); sfx('soft'); backToTable();
-  lots = { phase: 'shake', p: 0, t: 0, kick: 0, n: 0 };
+  lots = { phase: 'shake', p: 0, t: 0, kick: 0, n: 0 }; R.cupTried = true;
   aimAt(R.cup.position.clone().add(V(0.12, 0.12, 0.25)));
   ritualMeter(0); setUI('room');
 }
@@ -6193,6 +6201,13 @@ function updateLots(dt, t) {
     R.slip.position.x = R.drawer.position.x + 0.2; R.slip.position.y = L.slipY + 0.12 * e2; R.slip.visible = e2 > 0;
     if (L.t > 1.4 && !L.shown) { L.shown = true; L.phase = 'slip'; showSlip(); setUI('room'); }
   }
+  // kneeling at the table and the cup not tried yet: a gold arrow bobs over it and now and then it twinkles
+  const cueOn = roomInside && !L && !throwing && !busy && !R.cupTried;
+  R.cueK += ((cueOn ? 1 : 0) - R.cueK) * Math.min(1, dt * 5);
+  const [halo, arrow] = R.cue.children;
+  R.cue.visible = R.cueK > 0.01; R.cue.position.y = R.cueY + Math.sin(t * 3.2) * 0.025;
+  halo.material.opacity = 0.55 * R.cueK; arrow.material.opacity = R.cueK; arrow.scale.set(0.125, 0.165, 1).multiplyScalar(1 + 0.06 * Math.sin(t * 6.4));
+  if (cueOn && Math.random() < dt * 2.5) burstAt(sparks, tmpV.copy(R.cup.position).add(V(0, 0.36, 0)), 7, { speed: 0.14, up: 0.22, size: 0.02, life: 0.9 });
 }
 function lotsAskPanel() {
   const n = lots.n;
@@ -6243,7 +6258,7 @@ function roomTap(ndc) {
   if (ritual && ritual.phase !== 'done') return;
   const objs = [];
   if (roomId === 'tent') objs.push(...rooms.tent.deck.children, ...cards.map((c) => c.group.children).flat(), ...(rooms.tent.table ? [rooms.tent.table] : []));
-  if (roomId === 'shrine') { const R = rooms.shrine; R.bei.forEach((b) => objs.push(...b.children)); if (R.cup) objs.push(...R.cup.children.filter((o) => o.isMesh)); if (R.table) objs.push(R.table); }
+  if (roomId === 'shrine') { const R = rooms.shrine; R.bei.forEach((b) => objs.push(...b.children)); if (R.cup) objs.push(...R.cup.children.filter((o) => o.isMesh)); if (R.cue?.visible) objs.push(...R.cue.children); if (R.table) objs.push(R.table); }
   const hit = ray.intersectObjects(objs, false)[0];
   if (!hit) return;
   if (hit.object.userData.card !== undefined) { const i = hit.object.userData.card; if (cards[i]?.spread) flipSpreadCard(i); else flipCard(i); }

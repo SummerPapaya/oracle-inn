@@ -306,6 +306,14 @@ function tentGlow(inner, outer) {
   r.addColorStop(0, inner); r.addColorStop(0.25, outer); r.addColorStop(1, 'rgba(0,0,0,0)');
   g.fillStyle = r; g.fillRect(0, 0, 128, 128); return tex(c);
 }
+/** a gold arrow pointing down, softly glowing: the hint over something to tap */
+function cueArrow() {
+  const c = canvas(96, 128), g = c.getContext('2d'), gr = g.createLinearGradient(0, 12, 0, 112);
+  gr.addColorStop(0, '#fff3cc'); gr.addColorStop(1, '#e2a845');
+  g.beginPath(); g.moveTo(37, 14); g.lineTo(59, 14); g.lineTo(59, 60); g.lineTo(80, 60); g.lineTo(48, 110); g.lineTo(16, 60); g.lineTo(37, 60); g.closePath();
+  g.shadowColor = 'rgba(255,205,110,.95)'; g.shadowBlur = 14; g.fillStyle = gr; g.fill();
+  return tex(c);
+}
 function tentFlame() {
   const c = canvas(64, 128), g = c.getContext('2d'), r = g.createRadialGradient(32, 84, 2, 32, 74, 46);
   r.addColorStop(0, 'rgba(255,250,225,1)'); r.addColorStop(0.35, 'rgba(255,190,90,.9)'); r.addColorStop(1, 'rgba(255,120,40,0)');
@@ -464,6 +472,11 @@ async function buildBakedShrineRoom() {
     const body = new THREE.Mesh(new THREE.BoxGeometry(0.008, h, 0.003).translate(0, h / 2, 0), stickM), tip = new THREE.Mesh(new THREE.BoxGeometry(0.0086, 0.04, 0.0036).translate(0, h - 0.02, 0), tipM);
     body.userData.cup = tip.userData.cup = true; st.add(body, tip); st.userData.home = st.position.clone(); st.userData.rot = st.rotation.clone(); cup.add(st); sticks.push(st);
   }
+  // the hint that the cup can be tapped too, not only the moon blocks (updateLots shows it)
+  const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: warm, color: new THREE.Color(0.9, 0.65, 0.3), blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, opacity: 0, fog: false }));
+  const arrow = new THREE.Sprite(new THREE.SpriteMaterial({ map: cueArrow(), color: new THREE.Color(1.25, 1.18, 1.05), transparent: true, depthWrite: false, opacity: 0, fog: false }));
+  halo.scale.setScalar(0.32); halo.userData.cup = arrow.userData.cup = true;
+  const cue = new THREE.Group(); cue.add(halo, arrow); cue.position.copy(cupAt).add(V(0, 0.56, 0)); cue.visible = false; s.add(cue);
   // the drawer that slides out of the slip cabinet when a lot is granted (row-major from the top left, as painted)
   const cabAt = cab0 ?? V(-1.567, 0.93, -0.05), CWd = 1.32, CHd = 1.62 * 0.92, cwd = CWd / 10, chd = CHd / 6;
   const drawerAt = (n) => { const r = Math.floor((n - 1) / 10), c = (n - 1) % 10; return V(cabAt.x, cabAt.y + CHd / 2 - (r + 0.5) * chd, cabAt.z + CWd / 2 - (c + 0.5) * cwd); };
@@ -491,7 +504,7 @@ async function buildBakedShrineRoom() {
     // low mist drifting off the podium
     if (Math.random() < dt * 2) { const a = rnd(0, TAU); smoke.emit(tmpV.set(Math.cos(a) * rnd(2.6, 3.4), rnd(-0.1, 0.15), Math.sin(a) * rnd(1.8, 2.4)), tmpW.set(Math.cos(a) * 0.05, 0.005, Math.sin(a) * 0.05), { life: rnd(5, 8), size: 0.34, color: new THREE.Color(0.12, 0.14, 0.2), drag: 0.03 }); }
   };
-  return { scene: s, bei, table, cup, sticks, cupTilt: 0, drawer, slip, drawerGlow, drawerAt, setDrawer, hits: [table, ...bei.map((b) => b.children).flat(), cupBody], warm: { intensity: 0 }, warmBase: 0, mobiles: [], flames: [], glow: [], lanterns: [], baked: true, update,
+  return { scene: s, bei, table, cup, sticks, cupTilt: 0, cue, cueK: 0, cueY: cue.position.y, cupTried: false, drawer, slip, drawerGlow, drawerAt, setDrawer, hits: [table, ...bei.map((b) => b.children).flat(), cupBody], warm: { intensity: 0 }, warmBase: 0, mobiles: [], flames: [], glow: [], lanterns: [], baked: true, update,
     moon: moonGlow ? { material: { set opacity(v) { moonGlow.dim = v; } } } : { material: {} }, beiCfg, incensePos: incense, moonPos: moonGlow?.sp.position, setGlow: (g) => lamps.forEach((f) => { f.dim = g / 0.9; }) };
 }
 
@@ -525,7 +538,7 @@ async function roomSit() {
   busy = true; hidePanel(); setUI('moving'); sfx('soft');
   await flyRoom(BAKED[roomId].view().inside, 1500);
   roomInside = true; busy = false; setUI('room');
-  toast(roomId === 'tent' ? '点一下桌上的牌堆，开始占卜' : '默念你的问题，再点一下木筊');
+  toast(roomId === 'tent' ? '点一下桌上的牌堆，开始占卜' : '默念你的问题，点签筒求签，或点木筊掷筊');
 }
 /** stand up and step back out to the cut-away view */
 async function roomStand() {
@@ -1034,7 +1047,7 @@ function startLots() {
   if (roomId !== 'shrine' || !R?.baked || throwing || busy) return;
   if (!roomInside) { roomSit(); return; }
   resetLots(); hidePanel(); sfx('soft'); backToTable();
-  lots = { phase: 'shake', p: 0, t: 0, kick: 0, n: 0 };
+  lots = { phase: 'shake', p: 0, t: 0, kick: 0, n: 0 }; R.cupTried = true;
   aimAt(R.cup.position.clone().add(V(0.12, 0.12, 0.25)));
   ritualMeter(0); setUI('room');
 }
@@ -1082,6 +1095,13 @@ function updateLots(dt, t) {
     R.slip.position.x = R.drawer.position.x + 0.2; R.slip.position.y = L.slipY + 0.12 * e2; R.slip.visible = e2 > 0;
     if (L.t > 1.4 && !L.shown) { L.shown = true; L.phase = 'slip'; showSlip(); setUI('room'); }
   }
+  // kneeling at the table and the cup not tried yet: a gold arrow bobs over it and now and then it twinkles
+  const cueOn = roomInside && !L && !throwing && !busy && !R.cupTried;
+  R.cueK += ((cueOn ? 1 : 0) - R.cueK) * Math.min(1, dt * 5);
+  const [halo, arrow] = R.cue.children;
+  R.cue.visible = R.cueK > 0.01; R.cue.position.y = R.cueY + Math.sin(t * 3.2) * 0.025;
+  halo.material.opacity = 0.55 * R.cueK; arrow.material.opacity = R.cueK; arrow.scale.set(0.125, 0.165, 1).multiplyScalar(1 + 0.06 * Math.sin(t * 6.4));
+  if (cueOn && Math.random() < dt * 2.5) burstAt(sparks, tmpV.copy(R.cup.position).add(V(0, 0.36, 0)), 7, { speed: 0.14, up: 0.22, size: 0.02, life: 0.9 });
 }
 function lotsAskPanel() {
   const n = lots.n;
@@ -1132,7 +1152,7 @@ function roomTap(ndc) {
   if (ritual && ritual.phase !== 'done') return;
   const objs = [];
   if (roomId === 'tent') objs.push(...rooms.tent.deck.children, ...cards.map((c) => c.group.children).flat(), ...(rooms.tent.table ? [rooms.tent.table] : []));
-  if (roomId === 'shrine') { const R = rooms.shrine; R.bei.forEach((b) => objs.push(...b.children)); if (R.cup) objs.push(...R.cup.children.filter((o) => o.isMesh)); if (R.table) objs.push(R.table); }
+  if (roomId === 'shrine') { const R = rooms.shrine; R.bei.forEach((b) => objs.push(...b.children)); if (R.cup) objs.push(...R.cup.children.filter((o) => o.isMesh)); if (R.cue?.visible) objs.push(...R.cue.children); if (R.table) objs.push(R.table); }
   const hit = ray.intersectObjects(objs, false)[0];
   if (!hit) return;
   if (hit.object.userData.card !== undefined) { const i = hit.object.userData.card; if (cards[i]?.spread) flipSpreadCard(i); else flipCard(i); }
