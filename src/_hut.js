@@ -8,7 +8,7 @@
 const FLOOR = -3.8, HUT_W = 22, HUT_BACK = -10, HUT_FRONT = 15, HUT_TOP = FLOOR + 15.5;
 let gears = [], shafts = [], glowWalls = [], spinners = [], fireLining, pages, lampOn = true, lamp, roomSpot, hemi, moonSpot, fireLight, candleLight, orrery, bookHalo, sparks, smoke, globeSphere, record, fireCore, fireGlow, fireSparks, sleepyCat;
 /** things in the hut you can poke: each with a tip for the hint line and something it does */
-const PROPS = [], play = { music: false, notes: 0, cat: 0, globe: 0, orrery: 0, ball: 0, tree: 0, chest: 0, cue: 3 };
+const PROPS = [], play = { music: false, notes: 0, cat: 0, globe: 0, orrery: 0, ball: 0, tree: 0, chest: 0, cue: 3, neon: 0, neonOn: false, neonT: 0 };
 const BALL_LINES = ['水晶球里浮出一句：慢一点也没关系。', '水晶球里浮出一句：今天适合喝一杯热茶。', '水晶球里浮出一句：好消息正在路上。', '水晶球里浮出一句：给自己一个拥抱吧。', '水晶球里浮出一句：答案就在下一次深呼吸里。'];
 const FIRE_COLS = [new THREE.Color(1.9, 1.15, 0.45), new THREE.Color(1.9, 0.62, 0.22), new THREE.Color(1.3, 0.9, 1.9), new THREE.Color(0.7, 1.6, 1.5)];
 function prop(obj, tip, act) { const p = { obj, tip, act: () => { p.tried = true; act(); } }; PROPS.push(p); }
@@ -271,7 +271,7 @@ function buildHut() {
   add(new THREE.TorusGeometry(1.27, 0.035, 8, 64), BRASS(), neckEnd.x + hornDir.x * 2.3, neckEnd.y + hornDir.y * 2.3, neckEnd.z + hornDir.z * 2.3, gr).quaternion.setFromUnitVectors(V(0, 0, 1), hornDir);
 
   // a wishing tree hung with paper slips and small lanterns, and a monstera by the fire
-  const wt = group(9.2, FLOOR, -5.9);
+  const wt = group(9.85, FLOOR, -5.0);                    // in the corner, clear of the neon sign
   prop(wt, '许愿树 · 挂一个愿望', () => { play.tree = 1; sfx('chime'); for (let k = 0; k < 40; k++) sparks.emit(wt.localToWorld(V(rnd(-1, 1), rnd(4, 8), rnd(-0.6, 0.6))), tmpW.set(rnd(-0.1, 0.1), rnd(0.2, 0.5), rnd(-0.1, 0.1)), { life: rnd(1.2, 2.2), size: rnd(0.04, 0.07), color: k % 2 ? GOLD : ROSE }); toast('一张许愿签轻轻转了个圈，灯笼更亮了'); });
   add(lathe([[0, 0], [0.7, 0], [0.9, 0.2], [1.0, 1.2], [1.1, 1.35], [0.95, 1.38], [0, 1.38]], 32), std('wtpot', { color: 0x2f6a8a, roughness: 0.25 }), 0, 0, 0, wt);
   const rt = mulberry(77), slips = [], tleaves = [], lanterns = [], bamboo = std('bamboo', { color: 0x6a9a4a, roughness: 0.5 });
@@ -322,15 +322,17 @@ function buildHut() {
     add(new THREE.CylinderGeometry(0.07, 0.08, 0.5, 12), WAX(), 0, 0, 0, g).castShadow = false;
     place(g, glowSprite(0.7, new THREE.Color(1.8, 1.3, 0.6)), 0, 0.34, 0);
     g.position.set(Math.cos(a) * r + 0.3, 3.8 + (i % 4) * 1.2, Math.sin(a) * r * 0.7 - 1);
+    if (g.position.x > 2.5 && g.position.y < 7) g.position.y = 8.3 + (i % 2) * 0.6;      // the two on the right would hang across the neon sign: they float higher
     g.userData.base = g.position.clone(); g.userData.ph = i * 1.7;
     scene.add(g); floaters.push(g);
   }
 
   // pictures, a crystal pair and a banner, in 3D frames
-  frame3d(pictureCanvas('crane', 2.4, 3.0, 962), 2.4, 3.0, 'gold', 8.6, FLOOR + 8.9, back + 0.32, -0.02);
-  frame3d(crystalArt(963), 1.2, 1.5, 'black', 4.9, FLOOR + 7.6, back + 0.32, 0.03);
-  frame3d(crystalArt(964), 1.2, 1.5, 'black', 6.3, FLOOR + 7.6, back + 0.32, -0.02);
-  frame3d(pictureCanvas('stars', 1.7, 1.7, 965), 1.7, 1.7, 'oval', 5.6, FLOOR + 10.4, back + 0.32);
+  frame3d(pictureCanvas('crane', 2.4, 3.0, 962), 2.4, 3.0, 'gold', 8.7, FLOOR + 10.5, back + 0.32, -0.02);
+  frame3d(crystalArt(963), 1.2, 1.5, 'black', 5.35, FLOOR + 7.4, back + 0.32, 0.03);
+  frame3d(crystalArt(964), 1.2, 1.5, 'black', W / 2 - 0.32, FLOOR + 8.2, 1.3, -0.02, -Math.PI / 2);
+  frame3d(pictureCanvas('stars', 1.7, 1.7, 965), 1.7, 1.7, 'oval', 5.35, FLOOR + 10.0, back + 0.32);
+  neonSign(7.4, FLOOR + 7.4, back + 0.36, 2.09);         // below and left of the crane, over the chest of drawers, clear of the globe and the vase
   frame3d(pictureCanvas('moonsea', 2.0, 2.4, 966), 2.0, 2.4, 'gold', W / 2 - 0.32, FLOOR + 9.0, 4.2, 0, -Math.PI / 2);
   frame3d(pictureCanvas('cat', 1.3, 1.6, 967), 1.3, 1.6, 'black', W / 2 - 0.32, FLOOR + 8.4, 7.0, 0.05, -Math.PI / 2);
   frame3d(pictureCanvas('ship', 1.8, 1.4, 968), 1.8, 1.4, 'gold', -W / 2 + 0.32, FLOOR + 8.6, 4.4, 0.03, Math.PI / 2);
@@ -413,6 +415,44 @@ function buildHut() {
 
 /* ---------- pieces used above ---------- */
 function pictureCanvas(kind, w, h, seed) { const c = canvas(Math.round(w * 200), Math.round(h * 200)), p = painter(c, seed, 1.2); PICTURE[kind](px(p, c.width, c.height), p.g, 0, 0, c.width, c.height); return c; }
+/**
+ * The 人生海海 neon sign (neonSignCanvas): a tribute to Mayday's album, on a clear acrylic board held off the wall by
+ * four brass standoffs. Off, it keeps a faint glow, the tubes and the box just alight; a tap switches it on with a few
+ * stuttering flickers, and it lights the wall round it blue; another tap turns it back down to the glow.
+ */
+let NEON = null;
+const NEON_IDLE = 0.22;                                  // switched off, the lit face still shows this much: a faint glow
+function neonSign(x, y, z, w = 2.2) {
+  const h = (w * 1080) / 1380, g = group(x, y, z);
+  const offTex = tx(neonSignCanvas(0)), onTex = tx(neonSignCanvas(1));
+  add(rbox(w + 0.16, h + 0.16, 0.04, 0.02), new THREE.MeshStandardMaterial({ color: 0xdfe8f2, roughness: 0.1, metalness: 0.2, transparent: true, opacity: 0.035 }), 0, 0, 0, g);
+  [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sy]) => add(new THREE.CylinderGeometry(0.035, 0.035, 0.1, 12), BRASS(), sx * (w / 2 + 0.01), sy * (h / 2 + 0.01), -0.02, g, [Math.PI / 2, 0, 0]));
+  const off = new THREE.Mesh(new THREE.PlaneGeometry(w, h), std('neonOff', { map: offTex, transparent: true, roughness: 0.4, alphaTest: 0.02 })); off.position.z = 0.03; g.add(off);
+  const onMat = new THREE.MeshBasicMaterial({ map: onTex, transparent: true, opacity: 0, depthWrite: false });      // laid over the cold sign; the whites go past the bloom threshold, the blue stays blue
+  const on = new THREE.Mesh(new THREE.PlaneGeometry(w, h), onMat); on.position.z = 0.035; g.add(on);
+  const wash = place(g, glowSprite(w * 2, new THREE.Color(0.18, 0.42, 0.9)), 0, 0, 0.2); wash.material.opacity = 0;   // the blue light it throws on the wall
+  const hit = new THREE.Mesh(new THREE.BoxGeometry(w, h, 0.3), new THREE.MeshBasicMaterial({ visible: false })); g.add(hit);
+  prop(hit, '霓虹灯 · 致敬五月天《人生海海》', () => {
+    play.neonOn = !play.neonOn; play.neonT = 0; sfx(play.neonOn ? 'bell' : 'soft');
+    toast(play.neonOn ? '嗡——霓虹灯亮了。愿你在海海人生里，找到自己的方向。' : '霓虹灯暗了下来');
+  });
+  NEON = { onMat, wash, repaint: () => { offTex.image = neonSignCanvas(0); onTex.image = neonSignCanvas(1); offTex.needsUpdate = onTex.needsUpdate = true; } };
+  // the brush lettering needs Long Cang: paint again once it has loaded, in case it wasn't there yet
+  document.fonts?.load("300px 'Long Cang'", '人生海海').then(() => NEON.repaint()).catch(() => {});
+  return g;
+}
+/** switching on: a short run of flickers, then steady with a faint hum; switching off: down to the glow at once */
+function updateNeon(dt, t) {
+  if (!NEON) return;
+  play.neonT += dt;
+  let k;
+  if (!play.neonOn) k = NEON_IDLE;
+  else if (play.neonT < 0.9) { const s = play.neonT; k = Math.max(NEON_IDLE, s < 0.08 ? 1 : s < 0.2 ? 0.1 : s < 0.28 ? 0.9 : s < 0.45 ? 0 : s < 0.52 ? 1 : s < 0.62 ? 0.3 : 1); }
+  else k = 0.94 + 0.06 * Math.sin(t * 37) * Math.sin(t * 11.3);
+  play.neon += (k - play.neon) * Math.min(1, dt * (play.neonOn ? 40 : 12));
+  NEON.onMat.opacity = play.neon; NEON.onMat.color.setScalar(0.96 + 0.27 * play.neon);     // lit, a little over 1: the bloom picks up the white tubes
+  NEON.wash.material.opacity = play.neon * 0.44;
+}
 /** a picture in a moulded frame: gold, black lacquer, wood, or an oval */
 function frame3d(pic, w, h, kind, x, y, z, tilt = 0, ry = 0) {
   const g = group(x, y, z, ry); g.rotation.z = tilt;
@@ -1047,6 +1087,7 @@ function updateHut(dt, t) {
   play.ball = Math.max(0, play.ball - dt * 0.25);
   MATS.ballcore.emissiveIntensity = 1.4 + play.ball * 4; if (play.ball > 0) { MATS.ballcore.emissive.setHSL((t * 0.4) % 1, 0.7, 0.5); if (Math.random() < dt * 40) { const a = t * 5 + Math.random(); sparks.emit(tmpV.set(2.7 + Math.cos(a) * 0.3, 0.34 + rnd(-0.1, 0.2), -1.55 + Math.sin(a) * 0.3), tmpW.set(0, rnd(0.1, 0.3), 0), { life: 0.9, size: 0.03, color: LILAC }); } } else MATS.ballcore.emissive.setHex(0x8a6ad8);
   play.tree = Math.max(0, play.tree - dt * 0.3); MATS.paperlamp.emissiveIntensity = 1.2 + play.tree * 2.5;
+  updateNeon(dt, t);
   // now and then, a twinkle over something you could poke
   if (mode === 'hut' && (play.cue -= dt) < 0) { play.cue = rnd(3.5, 6.5); const pr = PROPS[Math.floor(Math.random() * PROPS.length)]; pr.box ??= new THREE.Box3().setFromObject(pr.obj).getCenter(V(0, 0, 0)); burstAt(sparks, pr.box, 10, { speed: 0.25, up: 0.3, size: 0.05, life: 1 }); }
   floaters.forEach((g) => { g.position.y = g.userData.base.y + Math.sin(t * 0.8 + g.userData.ph) * 0.18; });

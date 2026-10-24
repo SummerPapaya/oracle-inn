@@ -199,3 +199,53 @@ function clockFaceCanvas() {
   g.fillStyle = '#c99a45'; g.beginPath(); g.arc(cx, cx, 9, 0, TAU); g.fill();
   return c;
 }
+/**
+ * The 人生海海 neon sign on the hut's back wall, a fan's tribute to Mayday (五月天)'s album 人生海海 (not affiliated;
+ * the rights stay with their owners): PEOPLE LIFE, OCEAN WILD in white neon above, a blue road-sign lightbox with a
+ * white arrow (no wordmark on it), 人生海海 in white brush neon below. lit 0 = switched off, 1 = lit. The lettering
+ * uses each device's heavy sans and the page's Long Cang, so nothing extra is shipped.
+ */
+function neonSignCanvas(lit = 1, W = 1380, H = 1080) {
+  const c = canvas(W, H), g = c.getContext('2d');
+  const SANS = "'Futura', 'Avenir Next', 'Century Gothic', 'Trebuchet MS', 'Arial', sans-serif";
+  const neonText = (txt, x, y, font, spacing, thick, fit) => {           // glows then a white core; cold, pale glass
+    g.save(); g.font = font; if ('letterSpacing' in g) g.letterSpacing = spacing + 'px';
+    const sx = fit / (g.measureText(txt).width + thick - spacing);         // as wide as the blue sign, whatever the device's font
+    g.translate(x, y); g.scale(sx, 1); g.textAlign = 'center'; g.textBaseline = 'middle'; g.lineJoin = 'round';
+    if (lit > 0) {
+      for (const [blur, w, a] of [[44, 14, 0.32], [20, 8, 0.6], [7, 5, 0.95]]) { g.shadowColor = '#cfe8ff'; g.shadowBlur = blur; g.strokeStyle = '#e9f5ff'; g.globalAlpha = a * lit; g.lineWidth = w + thick; g.strokeText(txt, 0, 0); }
+      g.shadowBlur = 0; g.globalAlpha = 1; g.fillStyle = g.strokeStyle = '#ffffff';
+      if (thick) { g.lineWidth = thick; g.strokeText(txt, 0, 0); }
+      g.fillText(txt, 0, 0);
+    } else {
+      g.fillStyle = g.strokeStyle = 'rgba(120,128,140,.55)'; if (thick) { g.lineWidth = thick; g.strokeText(txt, 0, 0); } g.fillText(txt, 0, 0);
+    }
+    g.restore();
+  };
+  const bw = 1200, bh = 480, bx = (W - bw) / 2, by = 205, r = 32;
+  neonText('PEOPLE LIFE, OCEAN WILD', W / 2, 118, `700 90px ${SANS}`, 4, 0, bw);
+  const rr = (x, y, w, h, rad) => { g.beginPath(); g.moveTo(x + rad, y); g.arcTo(x + w, y, x + w, y + h, rad); g.arcTo(x + w, y + h, x, y + h, rad); g.arcTo(x, y + h, x, y, rad); g.arcTo(x, y, x + w, y, rad); g.closePath(); };
+  g.save(); if (lit > 0) { g.shadowColor = 'rgba(70,170,255,.85)'; g.shadowBlur = 70; }
+  rr(bx, by, bw, bh, r); g.fillStyle = lit > 0 ? '#2f8fd6' : '#1c3550'; g.fill(); g.restore();
+  // the face, weathered like an old painted sign: soft clouds of wear (radial gradients, so no canvas filter is needed) and fine scratches
+  g.save(); rr(bx + 20, by + 20, bw - 40, bh - 40, r * 0.7); g.clip();
+  const face = g.createLinearGradient(0, by, 0, by + bh); face.addColorStop(0, lit > 0 ? '#48b2f2' : '#203c58'); face.addColorStop(1, lit > 0 ? '#2b86d0' : '#162d45');
+  g.fillStyle = face; g.fillRect(bx, by, bw, bh);
+  const rnd = mulberry(1977);
+  for (let i = 0; i < 90; i++) {
+    const x = bx + rnd() * bw, y = by + rnd() * bh, s = 40 + rnd() * 140, dark = rnd() < 0.55, a = 0.03 + rnd() * 0.05;
+    const gr = g.createRadialGradient(x, y, 0, x, y, s); gr.addColorStop(0, `rgba(${dark ? '10,40,80' : '210,238,255'},${a})`); gr.addColorStop(1, `rgba(${dark ? '10,40,80' : '210,238,255'},0)`);
+    g.fillStyle = gr; g.save(); g.translate(x, y); g.scale(1, 0.3 + rnd() * 0.35); g.translate(-x, -y); g.fillRect(x - s, y - s, 2 * s, 2 * s); g.restore();
+  }
+  for (let i = 0; i < 110; i++) { const x = bx + rnd() * bw, y = by + rnd() * bh, l = 20 + rnd() * 120, a = (rnd() - 0.5) * 0.3; g.strokeStyle = `rgba(230,245,255,${0.03 + rnd() * 0.06})`; g.lineWidth = 1 + rnd() * 1.5; g.beginPath(); g.moveTo(x, y); g.lineTo(x + Math.cos(a) * l, y + Math.sin(a) * l); g.stroke(); }
+  g.restore();
+  g.save(); rr(bx + 16, by + 16, bw - 32, bh - 32, r * 0.75); g.lineWidth = 12; g.strokeStyle = lit > 0 ? '#f4fbff' : '#7d8a98';
+  if (lit > 0) { g.shadowColor = '#d8eeff'; g.shadowBlur = 18; } g.stroke(); g.restore();
+  // the white arrow, about 1100 wide: a stout shaft and a broad head
+  const ax0 = bx + 50, atip = bx + bw - 50, ax1 = atip - 235, acy = by + bh / 2, sh = 210, hh = 200;
+  g.save(); g.beginPath(); g.moveTo(ax0, acy - sh / 2); g.lineTo(ax1, acy - sh / 2); g.lineTo(ax1, acy - hh); g.lineTo(atip, acy); g.lineTo(ax1, acy + hh); g.lineTo(ax1, acy + sh / 2); g.lineTo(ax0, acy + sh / 2); g.closePath();
+  if (lit > 0) { g.shadowColor = '#ebf8ff'; g.shadowBlur = 36; g.fillStyle = '#ffffff'; } else g.fillStyle = '#9aa6b2';
+  g.fill(); g.restore();
+  neonText('人生海海', W / 2, 870, `300px 'Long Cang', 'LXGW WenKai TC', 'Kaiti SC', cursive`, 2, 12, bw);
+  return c;
+}

@@ -26,6 +26,7 @@
 /* a gentle reminder under the door, and again in the corner of every room */
 .intro-text .notice { max-width: min(30em, 86vw); margin: 18px auto 0; font-size: 12px; letter-spacing: .04em; line-height: 1.75; color: rgba(246, 236, 214, .6); }
 .intro-text .notice b { display: block; margin-bottom: 2px; font-weight: 700; letter-spacing: .3em; color: rgba(242, 215, 143, .85); }
+.intro-text .notice .wish { display: block; margin-top: 8px; font-family: var(--hand); font-size: 15px; letter-spacing: .12em; color: rgba(242, 215, 143, .92); }
 .hud #noticeBtn { margin-left: 6px; }
 .panel .notice-list { margin: .2em 0 0; padding-left: 1.2em; font-family: var(--hand); font-size: clamp(15px, 2.3vmin, 17px); line-height: 1.6; color: #fbf1da; }
 .panel .notice-list li + li { margin-top: .4em; }
@@ -177,7 +178,7 @@ body.hot #stage canvas, button, .chip, .slip { cursor: var(--wand-hot, pointer) 
   <div class="intro-text">
     <p>魔法屋悬空的前门，今天停在第 Ⅲ 层。<br>门缝里透出一点星光，好像有人在等你。</p>
     <button class="btn gold" id="enter" type="button">推门进入</button>
-    <p class="notice"><b>温馨提示</b>这里的占卜是东西方民俗文化的趣味科普演示，抽牌、掷筊、求签的结果均由程序随机生成，仅供休闲娱乐，不是预言，也不构成任何建议。命运掌握在自己手中，请保持理性，自主抉择。</p>
+    <p class="notice"><b>温馨提示</b>这里的占卜是东西方民俗文化的趣味科普演示，抽牌、掷筊、求签的结果均由程序随机生成，仅供休闲娱乐，不是预言，也不构成任何建议。命运掌握在自己手中，请保持理性，自主抉择。<span class="wish">愿你在海海人生里，找到自己的方向。</span></p>
   </div>
 </div>
 <div class="loading" id="loading">正在点亮蜡烛……</div>

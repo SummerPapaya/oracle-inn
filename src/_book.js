@@ -693,7 +693,8 @@ function fitDist(fov) {
 function home() {
   if (mode === 'hut') {
     const portrait = camera.aspect < 0.85;
-    return { tx: 0.3, ty: 3.0, tz: -2.5, dist: portrait ? 17 : 15, yaw: user.yaw * 0.6, pitch: THREE.MathUtils.clamp(0.1 + user.pitch * 0.5, -0.05, 0.5), fov: hutFov() };
+    // a phone held upright sees a narrow slice of the room: let it turn further (about 41° either way, 26° on wide screens)
+    return { tx: 0.3, ty: 3.0, tz: -2.5, dist: portrait ? 17 : 15, yaw: user.yaw * (portrait ? 0.96 : 0.6), pitch: THREE.MathUtils.clamp(0.1 + user.pitch * 0.5, -0.05, 0.5), fov: hutFov() };
   }
   const closed = cur === 0 ? (turn ? 1 - turn.phi / Math.PI : 1) : 0, portrait = camera.aspect < 0.85, fov = bookFov();
   return {

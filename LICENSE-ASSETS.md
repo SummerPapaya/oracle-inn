@@ -20,6 +20,10 @@ The following are © 2026 SummerPapaya, all rights reserved; they may not be cop
 - the artwork these files depict, including the cat-tarot card designs and the designs of the Magic House and its rooms;
 - the writing, including the sixty fortune-slip poems and their readings (`src/_lingqian.txt`), the card meanings and the other in-page text.
 
+小屋墙上的「人生海海」霓虹灯牌（`src/_art5.js` 的 `neonSignCanvas`）不在上述范围内：它是向五月天《人生海海》致敬的粉丝设计，本项目不主张其中任何权利，相关权利归原权利人所有。
+
+The 人生海海 neon sign on the house's wall (`neonSignCanvas` in `src/_art5.js`) is not covered above: it is a fan's tribute to Mayday's album 人生海海, this project claims no rights in it, and those rights stay with their owners.
+
 MIT 许可只适用于代码本身。运行代码可以重新生成部分画面，但不授予上述美术设计与文字内容的权利。
 
 The MIT License covers the code only. Running the code may reproduce parts of the artwork; doing so grants no rights to the designs or writing above.

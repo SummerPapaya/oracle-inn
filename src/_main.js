@@ -505,6 +505,7 @@ const NOTICE = [
   '内容仅供休闲娱乐，不构成医疗、法律、投资或任何人生决策建议。',
   '神龛、签诗与牌面均为原创艺术创作，不代表任何宗教、庙宇或神明。',
   '页面不收集、不上传任何个人信息。',
+  '小屋里的「人生海海」霓虹灯牌，是向五月天《人生海海》致敬的粉丝设计，与五月天及其唱片公司无关，相关权利归原权利人所有。',
   '命运掌握在自己手中，请保持理性，自主抉择。如果你正经历困扰，请向信任的人或专业人士寻求帮助。',
 ];
 $('noticeBtn').addEventListener('click', () => {
@@ -513,14 +514,15 @@ $('noticeBtn').addEventListener('click', () => {
 });
 
 /* ---------- the way in: a portal opens in the door ---------- */
-function portalFx(cv) {
+/** the portal's swirl; `fixed` keeps the canvas at its own size (an offscreen canvas for the 3D door) instead of following its box */
+function portalFx(cv, fixed = false) {
   const g = cv.getContext('2d');
   let running = false, warp = 0, last = 0;
   const stars = Array.from({ length: 260 }, () => ({ a: Math.random() * TAU, r: Math.random(), s: 0.4 + Math.random() * 0.8, hue: Math.random() }));
   function draw(now) {
     if (!running) return;
     const dt = Math.min(0.05, (now - (last || now)) / 1000); last = now;
-    const W = (cv.width = (cv.clientWidth || 360) * 2), H = (cv.height = (cv.clientHeight || 300) * 2), cx = W / 2, cy = H * 0.56, R = Math.hypot(W, H) * 0.6, t = now / 1000;
+    const W = fixed ? cv.width : (cv.width = (cv.clientWidth || 360) * 2), H = fixed ? cv.height : (cv.height = (cv.clientHeight || 300) * 2), cx = W / 2, cy = H * 0.56, R = Math.hypot(W, H) * 0.6, t = now / 1000;
     const bg = g.createRadialGradient(cx, cy, 0, cx, cy, R);
     bg.addColorStop(0, '#fff6dc'); bg.addColorStop(0.12 + warp * 0.2, '#e6c8ff'); bg.addColorStop(0.4, '#5a3fa8'); bg.addColorStop(1, '#0d0a1e');
     g.fillStyle = bg; g.fillRect(0, 0, W, H);
@@ -542,7 +544,7 @@ function portalFx(cv) {
     g.restore();
     requestAnimationFrame(draw);
   }
-  return { start() { running = true; requestAnimationFrame(draw); }, set warp(v) { warp = v; }, stop() { running = false; } };
+  return { canvas: cv, start() { running = true; requestAnimationFrame(draw); }, set warp(v) { warp = v; }, stop() { running = false; } };
 }
 const portal = portalFx($('portal'));
 /**
@@ -601,7 +603,10 @@ const introDoor = (() => {
   const seamGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: 0xffd9a0, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })); seamGlow.scale.set(0.9, TOP * 1.1, 1); seamGlow.position.set(0, TOP * 0.5, 0.08); door.add(seamGlow);
   const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: 0xb8a0ff, transparent: true, opacity: 0.45, blending: THREE.AdditiveBlending, depthWrite: false })); halo.scale.set(4.2, 4.6, 1); halo.position.set(0, TOP * 0.5, -0.4); door.add(halo);
   // the portal behind the leaves, painted by portalFx
-  const ptex = new THREE.CanvasTexture($('portal')); ptex.colorSpace = THREE.SRGBColorSpace;
+  // its own portal on an offscreen canvas of fixed size: uploading the hidden page canvas, resized every frame, turned
+  // into grey fog and teal dots in Safari
+  const portal3 = portalFx(canvas(768, 1075), true);
+  const ptex = new THREE.CanvasTexture(portal3.canvas); ptex.colorSpace = THREE.SRGBColorSpace;
   // seen only through the doorway: an invisible arch in the opening marks the stencil, the portal draws inside it
   const mask = new THREE.Mesh(new THREE.ShapeGeometry(archPath(new THREE.Shape(), W, HR, R), 48), new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false, stencilWrite: true, stencilRef: 1, stencilFunc: THREE.AlwaysStencilFunc, stencilZPass: THREE.ReplaceStencilOp }));
   mask.position.z = 0.0; mask.renderOrder = 1; door.add(mask);
@@ -639,15 +644,15 @@ const introDoor = (() => {
   return {
     /** the leaves swing in onto the portal, warm light spilling round them */
     open() {
-      mode = 'open'; portal.start();
+      mode = 'open'; portal3.start();
       return tween(1300, (e) => { const s = easeIO(e); k = s; leaves[0].rotation.y = 1.8 * s; leaves[1].rotation.y = -1.8 * s; glowBehind.intensity = 6 * s; halo.material.opacity = 0.45 + 0.4 * s; door.rotation.y *= 0.9; door.rotation.x *= 0.9; });
     },
     /** glide in through the doorway, the portal speeding up */
     through() {
       mode = 'through'; const from = { d: base.d, y: base.y };
-      return tween(1200, (e) => { const s = e * e; cam.position.set(0, from.y + (HR * 0.75 - from.y) * s, from.d + (-0.05 - from.d) * s); cam.fov = 30 + 30 * s; cam.updateProjectionMatrix(); cam.lookAt(0, from.y + (HR * 0.75 - from.y) * s, -1); portal.warp = s; });
+      return tween(1200, (e) => { const s = e * e; cam.position.set(0, from.y + (HR * 0.75 - from.y) * s, from.d + (-0.05 - from.d) * s); cam.fov = 30 + 30 * s; cam.updateProjectionMatrix(); cam.lookAt(0, from.y + (HR * 0.75 - from.y) * s, -1); portal3.warp = s; });
     },
-    dispose() { run = false; removeEventListener('resize', size); r3.dispose(); r3.forceContextLoss?.(); },
+    dispose() { run = false; portal3.stop(); removeEventListener('resize', size); r3.dispose(); r3.forceContextLoss?.(); },
   };
 })();
 /** the night round the front door: stars that twinkle, motes that drift up past the door, until you step through */

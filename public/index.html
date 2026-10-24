@@ -127,6 +127,7 @@ body { background: var(--night); color: var(--paper); font-family: var(--serif);
 /* a gentle reminder under the door, and again in the corner of every room */
 .intro-text .notice { max-width: min(30em, 86vw); margin: 18px auto 0; font-size: 12px; letter-spacing: .04em; line-height: 1.75; color: rgba(246, 236, 214, .6); }
 .intro-text .notice b { display: block; margin-bottom: 2px; font-weight: 700; letter-spacing: .3em; color: rgba(242, 215, 143, .85); }
+.intro-text .notice .wish { display: block; margin-top: 8px; font-family: var(--hand); font-size: 15px; letter-spacing: .12em; color: rgba(242, 215, 143, .92); }
 .hud #noticeBtn { margin-left: 6px; }
 .panel .notice-list { margin: .2em 0 0; padding-left: 1.2em; font-family: var(--hand); font-size: clamp(15px, 2.3vmin, 17px); line-height: 1.6; color: #fbf1da; }
 .panel .notice-list li + li { margin-top: .4em; }
@@ -278,7 +279,7 @@ body.hot #stage canvas, button, .chip, .slip { cursor: var(--wand-hot, pointer) 
   <div class="intro-text">
     <p>魔法屋悬空的前门，今天停在第 Ⅲ 层。<br>门缝里透出一点星光，好像有人在等你。</p>
     <button class="btn gold" id="enter" type="button">推门进入</button>
-    <p class="notice"><b>温馨提示</b>这里的占卜是东西方民俗文化的趣味科普演示，抽牌、掷筊、求签的结果均由程序随机生成，仅供休闲娱乐，不是预言，也不构成任何建议。命运掌握在自己手中，请保持理性，自主抉择。</p>
+    <p class="notice"><b>温馨提示</b>这里的占卜是东西方民俗文化的趣味科普演示，抽牌、掷筊、求签的结果均由程序随机生成，仅供休闲娱乐，不是预言，也不构成任何建议。命运掌握在自己手中，请保持理性，自主抉择。<span class="wish">愿你在海海人生里，找到自己的方向。</span></p>
   </div>
 </div>
 <div class="loading" id="loading">正在点亮蜡烛……</div>
@@ -3126,6 +3127,56 @@ function clockFaceCanvas() {
   g.fillStyle = '#c99a45'; g.beginPath(); g.arc(cx, cx, 9, 0, TAU); g.fill();
   return c;
 }
+/**
+ * The 人生海海 neon sign on the hut's back wall, a fan's tribute to Mayday (五月天)'s album 人生海海 (not affiliated;
+ * the rights stay with their owners): PEOPLE LIFE, OCEAN WILD in white neon above, a blue road-sign lightbox with a
+ * white arrow (no wordmark on it), 人生海海 in white brush neon below. lit 0 = switched off, 1 = lit. The lettering
+ * uses each device's heavy sans and the page's Long Cang, so nothing extra is shipped.
+ */
+function neonSignCanvas(lit = 1, W = 1380, H = 1080) {
+  const c = canvas(W, H), g = c.getContext('2d');
+  const SANS = "'Futura', 'Avenir Next', 'Century Gothic', 'Trebuchet MS', 'Arial', sans-serif";
+  const neonText = (txt, x, y, font, spacing, thick, fit) => {           // glows then a white core; cold, pale glass
+    g.save(); g.font = font; if ('letterSpacing' in g) g.letterSpacing = spacing + 'px';
+    const sx = fit / (g.measureText(txt).width + thick - spacing);         // as wide as the blue sign, whatever the device's font
+    g.translate(x, y); g.scale(sx, 1); g.textAlign = 'center'; g.textBaseline = 'middle'; g.lineJoin = 'round';
+    if (lit > 0) {
+      for (const [blur, w, a] of [[44, 14, 0.32], [20, 8, 0.6], [7, 5, 0.95]]) { g.shadowColor = '#cfe8ff'; g.shadowBlur = blur; g.strokeStyle = '#e9f5ff'; g.globalAlpha = a * lit; g.lineWidth = w + thick; g.strokeText(txt, 0, 0); }
+      g.shadowBlur = 0; g.globalAlpha = 1; g.fillStyle = g.strokeStyle = '#ffffff';
+      if (thick) { g.lineWidth = thick; g.strokeText(txt, 0, 0); }
+      g.fillText(txt, 0, 0);
+    } else {
+      g.fillStyle = g.strokeStyle = 'rgba(120,128,140,.55)'; if (thick) { g.lineWidth = thick; g.strokeText(txt, 0, 0); } g.fillText(txt, 0, 0);
+    }
+    g.restore();
+  };
+  const bw = 1200, bh = 480, bx = (W - bw) / 2, by = 205, r = 32;
+  neonText('PEOPLE LIFE, OCEAN WILD', W / 2, 118, `700 90px ${SANS}`, 4, 0, bw);
+  const rr = (x, y, w, h, rad) => { g.beginPath(); g.moveTo(x + rad, y); g.arcTo(x + w, y, x + w, y + h, rad); g.arcTo(x + w, y + h, x, y + h, rad); g.arcTo(x, y + h, x, y, rad); g.arcTo(x, y, x + w, y, rad); g.closePath(); };
+  g.save(); if (lit > 0) { g.shadowColor = 'rgba(70,170,255,.85)'; g.shadowBlur = 70; }
+  rr(bx, by, bw, bh, r); g.fillStyle = lit > 0 ? '#2f8fd6' : '#1c3550'; g.fill(); g.restore();
+  // the face, weathered like an old painted sign: soft clouds of wear (radial gradients, so no canvas filter is needed) and fine scratches
+  g.save(); rr(bx + 20, by + 20, bw - 40, bh - 40, r * 0.7); g.clip();
+  const face = g.createLinearGradient(0, by, 0, by + bh); face.addColorStop(0, lit > 0 ? '#48b2f2' : '#203c58'); face.addColorStop(1, lit > 0 ? '#2b86d0' : '#162d45');
+  g.fillStyle = face; g.fillRect(bx, by, bw, bh);
+  const rnd = mulberry(1977);
+  for (let i = 0; i < 90; i++) {
+    const x = bx + rnd() * bw, y = by + rnd() * bh, s = 40 + rnd() * 140, dark = rnd() < 0.55, a = 0.03 + rnd() * 0.05;
+    const gr = g.createRadialGradient(x, y, 0, x, y, s); gr.addColorStop(0, `rgba(${dark ? '10,40,80' : '210,238,255'},${a})`); gr.addColorStop(1, `rgba(${dark ? '10,40,80' : '210,238,255'},0)`);
+    g.fillStyle = gr; g.save(); g.translate(x, y); g.scale(1, 0.3 + rnd() * 0.35); g.translate(-x, -y); g.fillRect(x - s, y - s, 2 * s, 2 * s); g.restore();
+  }
+  for (let i = 0; i < 110; i++) { const x = bx + rnd() * bw, y = by + rnd() * bh, l = 20 + rnd() * 120, a = (rnd() - 0.5) * 0.3; g.strokeStyle = `rgba(230,245,255,${0.03 + rnd() * 0.06})`; g.lineWidth = 1 + rnd() * 1.5; g.beginPath(); g.moveTo(x, y); g.lineTo(x + Math.cos(a) * l, y + Math.sin(a) * l); g.stroke(); }
+  g.restore();
+  g.save(); rr(bx + 16, by + 16, bw - 32, bh - 32, r * 0.75); g.lineWidth = 12; g.strokeStyle = lit > 0 ? '#f4fbff' : '#7d8a98';
+  if (lit > 0) { g.shadowColor = '#d8eeff'; g.shadowBlur = 18; } g.stroke(); g.restore();
+  // the white arrow, about 1100 wide: a stout shaft and a broad head
+  const ax0 = bx + 50, atip = bx + bw - 50, ax1 = atip - 235, acy = by + bh / 2, sh = 210, hh = 200;
+  g.save(); g.beginPath(); g.moveTo(ax0, acy - sh / 2); g.lineTo(ax1, acy - sh / 2); g.lineTo(ax1, acy - hh); g.lineTo(atip, acy); g.lineTo(ax1, acy + hh); g.lineTo(ax1, acy + sh / 2); g.lineTo(ax0, acy + sh / 2); g.closePath();
+  if (lit > 0) { g.shadowColor = '#ebf8ff'; g.shadowBlur = 36; g.fillStyle = '#ffffff'; } else g.fillStyle = '#9aa6b2';
+  g.fill(); g.restore();
+  neonText('人生海海', W / 2, 870, `300px 'Long Cang', 'LXGW WenKai TC', 'Kaiti SC', cursive`, 2, 12, bw);
+  return c;
+}
 /* ================= magic: sparks, smoke, rune circles and a soft bloom ================= */
 
 const SPARK_SCALE = { value: 400 };
@@ -3927,7 +3978,8 @@ function fitDist(fov) {
 function home() {
   if (mode === 'hut') {
     const portrait = camera.aspect < 0.85;
-    return { tx: 0.3, ty: 3.0, tz: -2.5, dist: portrait ? 17 : 15, yaw: user.yaw * 0.6, pitch: THREE.MathUtils.clamp(0.1 + user.pitch * 0.5, -0.05, 0.5), fov: hutFov() };
+    // a phone held upright sees a narrow slice of the room: let it turn further (about 41° either way, 26° on wide screens)
+    return { tx: 0.3, ty: 3.0, tz: -2.5, dist: portrait ? 17 : 15, yaw: user.yaw * (portrait ? 0.96 : 0.6), pitch: THREE.MathUtils.clamp(0.1 + user.pitch * 0.5, -0.05, 0.5), fov: hutFov() };
   }
   const closed = cur === 0 ? (turn ? 1 - turn.phi / Math.PI : 1) : 0, portrait = camera.aspect < 0.85, fov = bookFov();
   return {
@@ -4099,7 +4151,7 @@ const TEASE = {
 const FLOOR = -3.8, HUT_W = 22, HUT_BACK = -10, HUT_FRONT = 15, HUT_TOP = FLOOR + 15.5;
 let gears = [], shafts = [], glowWalls = [], spinners = [], fireLining, pages, lampOn = true, lamp, roomSpot, hemi, moonSpot, fireLight, candleLight, orrery, bookHalo, sparks, smoke, globeSphere, record, fireCore, fireGlow, fireSparks, sleepyCat;
 /** things in the hut you can poke: each with a tip for the hint line and something it does */
-const PROPS = [], play = { music: false, notes: 0, cat: 0, globe: 0, orrery: 0, ball: 0, tree: 0, chest: 0, cue: 3 };
+const PROPS = [], play = { music: false, notes: 0, cat: 0, globe: 0, orrery: 0, ball: 0, tree: 0, chest: 0, cue: 3, neon: 0, neonOn: false, neonT: 0 };
 const BALL_LINES = ['水晶球里浮出一句：慢一点也没关系。', '水晶球里浮出一句：今天适合喝一杯热茶。', '水晶球里浮出一句：好消息正在路上。', '水晶球里浮出一句：给自己一个拥抱吧。', '水晶球里浮出一句：答案就在下一次深呼吸里。'];
 const FIRE_COLS = [new THREE.Color(1.9, 1.15, 0.45), new THREE.Color(1.9, 0.62, 0.22), new THREE.Color(1.3, 0.9, 1.9), new THREE.Color(0.7, 1.6, 1.5)];
 function prop(obj, tip, act) { const p = { obj, tip, act: () => { p.tried = true; act(); } }; PROPS.push(p); }
@@ -4362,7 +4414,7 @@ function buildHut() {
   add(new THREE.TorusGeometry(1.27, 0.035, 8, 64), BRASS(), neckEnd.x + hornDir.x * 2.3, neckEnd.y + hornDir.y * 2.3, neckEnd.z + hornDir.z * 2.3, gr).quaternion.setFromUnitVectors(V(0, 0, 1), hornDir);
 
   // a wishing tree hung with paper slips and small lanterns, and a monstera by the fire
-  const wt = group(9.2, FLOOR, -5.9);
+  const wt = group(9.85, FLOOR, -5.0);                    // in the corner, clear of the neon sign
   prop(wt, '许愿树 · 挂一个愿望', () => { play.tree = 1; sfx('chime'); for (let k = 0; k < 40; k++) sparks.emit(wt.localToWorld(V(rnd(-1, 1), rnd(4, 8), rnd(-0.6, 0.6))), tmpW.set(rnd(-0.1, 0.1), rnd(0.2, 0.5), rnd(-0.1, 0.1)), { life: rnd(1.2, 2.2), size: rnd(0.04, 0.07), color: k % 2 ? GOLD : ROSE }); toast('一张许愿签轻轻转了个圈，灯笼更亮了'); });
   add(lathe([[0, 0], [0.7, 0], [0.9, 0.2], [1.0, 1.2], [1.1, 1.35], [0.95, 1.38], [0, 1.38]], 32), std('wtpot', { color: 0x2f6a8a, roughness: 0.25 }), 0, 0, 0, wt);
   const rt = mulberry(77), slips = [], tleaves = [], lanterns = [], bamboo = std('bamboo', { color: 0x6a9a4a, roughness: 0.5 });
@@ -4413,15 +4465,17 @@ function buildHut() {
     add(new THREE.CylinderGeometry(0.07, 0.08, 0.5, 12), WAX(), 0, 0, 0, g).castShadow = false;
     place(g, glowSprite(0.7, new THREE.Color(1.8, 1.3, 0.6)), 0, 0.34, 0);
     g.position.set(Math.cos(a) * r + 0.3, 3.8 + (i % 4) * 1.2, Math.sin(a) * r * 0.7 - 1);
+    if (g.position.x > 2.5 && g.position.y < 7) g.position.y = 8.3 + (i % 2) * 0.6;      // the two on the right would hang across the neon sign: they float higher
     g.userData.base = g.position.clone(); g.userData.ph = i * 1.7;
     scene.add(g); floaters.push(g);
   }
 
   // pictures, a crystal pair and a banner, in 3D frames
-  frame3d(pictureCanvas('crane', 2.4, 3.0, 962), 2.4, 3.0, 'gold', 8.6, FLOOR + 8.9, back + 0.32, -0.02);
-  frame3d(crystalArt(963), 1.2, 1.5, 'black', 4.9, FLOOR + 7.6, back + 0.32, 0.03);
-  frame3d(crystalArt(964), 1.2, 1.5, 'black', 6.3, FLOOR + 7.6, back + 0.32, -0.02);
-  frame3d(pictureCanvas('stars', 1.7, 1.7, 965), 1.7, 1.7, 'oval', 5.6, FLOOR + 10.4, back + 0.32);
+  frame3d(pictureCanvas('crane', 2.4, 3.0, 962), 2.4, 3.0, 'gold', 8.7, FLOOR + 10.5, back + 0.32, -0.02);
+  frame3d(crystalArt(963), 1.2, 1.5, 'black', 5.35, FLOOR + 7.4, back + 0.32, 0.03);
+  frame3d(crystalArt(964), 1.2, 1.5, 'black', W / 2 - 0.32, FLOOR + 8.2, 1.3, -0.02, -Math.PI / 2);
+  frame3d(pictureCanvas('stars', 1.7, 1.7, 965), 1.7, 1.7, 'oval', 5.35, FLOOR + 10.0, back + 0.32);
+  neonSign(7.4, FLOOR + 7.4, back + 0.36, 2.09);         // below and left of the crane, over the chest of drawers, clear of the globe and the vase
   frame3d(pictureCanvas('moonsea', 2.0, 2.4, 966), 2.0, 2.4, 'gold', W / 2 - 0.32, FLOOR + 9.0, 4.2, 0, -Math.PI / 2);
   frame3d(pictureCanvas('cat', 1.3, 1.6, 967), 1.3, 1.6, 'black', W / 2 - 0.32, FLOOR + 8.4, 7.0, 0.05, -Math.PI / 2);
   frame3d(pictureCanvas('ship', 1.8, 1.4, 968), 1.8, 1.4, 'gold', -W / 2 + 0.32, FLOOR + 8.6, 4.4, 0.03, Math.PI / 2);
@@ -4504,6 +4558,44 @@ function buildHut() {
 
 /* ---------- pieces used above ---------- */
 function pictureCanvas(kind, w, h, seed) { const c = canvas(Math.round(w * 200), Math.round(h * 200)), p = painter(c, seed, 1.2); PICTURE[kind](px(p, c.width, c.height), p.g, 0, 0, c.width, c.height); return c; }
+/**
+ * The 人生海海 neon sign (neonSignCanvas): a tribute to Mayday's album, on a clear acrylic board held off the wall by
+ * four brass standoffs. Off, it keeps a faint glow, the tubes and the box just alight; a tap switches it on with a few
+ * stuttering flickers, and it lights the wall round it blue; another tap turns it back down to the glow.
+ */
+let NEON = null;
+const NEON_IDLE = 0.22;                                  // switched off, the lit face still shows this much: a faint glow
+function neonSign(x, y, z, w = 2.2) {
+  const h = (w * 1080) / 1380, g = group(x, y, z);
+  const offTex = tx(neonSignCanvas(0)), onTex = tx(neonSignCanvas(1));
+  add(rbox(w + 0.16, h + 0.16, 0.04, 0.02), new THREE.MeshStandardMaterial({ color: 0xdfe8f2, roughness: 0.1, metalness: 0.2, transparent: true, opacity: 0.035 }), 0, 0, 0, g);
+  [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sy]) => add(new THREE.CylinderGeometry(0.035, 0.035, 0.1, 12), BRASS(), sx * (w / 2 + 0.01), sy * (h / 2 + 0.01), -0.02, g, [Math.PI / 2, 0, 0]));
+  const off = new THREE.Mesh(new THREE.PlaneGeometry(w, h), std('neonOff', { map: offTex, transparent: true, roughness: 0.4, alphaTest: 0.02 })); off.position.z = 0.03; g.add(off);
+  const onMat = new THREE.MeshBasicMaterial({ map: onTex, transparent: true, opacity: 0, depthWrite: false });      // laid over the cold sign; the whites go past the bloom threshold, the blue stays blue
+  const on = new THREE.Mesh(new THREE.PlaneGeometry(w, h), onMat); on.position.z = 0.035; g.add(on);
+  const wash = place(g, glowSprite(w * 2, new THREE.Color(0.18, 0.42, 0.9)), 0, 0, 0.2); wash.material.opacity = 0;   // the blue light it throws on the wall
+  const hit = new THREE.Mesh(new THREE.BoxGeometry(w, h, 0.3), new THREE.MeshBasicMaterial({ visible: false })); g.add(hit);
+  prop(hit, '霓虹灯 · 致敬五月天《人生海海》', () => {
+    play.neonOn = !play.neonOn; play.neonT = 0; sfx(play.neonOn ? 'bell' : 'soft');
+    toast(play.neonOn ? '嗡——霓虹灯亮了。愿你在海海人生里，找到自己的方向。' : '霓虹灯暗了下来');
+  });
+  NEON = { onMat, wash, repaint: () => { offTex.image = neonSignCanvas(0); onTex.image = neonSignCanvas(1); offTex.needsUpdate = onTex.needsUpdate = true; } };
+  // the brush lettering needs Long Cang: paint again once it has loaded, in case it wasn't there yet
+  document.fonts?.load("300px 'Long Cang'", '人生海海').then(() => NEON.repaint()).catch(() => {});
+  return g;
+}
+/** switching on: a short run of flickers, then steady with a faint hum; switching off: down to the glow at once */
+function updateNeon(dt, t) {
+  if (!NEON) return;
+  play.neonT += dt;
+  let k;
+  if (!play.neonOn) k = NEON_IDLE;
+  else if (play.neonT < 0.9) { const s = play.neonT; k = Math.max(NEON_IDLE, s < 0.08 ? 1 : s < 0.2 ? 0.1 : s < 0.28 ? 0.9 : s < 0.45 ? 0 : s < 0.52 ? 1 : s < 0.62 ? 0.3 : 1); }
+  else k = 0.94 + 0.06 * Math.sin(t * 37) * Math.sin(t * 11.3);
+  play.neon += (k - play.neon) * Math.min(1, dt * (play.neonOn ? 40 : 12));
+  NEON.onMat.opacity = play.neon; NEON.onMat.color.setScalar(0.96 + 0.27 * play.neon);     // lit, a little over 1: the bloom picks up the white tubes
+  NEON.wash.material.opacity = play.neon * 0.44;
+}
 /** a picture in a moulded frame: gold, black lacquer, wood, or an oval */
 function frame3d(pic, w, h, kind, x, y, z, tilt = 0, ry = 0) {
   const g = group(x, y, z, ry); g.rotation.z = tilt;
@@ -5138,6 +5230,7 @@ function updateHut(dt, t) {
   play.ball = Math.max(0, play.ball - dt * 0.25);
   MATS.ballcore.emissiveIntensity = 1.4 + play.ball * 4; if (play.ball > 0) { MATS.ballcore.emissive.setHSL((t * 0.4) % 1, 0.7, 0.5); if (Math.random() < dt * 40) { const a = t * 5 + Math.random(); sparks.emit(tmpV.set(2.7 + Math.cos(a) * 0.3, 0.34 + rnd(-0.1, 0.2), -1.55 + Math.sin(a) * 0.3), tmpW.set(0, rnd(0.1, 0.3), 0), { life: 0.9, size: 0.03, color: LILAC }); } } else MATS.ballcore.emissive.setHex(0x8a6ad8);
   play.tree = Math.max(0, play.tree - dt * 0.3); MATS.paperlamp.emissiveIntensity = 1.2 + play.tree * 2.5;
+  updateNeon(dt, t);
   // now and then, a twinkle over something you could poke
   if (mode === 'hut' && (play.cue -= dt) < 0) { play.cue = rnd(3.5, 6.5); const pr = PROPS[Math.floor(Math.random() * PROPS.length)]; pr.box ??= new THREE.Box3().setFromObject(pr.obj).getCenter(V(0, 0, 0)); burstAt(sparks, pr.box, 10, { speed: 0.25, up: 0.3, size: 0.05, life: 1 }); }
   floaters.forEach((g) => { g.position.y = g.userData.base.y + Math.sin(t * 0.8 + g.userData.ph) * 0.18; });
@@ -6933,6 +7026,7 @@ const NOTICE = [
   '内容仅供休闲娱乐，不构成医疗、法律、投资或任何人生决策建议。',
   '神龛、签诗与牌面均为原创艺术创作，不代表任何宗教、庙宇或神明。',
   '页面不收集、不上传任何个人信息。',
+  '小屋里的「人生海海」霓虹灯牌，是向五月天《人生海海》致敬的粉丝设计，与五月天及其唱片公司无关，相关权利归原权利人所有。',
   '命运掌握在自己手中，请保持理性，自主抉择。如果你正经历困扰，请向信任的人或专业人士寻求帮助。',
 ];
 $('noticeBtn').addEventListener('click', () => {
@@ -6941,14 +7035,15 @@ $('noticeBtn').addEventListener('click', () => {
 });
 
 /* ---------- the way in: a portal opens in the door ---------- */
-function portalFx(cv) {
+/** the portal's swirl; `fixed` keeps the canvas at its own size (an offscreen canvas for the 3D door) instead of following its box */
+function portalFx(cv, fixed = false) {
   const g = cv.getContext('2d');
   let running = false, warp = 0, last = 0;
   const stars = Array.from({ length: 260 }, () => ({ a: Math.random() * TAU, r: Math.random(), s: 0.4 + Math.random() * 0.8, hue: Math.random() }));
   function draw(now) {
     if (!running) return;
     const dt = Math.min(0.05, (now - (last || now)) / 1000); last = now;
-    const W = (cv.width = (cv.clientWidth || 360) * 2), H = (cv.height = (cv.clientHeight || 300) * 2), cx = W / 2, cy = H * 0.56, R = Math.hypot(W, H) * 0.6, t = now / 1000;
+    const W = fixed ? cv.width : (cv.width = (cv.clientWidth || 360) * 2), H = fixed ? cv.height : (cv.height = (cv.clientHeight || 300) * 2), cx = W / 2, cy = H * 0.56, R = Math.hypot(W, H) * 0.6, t = now / 1000;
     const bg = g.createRadialGradient(cx, cy, 0, cx, cy, R);
     bg.addColorStop(0, '#fff6dc'); bg.addColorStop(0.12 + warp * 0.2, '#e6c8ff'); bg.addColorStop(0.4, '#5a3fa8'); bg.addColorStop(1, '#0d0a1e');
     g.fillStyle = bg; g.fillRect(0, 0, W, H);
@@ -6970,7 +7065,7 @@ function portalFx(cv) {
     g.restore();
     requestAnimationFrame(draw);
   }
-  return { start() { running = true; requestAnimationFrame(draw); }, set warp(v) { warp = v; }, stop() { running = false; } };
+  return { canvas: cv, start() { running = true; requestAnimationFrame(draw); }, set warp(v) { warp = v; }, stop() { running = false; } };
 }
 const portal = portalFx($('portal'));
 /**
@@ -7029,7 +7124,10 @@ const introDoor = (() => {
   const seamGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: 0xffd9a0, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })); seamGlow.scale.set(0.9, TOP * 1.1, 1); seamGlow.position.set(0, TOP * 0.5, 0.08); door.add(seamGlow);
   const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: 0xb8a0ff, transparent: true, opacity: 0.45, blending: THREE.AdditiveBlending, depthWrite: false })); halo.scale.set(4.2, 4.6, 1); halo.position.set(0, TOP * 0.5, -0.4); door.add(halo);
   // the portal behind the leaves, painted by portalFx
-  const ptex = new THREE.CanvasTexture($('portal')); ptex.colorSpace = THREE.SRGBColorSpace;
+  // its own portal on an offscreen canvas of fixed size: uploading the hidden page canvas, resized every frame, turned
+  // into grey fog and teal dots in Safari
+  const portal3 = portalFx(canvas(768, 1075), true);
+  const ptex = new THREE.CanvasTexture(portal3.canvas); ptex.colorSpace = THREE.SRGBColorSpace;
   // seen only through the doorway: an invisible arch in the opening marks the stencil, the portal draws inside it
   const mask = new THREE.Mesh(new THREE.ShapeGeometry(archPath(new THREE.Shape(), W, HR, R), 48), new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false, stencilWrite: true, stencilRef: 1, stencilFunc: THREE.AlwaysStencilFunc, stencilZPass: THREE.ReplaceStencilOp }));
   mask.position.z = 0.0; mask.renderOrder = 1; door.add(mask);
@@ -7067,15 +7165,15 @@ const introDoor = (() => {
   return {
     /** the leaves swing in onto the portal, warm light spilling round them */
     open() {
-      mode = 'open'; portal.start();
+      mode = 'open'; portal3.start();
       return tween(1300, (e) => { const s = easeIO(e); k = s; leaves[0].rotation.y = 1.8 * s; leaves[1].rotation.y = -1.8 * s; glowBehind.intensity = 6 * s; halo.material.opacity = 0.45 + 0.4 * s; door.rotation.y *= 0.9; door.rotation.x *= 0.9; });
     },
     /** glide in through the doorway, the portal speeding up */
     through() {
       mode = 'through'; const from = { d: base.d, y: base.y };
-      return tween(1200, (e) => { const s = e * e; cam.position.set(0, from.y + (HR * 0.75 - from.y) * s, from.d + (-0.05 - from.d) * s); cam.fov = 30 + 30 * s; cam.updateProjectionMatrix(); cam.lookAt(0, from.y + (HR * 0.75 - from.y) * s, -1); portal.warp = s; });
+      return tween(1200, (e) => { const s = e * e; cam.position.set(0, from.y + (HR * 0.75 - from.y) * s, from.d + (-0.05 - from.d) * s); cam.fov = 30 + 30 * s; cam.updateProjectionMatrix(); cam.lookAt(0, from.y + (HR * 0.75 - from.y) * s, -1); portal3.warp = s; });
     },
-    dispose() { run = false; removeEventListener('resize', size); r3.dispose(); r3.forceContextLoss?.(); },
+    dispose() { run = false; portal3.stop(); removeEventListener('resize', size); r3.dispose(); r3.forceContextLoss?.(); },
   };
 })();
 /** the night round the front door: stars that twinkle, motes that drift up past the door, until you step through */

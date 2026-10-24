@@ -16,6 +16,7 @@ A pop-up book of fortune-telling rooms, in the browser. Step through a door floa
 > - It is for fun only, and is not medical, legal, financial or any other kind of life advice.
 > - The shrine, the fortune-slip poems and the cards are original artwork and do not represent any religion, temple or deity.
 > - The page collects and sends no personal information.
+> - The 人生海海 (People Life, Ocean Wild) neon sign in the house is a fan's tribute to Mayday's album of that name. It is not affiliated with Mayday or their label, and all rights in it stay with their owners.
 > - Your path is yours to choose; keep a clear head and decide for yourself. If you are going through a hard time, please reach out to someone you trust or to a professional.
 
 ## What's in v1.0
