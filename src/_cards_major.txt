@@ -181,7 +181,7 @@ Object.assign(CAT_TAROT, {
     muLine(g, () => { g.moveTo(lx, ly - 46); g.quadraticCurveTo(lx + 30, ly - 70, 262, 432); }, 2.4);
     muFill(g, () => { g.moveTo(lx - 26, ly - 30); g.lineTo(lx + 26, ly - 30); g.lineTo(lx + 22, ly + 32); g.lineTo(lx - 22, ly + 32); g.closePath(); }, '#fbe6a6', 2.6);
     muFill(g, () => { g.moveTo(lx - 30, ly - 30); g.lineTo(lx, ly - 50); g.lineTo(lx + 30, ly - 30); g.closePath(); }, '#8a7a5a', 2.2); muFill(g, () => g.rect(lx - 28, ly + 30, 56, 10), '#8a7a5a', 2);
-    muLine(g, starPath(g, lx, ly, 14, 14, 3), 1.8, MU.gold); muLine(g, starPath(g, lx, ly, 14, 14, 3, Math.PI / 2), 1.8, MU.gold);
+    muFill(g, starPath(g, lx, ly, 15, 4.5, 4), '#fff3cf', 1.6, MU.gold);   // a point of starlight where the 1909 lantern holds a six-pointed star: no religious signs here (see the Hierophant's orb)
     muPaw(g, 262, 440, 0.85, CATS.grey.body);
   }),
   10: (w) => muchaCard(w, muPal('#a8c0e0', '#e8d0a0', '#f2e6c8', '#e8a050', '#c8d8f0', '#6a8ab0', '#3a5a7a', '#f6efe0', '#3a5a8a'), 'X', '命运之轮', 'Wheel of Fortune', (g) => {
@@ -191,7 +191,14 @@ Object.assign(CAT_TAROT, {
     for (let k = 0; k < 8; k++) { const a = (k / 8) * TAU; muLine(g, () => { g.moveTo(cx + Math.cos(a) * 16, cy + Math.sin(a) * 16); g.lineTo(cx + Math.cos(a) * 128, cy + Math.sin(a) * 128); }, 2.4); }
     g.fillStyle = MU.ink; g.font = 'italic 600 30px "Cormorant Garamond", serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
     ['T', 'A', 'R', 'O'].forEach((ch, k) => { const a = -Math.PI / 2 + (k * Math.PI) / 2; g.fillText(ch, cx + Math.cos(a) * 144, cy + Math.sin(a) * 144); });
-    ['☿', '♄', '△', '♒'].forEach((ch, k) => { const a = -Math.PI / 4 + (k * Math.PI) / 2; g.font = '22px serif'; g.fillText(ch, cx + Math.cos(a) * 96, cy + Math.sin(a) * 96); });
+    // the 1909 wheel's alchemical signs, drawn rather than typeset (few fonts have them): mercury, sulphur, salt, dissolution
+    const signs = [
+      (x, y) => { g.moveTo(x + 7, y - 3); g.arc(x, y - 3, 7, 0, TAU); g.moveTo(x - 7, y - 17); g.quadraticCurveTo(x, y - 8, x + 7, y - 17); g.moveTo(x, y + 4); g.lineTo(x, y + 17); g.moveTo(x - 6, y + 11); g.lineTo(x + 6, y + 11); },
+      (x, y) => { g.moveTo(x, y - 16); g.lineTo(x + 9, y - 1); g.lineTo(x - 9, y - 1); g.closePath(); g.moveTo(x, y - 1); g.lineTo(x, y + 16); g.moveTo(x - 7, y + 8); g.lineTo(x + 7, y + 8); },
+      (x, y) => { g.moveTo(x + 10, y); g.arc(x, y, 10, 0, TAU); g.moveTo(x - 10, y); g.lineTo(x + 10, y); },
+      (x, y) => { [-5, 5].forEach((o) => { g.moveTo(x - 12, y + o); for (let i = 1; i <= 4; i++) g.lineTo(x - 12 + i * 6, y + o + (i % 2 ? -5 : 0)); }); },
+    ];
+    signs.forEach((draw, k) => { const a = -Math.PI / 4 + (k * Math.PI) / 2; muLine(g, () => draw(cx + Math.cos(a) * 96, cy + Math.sin(a) * 96), 2, MU.ink); });
     muLine(g, () => { g.moveTo(150, 260); g.bezierCurveTo(110, 320, 170, 370, 130, 430); g.bezierCurveTo(100, 480, 150, 520, 140, 560); }, 9, '#c8a040'); muFill(g, () => g.ellipse(140, 566, 9, 12, 0, 0, TAU), '#c8a040', 1.6);
     catSide(g, 468, 600, 0.5, withCollar({ body: '#c8704a', chest: '#f2d8c0', eye: '#e8c048' }, MU.goldL), 1, 0.6);
     muSword(g, 324, 230, 60, -Math.PI / 2 + 0.3, 0.7);
@@ -211,10 +218,10 @@ Object.assign(CAT_TAROT, {
   }),
   12: (w) => muchaCard(w, muPal('#cadce2', '#a8c0b8', '#f2eace', '#8ab0a0', '#d8e8e0', '#6a8a7a', '#3a5a4a', '#f6efe0', '#3a5a5a'), 'XII', '倒吊人', 'The Hanged Man', (g) => {
     muGround(g, 680, '#8aac7a');
-    muLine(g, () => { g.moveTo(150, 720); g.lineTo(160, 170); }, 14); muLine(g, () => { g.moveTo(150, 720); g.lineTo(160, 170); }, 10, '#9a6a3e');
-    muLine(g, () => { g.moveTo(450, 720); g.lineTo(440, 170); }, 14); muLine(g, () => { g.moveTo(450, 720); g.lineTo(440, 170); }, 10, '#9a6a3e');
-    muLine(g, () => { g.moveTo(130, 176); g.lineTo(470, 170); }, 16); muLine(g, () => { g.moveTo(130, 176); g.lineTo(470, 170); }, 11, '#9a6a3e');
-    [[150, 160], [210, 162], [380, 158], [450, 156], [158, 300], [446, 360]].forEach(([x, y], i) => muFill(g, () => g.ellipse(x, y, 13, 6, i % 2 ? 0.6 : -0.6, 0, TAU), '#6aa060', 1.4));
+    // a living tree in the shape of a T, as on the 1909 card: one trunk behind the figure, one bough across, both in leaf
+    const trunk = () => { g.moveTo(292, 720); g.bezierCurveTo(308, 600, 290, 420, 300, 174); }, bough = () => { g.moveTo(136, 156); g.quadraticCurveTo(220, 186, 300, 174); g.quadraticCurveTo(380, 164, 464, 146); };
+    muLine(g, trunk, 22); muLine(g, trunk, 16, '#9a6a3e'); muLine(g, bough, 16); muLine(g, bough, 11, '#9a6a3e');
+    [[140, 146], [176, 170], [214, 176], [392, 160], [428, 150], [462, 136], [312, 330], [288, 420], [306, 600]].forEach(([x, y], i) => muFill(g, () => g.ellipse(x, y, 13, 6, i % 2 ? 0.6 : -0.6, 0, TAU), '#6aa060', 1.4));
     const hy = 466, glow = g.createRadialGradient(300, hy, 30, 300, hy, 110); glow.addColorStop(0, 'rgba(255,236,160,.85)'); glow.addColorStop(1, 'rgba(255,220,130,0)');
     g.fillStyle = glow; g.fillRect(190, hy - 110, 220, 220);
     muLine(g, () => { g.moveTo(300, 172); g.lineTo(300, 236); }, 3, '#8a7a5a');
@@ -335,28 +342,29 @@ Object.assign(CAT_TAROT, {
   }),
 });
 
-/* gentle reversed readings: when a card comes up upside down, its light is turned inward or held back for now */
+/* gentle reversed readings: when a card comes up upside down, its light is turned inward or held back for now (never
+ * turned into its opposite: the reader's prompt says the same), and each says something the upright one does not */
 const MAJOR_REV = [
   '先别急着跳，看清脚下再出发也来得及。',
   '工具都在，只是还没找到用法，慢慢试。',
-  '心里有些声音被忽略了，留一点安静给自己。',
-  '照顾别人之前，也记得照顾自己。',
-  '规则太紧了，可以松一松，给自己留点余地。',
+  '有些事，你也许早就知道，只是还不想承认。',
+  '付出太多，会不会把自己掏空了？',
+  '该你拿主意的时候，别往别人身后躲。',
   '不必事事照着旧方法，听听自己的想法。',
-  '选择让你犹豫，先弄清自己真正在意什么。',
+  '选择让你犹豫的时候，你真正在意的是什么？',
   '方向有些乱，停下来理一理再走。',
-  '今天有点累也没关系，温柔地对待自己的情绪。',
-  '独处太久了，也可以向外伸出手。',
+  '不是你不够坚强，是你撑得太久了。',
+  '独处了这么久，是不是可以向外伸出手了？',
   '事情暂时不顺，等一等，风还会转。',
-  '对自己公平一点，不必苛责。',
-  '卡住的时候，换个角度，或干脆放下一会儿。',
-  '有些结束拖得太久了，可以轻轻放手。',
+  '有没有一件事，你一直在替自己找理由？',
+  '等了这么久，是在等时机，还是还不敢动？',
+  '明明已经结束了，是不是还在等它回头？',
   '节奏乱了，先把一件小事做好。',
-  '你已经在松开那些束缚了，再勇敢一点。',
+  '那些牵绊比看起来更紧，先承认它在你身上。',
   '变化正慢慢发生，不一定要一下子推倒重来。',
   '希望还在，只是今晚云多了一些。',
-  '迷雾正在散去，答案会越来越清楚。',
+  '真正让你不安的，也许是心里没说出口的担心。',
   '阳光被遮住一会儿，也会再出来。',
   '还没准备好回应也没关系，慢慢来。',
-  '只差最后一步，别忘了收尾。',
+  '还差一块没拼上，别急着说它结束了。',
 ];

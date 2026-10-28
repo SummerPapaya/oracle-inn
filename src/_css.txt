@@ -14,8 +14,8 @@
   --frame: #8a79d6;
   --glass: rgba(26, 18, 22, .72);
   --serif: 'Noto Serif SC', 'Songti SC', 'STSong', serif;
-  --hand: 'Long Cang', 'LXGW WenKai TC', 'Kaiti SC', 'STKaiti', cursive;      /* Long Cang has no 筊 (outside GB2312): WenKai brushes that one in */
-  --latin: 'Cormorant Garamond', 'Times New Roman', serif;
+  --hand: 'Long Cang', 'LXGW WenKai TC', 'Kaiti SC', 'STKaiti', cursive;      /* Long Cang stops at GB2312: WenKai brushes in the rest (筊, the parts in 测字) */
+  --latin: 'Cormorant Garamond', 'Times New Roman', 'Noto Serif SC', serif;      /* the Chinese in a Latin line (a panel's kicker) stays in the serif, never a system sans */
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }

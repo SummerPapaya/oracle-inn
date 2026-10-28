@@ -258,7 +258,7 @@ function jiaobei() {
  */
 const TENT_ASSETS = 'tent/', TENT_PRE = 'tent_v27';                 // the prefix changes with every bake: same names would come back from the browser cache
 const TENT_VIEW = {
-  orbit: { at: V(0, 1.72, 0), orbit: { yaw: Math.PI / 4, pitch: 0.48, dist: 17 }, yaw: 0.75, pitch: 0.2, fov: [44, 28] },
+  orbit: { at: V(0, 1.72, 0), orbit: { yaw: Math.PI / 4, pitch: 0.4, dist: 17 }, yaw: 0.75, pitch: 0.2, fov: [44, 28] },
   inside: { eye: V(0.72, 1.25, 0.72), at: V(-0.3, 0.88, -0.3), yaw: 0.9, pitch: 0.45, fov: [72, 58] },
 };
 let roomInside = false, roomFly = null;
@@ -277,7 +277,7 @@ async function loadBakedGLB(base, pre) {
   return new Promise((res, rej) => new GLTFLoader().parse(buf, base, res, rej));
 }
 /** the rooms that come baked from Blender, how to look at them, and how to build them */
-const BAKED = { tent: { view: () => TENT_VIEW, build: () => buildBakedTentRoom() }, shrine: { view: () => SHRINE_VIEW, build: () => buildBakedShrineRoom() } };
+const BAKED = { tent: { view: () => TENT_VIEW, build: () => buildBakedTentRoom() }, shrine: { view: () => SHRINE_VIEW, build: () => buildBakedShrineRoom() }, study: { view: () => STUDY_VIEW, build: () => buildBakedStudyRoom() } };
 const bakedP = {};
 function preloadBaked(id) { return (bakedP[id] ??= BAKED[id].build().catch((e) => { console.warn(`baked ${id} unavailable, using the paper one`, e); return null; })); }
 function preloadBakedTent() { return preloadBaked('tent'); }
@@ -367,7 +367,7 @@ async function buildBakedTentRoom() {
 /* ---------- the shrine baked in Blender (blender/build_shrine.py): a Quanzhou temple cut open at the front ---------- */
 const SHRINE_ASSETS = 'shrine/', SHRINE_PRE = 'shrine_10181912';
 const SHRINE_VIEW = {
-  orbit: { at: V(0, 1.9, 0), orbit: { yaw: 0, pitch: 0.3, dist: 17 }, yaw: 0.8, pitch: 0.18, fov: [44, 28] },
+  orbit: { at: V(0, 1.9, 0), orbit: { yaw: 0, pitch: 0.4, dist: 19.5 }, yaw: 0.8, pitch: 0.18, fov: [44, 28] },
   inside: { eye: V(0, 1.24, 1.36), at: V(0, 1.3, -1.0), yaw: 0.65, pitch: 0.4, fov: [70, 54] },
 };
 async function buildBakedShrineRoom() {
@@ -508,10 +508,12 @@ async function buildBakedShrineRoom() {
     moon: moonGlow ? { material: { set opacity(v) { moonGlow.dim = v; } } } : { material: {} }, beiCfg, incensePos: incense, moonPos: moonGlow?.sp.position, setGlow: (g) => lamps.forEach((f) => { f.dim = g / 0.9; }) };
 }
 
+/** how far out a view's orbit sits: further on a screen held upright, by the view's own factor if it has one */
+function orbitDist(v) { return v.orbit.dist * (camera.aspect < 0.8 ? v.orbit.narrow ?? 1.15 : 1); }
 /** where the camera sits for a view, and its lens */
 function viewPose(v) {
   if (!v.orbit) return { pos: v.eye.clone(), at: v.at.clone() };
-  const d = v.orbit.dist * (camera.aspect < 0.8 ? 1.15 : 1), cp = Math.cos(v.orbit.pitch);
+  const d = orbitDist(v), cp = Math.cos(v.orbit.pitch);
   return { pos: V(v.at.x + Math.sin(v.orbit.yaw) * cp * d, v.at.y + Math.sin(v.orbit.pitch) * d, v.at.z + Math.cos(v.orbit.yaw) * cp * d), at: v.at.clone() };
 }
 function viewFov(v) { const f = v.fov ?? [72, 62]; return camera.aspect < 0.8 ? f[0] : f[1]; }
@@ -538,12 +540,12 @@ async function roomSit() {
   busy = true; hidePanel(); setUI('moving'); sfx('soft');
   await flyRoom(BAKED[roomId].view().inside, 1500);
   roomInside = true; busy = false; setUI('room');
-  toast(roomId === 'tent' ? '点一下桌上的牌堆，开始占卜' : '默念你的问题，点签筒求签，或点木筊掷筊');
+  toast({ tent: '点一下桌上的牌堆，开始占卜', shrine: '默念你的问题，点签筒求签，或点木筊掷筊', study: '宣纸已经铺好，三枚铜钱就在手边' }[roomId]);
 }
 /** stand up and step back out to the cut-away view */
 async function roomStand() {
   if (busy || roomFly || !roomInside || throwing) return;
-  busy = true; clearCards(); resetLots(); hidePanel(); setUI('moving');
+  busy = true; clearCards(); resetLots(); resetLiuyao(); hidePanel(); setUI('moving');
   await flyRoom(BAKED[roomId].view().orbit, 1300);
   roomInside = false; busy = false; setUI('room');
 }
@@ -561,7 +563,7 @@ function updateRoomLook() {
   look.yaw += (look.tyaw - look.yaw) * 0.1;
   look.pitch += (look.tpitch - look.pitch) * 0.1;
   const v = ROOM_VIEW[roomId];
-  if (v?.orbit) { const d = v.orbit.dist * (camera.aspect < 0.8 ? 1.15 : 1), cp = Math.cos(look.pitch); camera.position.set(v.at.x + Math.sin(look.yaw) * cp * d, v.at.y + Math.sin(look.pitch) * d, v.at.z + Math.cos(look.yaw) * cp * d); camera.lookAt(v.at); return; }
+  if (v?.orbit) { const d = orbitDist(v), cp = Math.cos(look.pitch); camera.position.set(v.at.x + Math.sin(look.yaw) * cp * d, v.at.y + Math.sin(look.pitch) * d, v.at.z + Math.cos(look.yaw) * cp * d); camera.lookAt(v.at); return; }
   camera.rotation.set(look.pitch, look.yaw, 0, 'YXZ');
 }
 function updateRoom(dt, t) {
@@ -589,15 +591,21 @@ async function enterRoom(id) {
   $('flash').classList.add('on');
   await fly;
   if (baked) { const r = await Promise.race([baked, wait(20000).then(() => null)]); if (r) rooms[id] = r; }
+  if (!rooms[id] && !PAPER_ROOM[id]) {
+    Object.assign(rig, { tx: door.x, ty: door.y, tz: door.z - 0.04, dist: 0.24, yaw: 0, pitch: 0.12, fov: 44 }); updateRig(0);
+    $('flash').classList.remove('on'); busy = false; setUI('open'); toast(`「${ROOMS[id].name}」这会儿没能打开，稍后再来试试`); return;
+  }
   showRoom(id);
   await wait(250);
   $('flash').classList.remove('on');
   await askQuestion(id);
   busy = false; setUI('room');
 }
+/** the rooms drawn in code, the stand-ins when a baked room can't load (the study has none) */
+const PAPER_ROOM = { tent: () => buildTentRoom(), shrine: () => buildShrineRoom() };
 /** switch the view to a room, building it the first time */
 function showRoom(id) {
-  rooms[id] ??= id === 'tent' ? buildTentRoom() : buildShrineRoom();
+  rooms[id] ??= PAPER_ROOM[id]();
   roomId = id; mode = 'room';
   rooms[id].scene.add(sparks.points, smoke.points);
   renderPass.scene = rooms[id].scene;
@@ -610,7 +618,7 @@ function showRoom(id) {
 }
 async function leaveRoom() {
   if (busy || mode !== 'room') return;
-  busy = true; clearCards(); resetLots(); hidePanel(); throwing = null; roomFly = null; roomInside = false;
+  busy = true; clearCards(); resetLots(); resetLiuyao(); hidePanel(); throwing = null; roomFly = null; roomInside = false;
   for (const id in BAKED) if (rooms[id]?.baked) ROOM_VIEW[id] = BAKED[id].view().orbit;
   $('flash').classList.add('on');
   await wait(450);
@@ -696,8 +704,8 @@ function flipCard(i) {
   c.spin = 0;
   if (!wide) c.group.userData.shrink = 0.82;
   cards.forEach((o) => { if (o !== c) o.leaving = true; });
-  const [name, en, , up] = MAJOR[c.k], line = c.rev ? MAJOR_REV[c.k] : up;
-  setTimeout(() => { sfx('chime'); burstAt(sparks, c.group.position, 40, { speed: 0.35, up: 0.4, size: 0.018 }); showPanel(`<span class="seal">星</span><small>${ROMAN[c.k]} · ${en} · ${c.rev ? '逆位' : '正位'}</small><h3>${name}</h3><p>${line}</p><div class="note">仅供娱乐 · 不构成任何建议</div>`, [['收下这张牌', () => keepCard(c), true], ['再抽一张', () => { clearCards(); hidePanel(); setTimeout(startRitual, 200); }], ['合上', () => { clearCards(); hidePanel(); }]]); addSlip(); addReading(c.k, c.rev); }, 850);
+  const [name, en, , up, key] = MAJOR[c.k], line = c.rev ? MAJOR_REV[c.k] : up;
+  setTimeout(() => { sfx('chime'); burstAt(sparks, c.group.position, 40, { speed: 0.35, up: 0.4, size: 0.018 }); showPanel(`<span class="seal">星</span><small>${ROMAN[c.k]} · ${en} · ${c.rev ? '逆位' : '正位'}</small><h3>${name}</h3><p class="gua-image">牌意 · ${key}</p><p>${line}</p><div class="note">仅供娱乐 · 不构成任何建议</div>`, [['收下这张牌', () => keepCard(c), true], ['再抽一张', () => { clearCards(); hidePanel(); setTimeout(startRitual, 200); }], ['合上', () => { clearCards(); hidePanel(); }]]); addSlip(); addReading(c.k, c.rev); }, 850);
 }
 function clearCards() { cards.forEach((c) => c.group.parent?.remove(c.group)); cards = []; endRitual(); spreadTags(false); cardsChanged(); }
 /** the buttons under the room follow the cards on the table */
@@ -807,7 +815,7 @@ function showSpreadSummary() {
   if (!cards.length || !cards[0].spread) return;
   const S = SPREADS[spreadKind];
   // everything set as HTML here comes from the deck's own names and lines; the viewer's question never does
-  const rows = cards.map((c) => { const [name, en, , up] = MAJOR[c.k]; return `<li><b>${c.slot.name}</b>　${name} <i>${en}</i> · ${c.rev ? '逆位' : '正位'}<span>${c.rev ? MAJOR_REV[c.k] : up}</span></li>`; }).join('');
+  const rows = cards.map((c) => { const [name, en, , up, key] = MAJOR[c.k]; return `<li><b>${c.slot.name}</b>　${name} <i>${en}</i> · ${c.rev ? '逆位' : '正位'} · ${key}<span>${c.rev ? MAJOR_REV[c.k] : up}</span></li>`; }).join('');
   sfx('chime');
   showPanel(`<span class="seal">阵</span><small>${S.name} · ${S.note}</small><h3>你的${S.name}</h3><ul class="spread-list">${rows}</ul><div class="note">仅供娱乐 · 不构成任何建议</div>`,
     [['再占一次', () => { clearCards(); hidePanel(); setTimeout(showSpreadChooser, 200); }, true], ['合上', () => { clearCards(); hidePanel(); }]]);
@@ -1130,9 +1138,9 @@ async function openDrawer() {
 /** back to kneeling at the offering table, if the slip cabinet took you away */
 function backToTable() { if (roomId === 'shrine' && roomInside && ROOM_VIEW.shrine !== SHRINE_VIEW.inside && !roomFly) flyRoom(SHRINE_VIEW.inside, 900); }
 function showSlip() {
-  const L = lots, [grade, title, poem, jie] = LINGQIAN[L.n - 1];
+  const L = lots, [grade, title, poem, jie, gist] = LINGQIAN[L.n - 1];
   const cols = poem.split(/[，。]/).filter(Boolean).map((l) => `<span>${l}</span>`).join('');
-  showPanel(`<div class="qian"><div class="qhead"><b>第${qianNum(L.n)}签</b><i class="g${QGRADE[grade]}">${grade}</i></div><div class="qtitle">${title}</div><div class="qpoem">${cols}</div><div class="qjie"><b>解曰</b>${jie}</div></div><div class="note">签诗为本书新写，不托名任何神明 · 仅供娱乐，不构成任何建议</div>`,
+  showPanel(`<div class="qian"><div class="qhead"><b>第${qianNum(L.n)}签</b><i class="g${QGRADE[grade]}">${grade}</i></div><div class="qtitle">${title}</div><div class="qgist">签意 · ${gist}</div><div class="qpoem">${cols}</div><div class="qjie"><b>解曰</b>${jie}</div></div><div class="note">签诗为本书新写，不托名任何神明 · 仅供娱乐，不构成任何建议</div>`,
     [['收下签诗', closeLots, true], ['再求一签', startLots], ['收起', closeLots]]);
   $('panel').classList.add('long');
   sfx('chime'); burstAt(sparks, rooms.shrine.drawerGlow.position, 30, { speed: 0.2, up: 0.3, size: 0.016, life: 1 });
@@ -1153,10 +1161,12 @@ function roomTap(ndc) {
   const objs = [];
   if (roomId === 'tent') objs.push(...rooms.tent.deck.children, ...cards.map((c) => c.group.children).flat(), ...(rooms.tent.table ? [rooms.tent.table] : []));
   if (roomId === 'shrine') { const R = rooms.shrine; R.bei.forEach((b) => objs.push(...b.children)); if (R.cup) objs.push(...R.cup.children.filter((o) => o.isMesh)); if (R.cue?.visible) objs.push(...R.cue.children); if (R.table) objs.push(R.table); }
+  if (roomId === 'study') objs.push(...rooms.study.hits);
   const hit = ray.intersectObjects(objs, false)[0];
   if (!hit) return;
   if (hit.object.userData.card !== undefined) { const i = hit.object.userData.card; if (cards[i]?.spread) flipSpreadCard(i); else flipCard(i); }
   else if (roomId === 'shrine') { if (rooms.shrine.baked && !roomInside) roomSit(); else if (hit.object.userData.cup) startLots(); else throwBei(); }
+  else if (roomId === 'study') { if (!roomInside) roomSit(); else if (hit.object.userData.coins || rooms.study.coinMeshes.includes(hit.object.parent)) { if (liuyao?.phase === 'ready') tossLiuyao(); else if (!liuyao || liuyao.phase === 'done') { liuyao = null; startLiuyao(); } } }
   else if (hit.object.userData.deck || hit.object.userData.table) { if (rooms.tent.baked && !roomInside) tentSit(); else if (!ritual && !cards.length) showSpreadChooser(); }
   else if (hit.object.userData.bei) throwBei();
 }

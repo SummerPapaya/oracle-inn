@@ -11,7 +11,7 @@ a, b = css.index('/* ---------- a room'), css.index('.loading {')
 css = css[:a] + css[b:]
 out = r('_shell.html')
 for k, f in [('CSS', css), ('KIT', r('_kit.txt')), ('CARDS', r('_cards.txt') + '\n' + r('_cards_major.txt')), ('TEX', r('_tex.txt')), ('MAT', r('_mat.txt')),
-             ('ART', r('_art.js')), ('ART2', r('_art2.js')), ('ART3', r('_art3.js')), ('ART4', r('_art4.js')), ('ART5', r('_art5.js')), ('FX', r('_fx.js')), ('BOOK', r('_book.js')), ('HUT', r('_hut.js')), ('ROOMS', r('_lingqian.txt') + '\n' + r('_rooms.js')), ('MAIN', r('_main.js'))]:
+             ('ART', r('_art.js')), ('ART2', r('_art2.js')), ('ART3', r('_art3.js')), ('ART4', r('_art4.js')), ('ART5', r('_art5.js')), ('FX', r('_fx.js')), ('BOOK', r('_book.js')), ('HUT', r('_hut.js')), ('ROOMS', r('_lingqian.txt') + '\n' + r('_rooms.js') + '\n' + r('_liuyao.txt') + '\n' + r('_cezi_table.txt') + '\n' + r('_cezi.txt') + '\n' + r('_study.js')), ('MAIN', r('_main.js'))]:
     out = out.replace(f'@@{k}@@', f.rstrip('\n'))
 HEAD = ('<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">'
         '<meta name="description" content="魔法小屋里的一本立体占卜书：推开悬在夜空里的门，翻开立体书，走进星幕帐篷与东方神龛。东西方民俗文化的趣味科普演示，仅供娱乐。">'
@@ -44,7 +44,9 @@ for fam, rng in re.findall(r"font-family: '([^']+)';[^}]*unicode-range: ([^;]+);
     if fam != 'Noto Serif SC': continue
     for part in rng.split(','):
         a_, _, b_ = part.strip()[2:].partition('-'); covered.update(range(int(a_, 16), int(b_ or a_, 16) + 1))
-used = set(ord(c) for f in ('index.html', 'cat-tarot-deck.html', '404.html', 'js/' + app) for c in (pub / f).read_text() if ord(c) >= 0x2E80)
+# (测字's tables are data, not text on the page: its 6,763 characters sit in Long Cang's extra chunks, see fetch_fonts.py)
+unshown = lambda t: re.sub(r"CEZI_(CHARS|RAD|STROKES) = '[^']*'", '', t)
+used = set(ord(c) for f in ('index.html', 'cat-tarot-deck.html', '404.html', 'js/' + app) for c in unshown((pub / f).read_text()) if ord(c) >= 0x2E80)
 missing = ''.join(sorted(chr(c) for c in used - covered))
 if missing: print(f'note: {len(missing)} characters are not in the font subsets ({missing[:40]}…); run python3 tools/fetch_fonts.py')
 import sys

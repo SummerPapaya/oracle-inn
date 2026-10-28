@@ -15,7 +15,7 @@ const PW = 1, PD = 1.32, T = 0.006, Y0 = 0.08, BOARD = 0.034;
 const ROOMS = {
   tent:   { name: '星幕帐篷',     methods: '塔罗',        kind: 'tarot',   ready: true },
   shrine: { name: '东方神龛',     methods: '掷筊 · 灵签', kind: 'jiaobei', ready: true },
-  study:  { name: '文房书案',     methods: '测字 · 六爻' },
+  study:  { name: '文房书案',     methods: '测字 · 六爻', kind: 'study',   ready: true },
   tea:    { name: '维多利亚茶桌', methods: '雷诺曼' },
   window: { name: '月下窗台',     methods: '灵摆' },
   hearth: { name: '北欧炉边',     methods: '卢恩符文' },
@@ -728,7 +728,7 @@ function updateRig(dt) {
 /* ---------- a taste of the pages still being bound: one small thing to try on each ---------- */
 /*
  * Tapping the little house on an unfinished page (or its button) plays a short preview on the page itself and
- * says what it showed: three coins for a line of 六爻, a Lenormand card, a pendulum's answer, a rune stone.
+ * says what it showed: a Lenormand card, a pendulum's answer, a rune stone.
  * What lands is what the panel reports.
  */
 let teaser = null;
@@ -743,7 +743,7 @@ const RUNES = [['Fehu', '丰盛', '付出会有回报，丰收在路上。', [[3
   ['Berkano', '新生', '新的开始正在萌芽。', [[3, 1, 3, 15], [3, 1, 8, 4, 3, 8, 8, 12, 3, 15]]], ['Ehwaz', '同行', '有人和你一起走，会更稳。', [[2, 15, 2, 1, 5, 5, 8, 1, 8, 15]]],
   ['Mannaz', '自我', '好好认识自己，答案在里面。', [[2, 15, 2, 1, 8, 8], [8, 15, 8, 1, 2, 8]]], ['Laguz', '直觉', '顺着水流，相信直觉。', [[3, 1, 3, 15], [3, 1, 8, 5]]],
   ['Ingwaz', '孕育', '安静地酝酿，时候到了自会开花。', [[5, 3, 8, 8, 5, 13, 2, 8, 5, 3]]], ['Dagaz', '破晓', '天快亮了，转机就在眼前。', [[2, 2, 2, 14, 8, 2, 8, 14, 2, 2]]]];
-const TEASE_BTN = { study: '掷三枚铜钱', tea: '翻一张雷诺曼', window: '垂下灵摆', hearth: '摸一颗符文石' };
+const TEASE_BTN = { tea: '翻一张雷诺曼', window: '垂下灵摆', hearth: '摸一颗符文石' };
 const TEASE_NOTE = '<div class="note">这一间还在装订中，下次翻开时就能完整地玩 · 仅供娱乐</div>';
 function teaserStart(id) {
   const P = spreads[cur]?.P;
@@ -770,30 +770,6 @@ function lenormandFace(no, name, line) {
   return tex(c);
 }
 const TEASE = {
-  study: {
-    make(T) {
-      const front = new THREE.MeshStandardMaterial({ map: tex(coinCanvas()), metalness: 0.6, roughness: 0.4 });
-      const backC = canvas(128, 128), bg = backC.getContext('2d'); bg.fillStyle = '#9a6a30'; bg.beginPath(); bg.arc(64, 64, 62, 0, TAU); bg.fill(); bg.strokeStyle = '#6a4418'; bg.lineWidth = 6; bg.stroke(); bg.fillStyle = '#2a1a0c'; bg.fillRect(50, 50, 28, 28); bg.strokeRect(46, 46, 36, 36);
-      const back = new THREE.MeshStandardMaterial({ map: tex(backC), metalness: 0.6, roughness: 0.45 }), edge = new THREE.MeshStandardMaterial({ color: 0x8a5a2a, metalness: 0.6, roughness: 0.4 });
-      T.heads = [0, 1, 2].map(() => Math.random() < 0.5);              // heads: the inscribed face (字) up
-      T.coins = T.heads.map((h, i) => { const m = new THREE.Mesh(new THREE.CylinderGeometry(0.034, 0.034, 0.006, 32), [edge, front, back]); m.castShadow = true; T.g.add(m);
-        return { m, from: T.at.clone().add(V(0, 0.03, 0)), to: T.at.clone().add(V(-0.11 + i * 0.11, 0.005, 0.02 + (i % 2) * 0.03)), turns: (h ? 6 : 7) + 2 * i, yaw: rnd(0, TAU), delay: i * 0.12, landed: false }; });
-      T.dur = 1.7; setTimeout(() => sfx('coin'), 300);
-    },
-    tick(T) {
-      for (const c of T.coins) {
-        const k = THREE.MathUtils.clamp((T.t - c.delay) / 1.1, 0, 1), e = easeIO(k);
-        c.m.position.lerpVectors(c.from, c.to, e); c.m.position.y += Math.sin(Math.PI * k) * 0.32;
-        c.m.rotation.set(Math.PI * c.turns * e, c.yaw, 0);
-        if (k >= 1 && !c.landed) { c.landed = true; sfx('clack'); }
-      }
-    },
-    reveal(T) {
-      const z = T.heads.filter(Boolean).length, b = 3 - z, sum = 2 * z + 3 * b;
-      const [name, line] = { 6: ['老阴', '阴爻，而且会变'], 7: ['少阳', '一条阳爻'], 8: ['少阴', '一条阴爻'], 9: ['老阳', '阳爻，而且会变'] }[sum];
-      showPanel(`<span class="seal">爻</span><small>预告 · 六爻</small><h3>${name}</h3><p>三枚铜钱，${z ? `${z} 字` : ''}${z && b ? '、' : ''}${b ? `${b} 背` : ''}：这是${line}。六爻要连掷六次，排成一卦，再配上测字慢慢读。</p>${TEASE_NOTE}`, teaseAgain('study'));
-    },
-  },
   tea: {
     make(T) {
       T.card = LENORMAND[Math.floor(Math.random() * LENORMAND.length)];

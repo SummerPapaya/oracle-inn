@@ -1,12 +1,12 @@
 <!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="description" content="魔法小屋里的一本立体占卜书：推开悬在夜空里的门，翻开立体书，走进星幕帐篷与东方神龛。东西方民俗文化的趣味科普演示，仅供娱乐。"><meta name="color-scheme" content="dark"><meta name="theme-color" content="#120c14"><link rel="icon" href="favicon.ico" sizes="48x48"><link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="apple-touch-icon.png"><link rel="manifest" href="site.webmanifest"><link rel="canonical" href="https://oracle-inn.summercommences.com/"><meta property="og:type" content="website"><meta property="og:site_name" content="借问众神明 · Oracle Inn"><meta property="og:locale" content="zh_CN"><meta property="og:title" content="借问众神明 · Oracle Inn"><meta property="og:description" content="魔法小屋里的一本立体占卜书：推开悬在夜空里的门，翻开立体书，走进星幕帐篷与东方神龛。东西方民俗文化的趣味科普演示，仅供娱乐。"><meta property="og:url" content="https://oracle-inn.summercommences.com/"><meta property="og:image" content="https://oracle-inn.summercommences.com/og-image.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="借问众神明 · Oracle Inn：拱形金框窗里是一本摊开的立体书，书页上立着紫色的星幕帐篷"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="借问众神明 · Oracle Inn"><meta name="twitter:description" content="魔法小屋里的一本立体占卜书：推开悬在夜空里的门，翻开立体书，走进星幕帐篷与东方神龛。东西方民俗文化的趣味科普演示，仅供娱乐。"><meta name="twitter:image" content="https://oracle-inn.summercommences.com/og-image.jpg"><meta name="twitter:image:alt" content="借问众神明 · Oracle Inn：拱形金框窗里是一本摊开的立体书，书页上立着紫色的星幕帐篷"><meta itemprop="name" content="借问众神明 · Oracle Inn"><meta itemprop="description" content="魔法小屋里的一本立体占卜书：推开悬在夜空里的门，翻开立体书，走进星幕帐篷与东方神龛。东西方民俗文化的趣味科普演示，仅供娱乐。"><meta itemprop="image" content="https://oracle-inn.summercommences.com/share-square.jpg"><title>借问众神明 · Oracle Inn</title>
-<link rel="stylesheet" href="vendor/fonts/fonts.css?v=c2fe519c">
+<link rel="stylesheet" href="vendor/fonts/fonts.css?v=cdafa110">
 <script type="importmap">
 { "imports": {
   "three": "./vendor/three/0.169.0/build/three.module.js",
   "three/addons/": "./vendor/three/0.169.0/examples/jsm/"
 } }
 </script>
-<link rel="modulepreload" href="vendor/three/0.169.0/build/three.module.js"><link rel="modulepreload" href="js/app.11913926bd.js">
+<link rel="modulepreload" href="vendor/three/0.169.0/build/three.module.js"><link rel="modulepreload" href="js/app.6b630c1400.js">
 <style>
 /* Layout: the 3D hall fills the screen; a thin title bar on top, a row of room buttons at the
    bottom, and each room opens full-screen over the hall. One warm candlelit look on purpose. */
@@ -23,8 +23,8 @@
   --frame: #8a79d6;
   --glass: rgba(26, 18, 22, .72);
   --serif: 'Noto Serif SC', 'Songti SC', 'STSong', serif;
-  --hand: 'Long Cang', 'LXGW WenKai TC', 'Kaiti SC', 'STKaiti', cursive;      /* Long Cang has no 筊 (outside GB2312): WenKai brushes that one in */
-  --latin: 'Cormorant Garamond', 'Times New Roman', serif;
+  --hand: 'Long Cang', 'LXGW WenKai TC', 'Kaiti SC', 'STKaiti', cursive;      /* Long Cang stops at GB2312: WenKai brushes in the rest (筊, the parts in 测字) */
+  --latin: 'Cormorant Garamond', 'Times New Roman', 'Noto Serif SC', serif;      /* the Chinese in a Latin line (a panel's kicker) stays in the serif, never a system sans */
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
@@ -154,7 +154,7 @@ body { background: var(--night); color: var(--paper); font-family: var(--serif);
 .panel small { font-family: var(--latin); font-style: italic; font-size: 16px; color: var(--gold); letter-spacing: .06em; }
 .panel h3 { margin: .1em 0 .25em; font-size: clamp(24px, 4.6vmin, 32px); font-weight: 900; letter-spacing: .14em; color: var(--gold-light); }
 .panel p { margin: 0; font-family: var(--hand); font-size: clamp(19px, 3.2vmin, 24px); line-height: 1.5; color: #fbf1da; }
-.panel .note { margin-top: .9em; font-size: 11px; color: rgba(246, 236, 214, .55); letter-spacing: .1em; }
+.panel .note { margin-top: .9em; font-size: 11px; line-height: 1.7; color: rgba(246, 236, 214, .55); letter-spacing: .1em; }
 .panel .row { margin-top: 1em; flex-wrap: wrap; }
 @keyframes rise { from { transform: translateY(18px); opacity: 0; } to { transform: none; opacity: 1; } }
 @media (max-aspect-ratio: 1/1), (max-width: 760px) {
@@ -182,7 +182,8 @@ body.hot #stage canvas, button, .chip, .slip { cursor: var(--wand-hot, pointer) 
 .qian .qhead b { font-size: clamp(20px, 3.6vmin, 24px); letter-spacing: .2em; font-weight: 900; }
 .qian .qhead i { font-style: normal; font-weight: 900; letter-spacing: .15em; padding: 1px 8px; border-radius: 2px; color: #fff4dc; }
 .qian .ga { background: #b8321e; } .qian .gb { background: #c0582a; } .qian .gc { background: #8a6a2a; } .qian .gd { background: #5a6a5a; } .qian .ge { background: #4a5a78; }
-.qian .qtitle { margin: 8px 0 4px; text-align: center; font-size: 15px; letter-spacing: .5em; color: #7a2a1a; }
+.qian .qtitle { margin: 8px 0 2px; text-align: center; font-size: 15px; letter-spacing: .5em; color: #7a2a1a; }
+.qian .qgist { margin: 0 0 4px; text-align: center; font-size: 12px; letter-spacing: .3em; color: rgba(122, 42, 26, .78); }
 .qian .qpoem { display: flex; flex-direction: row-reverse; justify-content: center; gap: 14px; margin: 6px 0 8px; }
 .qian .qpoem span { writing-mode: vertical-rl; font-size: clamp(20px, 3.4vmin, 24px); letter-spacing: .25em; font-weight: 700; line-height: 1; }
 .qian .qjie { font-family: var(--hand); font-size: clamp(16px, 2.8vmin, 19px); line-height: 1.5; border-top: 1px dashed rgba(168, 48, 30, .45); padding-top: 6px; }
@@ -202,6 +203,18 @@ body.hot #stage canvas, button, .chip, .slip { cursor: var(--wand-hot, pointer) 
 .panel .spread-list li b { color: var(--gold-light); letter-spacing: .08em; }
 .panel .spread-list li i { font-family: var(--latin); color: var(--gold); }
 .panel .spread-list li span { display: block; font-family: var(--hand); font-size: 17px; color: rgba(251, 241, 218, .88); }
+/* 测字: the box to type in, the 字盘 of suggestions, the character itself in the reading */
+.panel .cezi-form { margin: .5em 0 .3em; text-align: center; }
+.panel .cezi-in { width: 4.6em; padding: .1em .3em; font-family: var(--hand); font-size: 36px; text-align: center; color: #2a1a12; background: #f6ecd6; border: 2px solid rgba(217, 178, 94, .85); border-radius: 10px; outline: none; }
+.panel .zipan { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; margin: .5em 0 .2em; }
+.panel .zipan .zi { padding: 5px 0 7px; font-family: var(--hand); font-size: 22px; line-height: 1.2; color: #fbf1da; background: rgba(255, 255, 255, .06); border: 1px solid rgba(217, 178, 94, .45); border-radius: 8px; }
+.panel h3.cezi-ch { font-family: var(--hand); font-size: 64px; font-weight: 400; line-height: 1.05; }
+/* 六爻: the image line under the hexagram's name, and the moving lines with the hexagram they turn into */
+.panel h3 .gua-alias { margin-left: .6em; font-family: var(--serif); font-size: 13px; font-weight: 400; letter-spacing: .08em; color: var(--gold); }
+.panel p.gua-image { margin: 0 0 .45em; font-family: var(--serif); font-size: 15px; letter-spacing: .12em; color: var(--gold); }
+.panel .gua-change { margin-top: .8em; padding-top: .6em; border-top: 1px dashed rgba(217, 178, 94, .35); font-family: var(--hand); font-size: clamp(16px, 2.6vmin, 19px); line-height: 1.55; color: #fbf1da; }
+.panel .gua-change b { font-family: var(--serif); font-weight: 700; color: var(--gold-light); }
+.panel .gua-change span { display: block; margin-top: .2em; color: rgba(251, 241, 218, .85); }
 .spread-tags { position: fixed; inset: 0; pointer-events: none; z-index: 4; }
 .spread-tag { position: absolute; translate: -50% 0; white-space: nowrap; padding: 2px 10px; border-radius: 999px; font-size: 12px; letter-spacing: .12em;
   color: var(--gold-light); background: rgba(26, 18, 22, .7); border: 1px solid rgba(217, 178, 94, .4); transition: opacity .4s, border-color .4s; }
@@ -279,9 +292,9 @@ body.hot #stage canvas, button, .chip, .slip { cursor: var(--wand-hot, pointer) 
   <div class="intro-text">
     <p>魔法屋悬空的前门，今天停在第 Ⅲ 层。<br>门缝里透出一点星光，好像有人在等你。</p>
     <button class="btn gold" id="enter" type="button">推门进入</button>
-    <p class="notice"><b>温馨提示</b>这里的占卜是东西方民俗文化的趣味科普演示，抽牌、掷筊、求签的结果均由程序随机生成，仅供休闲娱乐，不是预言，也不构成任何建议。命运掌握在自己手中，请保持理性，自主抉择。<span class="wish">愿你在海海人生里，找到自己的方向。</span></p>
+    <p class="notice"><b>温馨提示</b>这里的占卜是东西方民俗文化的趣味科普演示，抽牌、掷筊、求签、起卦的结果均由程序随机生成，测字只按字形取象，仅供休闲娱乐，不是预言，也不构成任何建议。命运掌握在自己手中，请保持理性，自主抉择。<span class="wish">愿你在海海人生里，找到自己的方向。</span></p>
   </div>
 </div>
 <div class="loading" id="loading">正在点亮蜡烛……</div>
 
-<script type="module" src="js/app.11913926bd.js"></script>
+<script type="module" src="js/app.6b630c1400.js"></script>

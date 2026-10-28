@@ -13,6 +13,7 @@ src/.check.mjs
 *.blend1
 blender/realtime/
 blender/realtime_shrine/
+blender/realtime_study/
 blender/renders/
 blender/compare/
 blender/*_log.txt
