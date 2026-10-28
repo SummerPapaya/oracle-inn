@@ -10,15 +10,15 @@ The source code in this repository is released under the [MIT License](LICENSE):
 
 © 2026 SummerPapaya。以下内容保留所有权利，未经许可不得复制、修改、再分发或用于商业用途：
 
-- `public/deck/`、`public/tent/`、`public/shrine/`、`public/study/` 中的图片与 3D 场景，`blender/tex/` 中的贴图，`docs/` 中的头图与预览图；
-- 这些文件所呈现的美术设计，包括猫咪穆夏塔罗的牌面设计、魔法小屋与各占卜小屋的场景设计；
-- 文字创作，包括六十首灵签签诗与解曰（`src/_lingqian.txt`）、六十四卦的解读（`src/_liuyao.txt`）、测字的拆字与解读（`src/_cezi.txt`）、牌义与各处文案。
+- `public/deck/`、`public/tent/`、`public/shrine/`、`public/study/`、`public/tea/` 中的图片与 3D 场景，`blender/tex/` 中的贴图，`docs/` 中的头图与预览图；
+- 这些文件所呈现的美术设计，包括猫咪穆夏塔罗与剪影雷诺曼的牌面设计、魔法小屋与各占卜小屋的场景设计；
+- 文字创作，包括六十首灵签签诗与解曰（`src/_lingqian.txt`）、六十四卦的解读（`src/_liuyao.txt`）、测字的拆字与解读（`src/_cezi.txt`）、雷诺曼牌义与茶叶占卜的解读（`src/_lenormand.txt`）、牌义与各处文案。
 
 The following are © 2026 SummerPapaya, all rights reserved; they may not be copied, modified, redistributed or used commercially without permission:
 
-- the images and 3D scenes in `public/deck/`, `public/tent/`, `public/shrine/` and `public/study/`, the textures in `blender/tex/`, and the hero and preview images in `docs/`;
-- the artwork these files depict, including the cat-tarot card designs and the designs of the Magic House and its rooms;
-- the writing, including the sixty fortune-slip poems and their readings (`src/_lingqian.txt`), the readings of the sixty-four hexagrams (`src/_liuyao.txt`), the character readings of 测字 (`src/_cezi.txt`), the card meanings and the other in-page text.
+- the images and 3D scenes in `public/deck/`, `public/tent/`, `public/shrine/`, `public/study/` and `public/tea/`, the textures in `blender/tex/`, and the hero and preview images in `docs/`;
+- the artwork these files depict, including the cat-tarot and silhouette Lenormand card designs and the designs of the Magic House and its rooms;
+- the writing, including the sixty fortune-slip poems and their readings (`src/_lingqian.txt`), the readings of the sixty-four hexagrams (`src/_liuyao.txt`), the character readings of 测字 (`src/_cezi.txt`), the Lenormand and tea-leaf readings (`src/_lenormand.txt`), the card meanings and the other in-page text.
 
 小屋墙上的「人生海海」霓虹灯牌（`src/_art5.js` 的 `neonSignCanvas`）不在上述范围内：它是向五月天《人生海海》致敬的粉丝设计，本项目不主张其中任何权利，相关权利归原权利人所有。
 

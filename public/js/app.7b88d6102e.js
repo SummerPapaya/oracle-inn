@@ -1539,7 +1539,7 @@ const PAGE_TEXT = {
   tent:   ['第一页', '星幕帐篷', 'Tarot · 塔罗', '抽一张牌，听听今天的星星想说什么。'],
   shrine: ['第二页', '东方神龛', 'Jiaobei · 掷筊 · 灵签', '心里默念你的问题，让木筊替你回答。'],
   study:  ['第三页', '文房书案', 'Characters · 测字 · 六爻', '写下一个字，看看它藏着什么心事。'],
-  tea:    ['第四页', '维多利亚茶桌', 'Lenormand · 雷诺曼', '一杯茶的工夫，翻开一组小小的卡片。'],
+  tea:    ['第四页', '维多利亚茶桌', 'Lenormand · 雷诺曼 · 茶叶占卜', '一杯茶的工夫，翻开一组小小的卡片。'],
   window: ['第五页', '月下窗台', 'Pendulum · 灵摆', '让水晶在月光里慢慢摆动。'],
   hearth: ['第六页', '北欧炉边', 'Runes · 卢恩符文', '在炉火边，摸一颗刻着古老符号的石头。'],
 };
@@ -3024,7 +3024,7 @@ const ROOMS = {
   tent:   { name: '星幕帐篷',     methods: '塔罗',        kind: 'tarot',   ready: true },
   shrine: { name: '东方神龛',     methods: '掷筊 · 灵签', kind: 'jiaobei', ready: true },
   study:  { name: '文房书案',     methods: '测字 · 六爻', kind: 'study',   ready: true },
-  tea:    { name: '维多利亚茶桌', methods: '雷诺曼' },
+  tea:    { name: '维多利亚茶桌', methods: '雷诺曼 · 茶叶占卜', kind: 'tea', ready: true },
   window: { name: '月下窗台',     methods: '灵摆' },
   hearth: { name: '北欧炉边',     methods: '卢恩符文' },
 };
@@ -3736,12 +3736,10 @@ function updateRig(dt) {
 /* ---------- a taste of the pages still being bound: one small thing to try on each ---------- */
 /*
  * Tapping the little house on an unfinished page (or its button) plays a short preview on the page itself and
- * says what it showed: a Lenormand card, a pendulum's answer, a rune stone.
+ * says what it showed: a pendulum's answer, a rune stone.
  * What lands is what the panel reports.
  */
 let teaser = null;
-// Lenormand, by its usual numbers; 8 (the coffin) and 36 (the cross) are left out of this little preview
-const LENORMAND = [[1, '骑士', '好消息正骑马赶来。'], [2, '四叶草', '一点小小的好运就在身边。'], [3, '船', '远方在召唤，适合出发。'], [4, '房子', '回到让你安心的地方。'], [5, '树', '慢慢生长，照顾好身体。'], [6, '云', '暂时看不清，等风吹散。'], [7, '蛇', '绕一点路，反而更稳。'], [9, '花束', '会有一个小小的惊喜。'], [10, '镰刀', '该断则断，干脆一点。'], [11, '鞭子', '别和自己较劲，松一松。'], [12, '鸟', '多聊聊，答案在对话里。'], [13, '孩子', '用新手的心情重新开始。'], [14, '狐狸', '多留个心眼，看清再决定。'], [15, '熊', '你比自己以为的更有力量。'], [16, '星星', '方向就在头顶，抬头看看。'], [17, '鹳', '改变正在发生，顺势而为。'], [18, '狗', '可靠的朋友会帮你一把。'], [19, '塔', '守住自己的原则。'], [20, '花园', '去人多的地方走走。'], [21, '山', '眼前有座山，绕过去或慢慢爬。'], [22, '岔路', '两条路都可以，听听心的选择。'], [23, '老鼠', '留意那些悄悄溜走的小事。'], [24, '心', '用爱去做，不会错。'], [25, '戒指', '一个约定值得珍惜。'], [26, '书', '答案还藏着，再多了解一点。'], [27, '信', '有消息要来，或者该写封信了。'], [28, '绅士', '想想那位你在意的人。'], [29, '淑女', '把温柔也留一点给自己。'], [30, '百合', '平和与安静是你的底气。'], [31, '太阳', '今天会是明亮的一天。'], [32, '月亮', '相信你的灵感和直觉。'], [33, '钥匙', '你已经握着那把钥匙了。'], [34, '鱼', '丰盛在流动，大方一点。'], [35, '锚', '稳住，它会帮你站定。']];
 // runes drawn as strokes on a 10 × 16 grid; only ones without a modern history of misuse
 const RUNES = [['Fehu', '丰盛', '付出会有回报，丰收在路上。', [[3, 1, 3, 15], [3, 5, 8, 2], [3, 9, 8, 6]]], ['Uruz', '力量', '你身上有股韧劲，可以扛住。', [[2, 15, 2, 1, 8, 5, 8, 15]]],
   ['Ansuz', '讯息', '留意别人的一句话，里面有答案。', [[3, 1, 3, 15], [3, 2, 8, 5], [3, 6, 8, 9]]], ['Raidho', '旅程', '出发吧，路会在脚下展开。', [[3, 1, 3, 15], [3, 1, 8, 4, 3, 8, 8, 15]]],
@@ -3751,7 +3749,7 @@ const RUNES = [['Fehu', '丰盛', '付出会有回报，丰收在路上。', [[3
   ['Berkano', '新生', '新的开始正在萌芽。', [[3, 1, 3, 15], [3, 1, 8, 4, 3, 8, 8, 12, 3, 15]]], ['Ehwaz', '同行', '有人和你一起走，会更稳。', [[2, 15, 2, 1, 5, 5, 8, 1, 8, 15]]],
   ['Mannaz', '自我', '好好认识自己，答案在里面。', [[2, 15, 2, 1, 8, 8], [8, 15, 8, 1, 2, 8]]], ['Laguz', '直觉', '顺着水流，相信直觉。', [[3, 1, 3, 15], [3, 1, 8, 5]]],
   ['Ingwaz', '孕育', '安静地酝酿，时候到了自会开花。', [[5, 3, 8, 8, 5, 13, 2, 8, 5, 3]]], ['Dagaz', '破晓', '天快亮了，转机就在眼前。', [[2, 2, 2, 14, 8, 2, 8, 14, 2, 2]]]];
-const TEASE_BTN = { tea: '翻一张雷诺曼', window: '垂下灵摆', hearth: '摸一颗符文石' };
+const TEASE_BTN = { window: '垂下灵摆', hearth: '摸一颗符文石' };
 const TEASE_NOTE = '<div class="note">这一间还在装订中，下次翻开时就能完整地玩 · 仅供娱乐</div>';
 function teaserStart(id) {
   const P = spreads[cur]?.P;
@@ -3769,35 +3767,7 @@ function updateTeaser(dt, t) {
   if (!teaser.done && teaser.t > teaser.dur) { teaser.done = true; TEASE[teaser.id].reveal(teaser); }
 }
 const teaseAgain = (id) => [['再来一次', () => teaserStart(id), true], ['收起', hidePanel]];
-function lenormandFace(no, name, line) {
-  const c = canvas(256, 384), g = c.getContext('2d');
-  g.fillStyle = '#f4ead2'; g.fillRect(0, 0, 256, 384); g.strokeStyle = '#b8903e'; g.lineWidth = 8; g.strokeRect(10, 10, 236, 364); g.lineWidth = 2; g.strokeRect(22, 22, 212, 340);
-  g.fillStyle = '#7a5a2a'; g.textAlign = 'center'; g.font = 'italic 600 30px "Cormorant Garamond", serif'; g.fillText(`№ ${no}`, 128, 70);
-  g.fillStyle = '#3a2a1a'; g.font = `900 ${name.length > 2 ? 54 : 70}px "Noto Serif SC", serif`; g.fillText(name, 128, 210);
-  g.fillStyle = '#b8903e'; g.beginPath(); for (let i = 0; i < 16; i++) { const a = Math.PI / 2 + (i * Math.PI) / 8, r = i % 4 === 0 ? 16 : i % 2 ? 4 : 10; g.lineTo(128 + Math.cos(a) * r, 290 - Math.sin(a) * r); } g.fill();
-  return tex(c);
-}
 const TEASE = {
-  tea: {
-    make(T) {
-      T.card = LENORMAND[Math.floor(Math.random() * LENORMAND.length)];
-      const backC = canvas(128, 192), b = backC.getContext('2d'); b.fillStyle = '#24484a'; b.fillRect(0, 0, 128, 192); b.strokeStyle = '#d8b060'; b.lineWidth = 4; b.strokeRect(8, 8, 112, 176); b.beginPath(); b.arc(64, 96, 26, 0, TAU); b.stroke();
-      const geo = new THREE.PlaneGeometry(0.12, 0.18), g = new THREE.Group();
-      g.add(new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ map: lenormandFace(...T.card) })));
-      const bk = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ map: tex(backC) })); bk.rotation.y = Math.PI; g.add(bk);
-      g.position.copy(T.at); T.g.add(g); T.cardG = g; T.dur = 1.6; sfx('page');
-    },
-    tick(T, dt, t) {
-      const k = Math.min(1, T.t / 1.4), e = easeIO(k), g = T.cardG;
-      g.position.copy(T.at).add(V(0, 0.04 + 0.26 * e, 0)); g.scale.setScalar(0.5 + 0.7 * e);
-      const face = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(g.getWorldPosition(tmpV), camera.position, camera.up));
-      const spin = new THREE.Quaternion().setFromAxisAngle(V(0, 1, 0), (1 - e) * Math.PI * 3);
-      const parentQ = T.g.getWorldQuaternion(new THREE.Quaternion()).invert();
-      g.quaternion.copy(parentQ.multiply(face).multiply(spin)).multiply(new THREE.Quaternion().setFromAxisAngle(V(0, 1, 0), Math.PI));
-      if (Math.random() < dt * 20) sparks.emit(g.getWorldPosition(tmpV), tmpW.set(rnd(-0.05, 0.05), rnd(0.02, 0.08), rnd(-0.05, 0.05)), { life: 0.8, size: 0.012 });
-    },
-    reveal(T) { const [no, name, line] = T.card; showPanel(`<span class="seal">牌</span><small>预告 · 雷诺曼 · 第 ${no} 张</small><h3>${name}</h3><p>${line}</p>${TEASE_NOTE}`, teaseAgain('tea')); },
-  },
   window: {
     make(T) {
       T.ans = ['yes', 'no', 'wait'][Math.floor(Math.random() * 3)];
@@ -5370,7 +5340,7 @@ async function loadBakedGLB(base, pre) {
   return new Promise((res, rej) => new GLTFLoader().parse(buf, base, res, rej));
 }
 /** the rooms that come baked from Blender, how to look at them, and how to build them */
-const BAKED = { tent: { view: () => TENT_VIEW, build: () => buildBakedTentRoom() }, shrine: { view: () => SHRINE_VIEW, build: () => buildBakedShrineRoom() }, study: { view: () => STUDY_VIEW, build: () => buildBakedStudyRoom() } };
+const BAKED = { tent: { view: () => TENT_VIEW, build: () => buildBakedTentRoom() }, shrine: { view: () => SHRINE_VIEW, build: () => buildBakedShrineRoom() }, study: { view: () => STUDY_VIEW, build: () => buildBakedStudyRoom() }, tea: { view: () => TEA_VIEW, build: () => buildBakedTeaRoom() } };
 const bakedP = {};
 function preloadBaked(id) { return (bakedP[id] ??= BAKED[id].build().catch((e) => { console.warn(`baked ${id} unavailable, using the paper one`, e); return null; })); }
 function preloadBakedTent() { return preloadBaked('tent'); }
@@ -5601,19 +5571,21 @@ async function buildBakedShrineRoom() {
     moon: moonGlow ? { material: { set opacity(v) { moonGlow.dim = v; } } } : { material: {} }, beiCfg, incensePos: incense, moonPos: moonGlow?.sp.position, setGlow: (g) => lamps.forEach((f) => { f.dim = g / 0.9; }) };
 }
 
+/** what an orbit looks at: a view may centre a screen held upright on another point */
+function orbitAt(v) { return camera.aspect < 0.8 && v.narrowAt ? v.narrowAt : v.at; }
 /** how far out a view's orbit sits: further on a screen held upright, by the view's own factor if it has one */
 function orbitDist(v) { return v.orbit.dist * (camera.aspect < 0.8 ? v.orbit.narrow ?? 1.15 : 1); }
 /** where the camera sits for a view, and its lens */
 function viewPose(v) {
   if (!v.orbit) return { pos: v.eye.clone(), at: v.at.clone() };
-  const d = orbitDist(v), cp = Math.cos(v.orbit.pitch);
-  return { pos: V(v.at.x + Math.sin(v.orbit.yaw) * cp * d, v.at.y + Math.sin(v.orbit.pitch) * d, v.at.z + Math.cos(v.orbit.yaw) * cp * d), at: v.at.clone() };
+  const d = orbitDist(v), cp = Math.cos(v.orbit.pitch), at = orbitAt(v);
+  return { pos: V(at.x + Math.sin(v.orbit.yaw) * cp * d, at.y + Math.sin(v.orbit.pitch) * d, at.z + Math.cos(v.orbit.yaw) * cp * d), at: at.clone() };
 }
 function viewFov(v) { const f = v.fov ?? [72, 62]; return camera.aspect < 0.8 ? f[0] : f[1]; }
 /** glide the camera from wherever it is to another view of the room */
 function flyRoom(v, ms = 1400) {
   const cur = ROOM_VIEW[roomId], fwd = camera.getWorldDirection(new THREE.Vector3());
-  const fromAt = cur.orbit ? cur.at.clone() : camera.position.clone().addScaledVector(fwd, camera.position.distanceTo(cur.at));
+  const fromAt = cur.orbit ? orbitAt(cur).clone() : camera.position.clone().addScaledVector(fwd, camera.position.distanceTo(cur.at));
   return new Promise((done) => { roomFly = { t0: performance.now(), ms, v, done, from: { pos: camera.position.clone(), at: fromAt, fov: camera.fov }, to: { ...viewPose(v), fov: viewFov(v) } }; });
 }
 function updateRoomFly() {
@@ -5633,12 +5605,12 @@ async function roomSit() {
   busy = true; hidePanel(); setUI('moving'); sfx('soft');
   await flyRoom(BAKED[roomId].view().inside, 1500);
   roomInside = true; busy = false; setUI('room');
-  toast({ tent: '点一下桌上的牌堆，开始占卜', shrine: '默念你的问题，点签筒求签，或点木筊掷筊', study: '宣纸已经铺好，三枚铜钱就在手边' }[roomId]);
+  toast({ tent: '点一下桌上的牌堆，开始占卜', shrine: '默念你的问题，点签筒求签，或点木筊掷筊', study: '宣纸已经铺好，三枚铜钱就在手边', tea: '茶刚斟好，牌就放在杯子旁边' }[roomId]);
 }
 /** stand up and step back out to the cut-away view */
 async function roomStand() {
   if (busy || roomFly || !roomInside || throwing) return;
-  busy = true; clearCards(); resetLots(); resetLiuyao(); hidePanel(); setUI('moving');
+  busy = true; clearCards(); resetLots(); resetLiuyao(); resetTea(); hidePanel(); setUI('moving');
   await flyRoom(BAKED[roomId].view().orbit, 1300);
   roomInside = false; busy = false; setUI('room');
 }
@@ -5656,7 +5628,7 @@ function updateRoomLook() {
   look.yaw += (look.tyaw - look.yaw) * 0.1;
   look.pitch += (look.tpitch - look.pitch) * 0.1;
   const v = ROOM_VIEW[roomId];
-  if (v?.orbit) { const d = orbitDist(v), cp = Math.cos(look.pitch); camera.position.set(v.at.x + Math.sin(look.yaw) * cp * d, v.at.y + Math.sin(look.pitch) * d, v.at.z + Math.cos(look.yaw) * cp * d); camera.lookAt(v.at); return; }
+  if (v?.orbit) { const d = orbitDist(v), cp = Math.cos(look.pitch), at = orbitAt(v); camera.position.set(at.x + Math.sin(look.yaw) * cp * d, at.y + Math.sin(look.pitch) * d, at.z + Math.cos(look.yaw) * cp * d); camera.lookAt(at); return; }
   camera.rotation.set(look.pitch, look.yaw, 0, 'YXZ');
 }
 function updateRoom(dt, t) {
@@ -5711,7 +5683,7 @@ function showRoom(id) {
 }
 async function leaveRoom() {
   if (busy || mode !== 'room') return;
-  busy = true; clearCards(); resetLots(); resetLiuyao(); hidePanel(); throwing = null; roomFly = null; roomInside = false;
+  busy = true; clearCards(); resetLots(); resetLiuyao(); resetTea(); hidePanel(); throwing = null; roomFly = null; roomInside = false;
   for (const id in BAKED) if (rooms[id]?.baked) ROOM_VIEW[id] = BAKED[id].view().orbit;
   $('flash').classList.add('on');
   await wait(450);
@@ -6255,8 +6227,10 @@ function roomTap(ndc) {
   if (roomId === 'tent') objs.push(...rooms.tent.deck.children, ...cards.map((c) => c.group.children).flat(), ...(rooms.tent.table ? [rooms.tent.table] : []));
   if (roomId === 'shrine') { const R = rooms.shrine; R.bei.forEach((b) => objs.push(...b.children)); if (R.cup) objs.push(...R.cup.children.filter((o) => o.isMesh)); if (R.cue?.visible) objs.push(...R.cue.children); if (R.table) objs.push(R.table); }
   if (roomId === 'study') objs.push(...rooms.study.hits);
+  if (roomId === 'tea') objs.push(...lnCards.flatMap((c) => c.group.children), ...rooms.tea.hits);
   const hit = ray.intersectObjects(objs, false)[0];
   if (!hit) return;
+  if (roomId === 'tea') { teaTap(hit); return; }
   if (hit.object.userData.card !== undefined) { const i = hit.object.userData.card; if (cards[i]?.spread) flipSpreadCard(i); else flipCard(i); }
   else if (roomId === 'shrine') { if (rooms.shrine.baked && !roomInside) roomSit(); else if (hit.object.userData.cup) startLots(); else throwBei(); }
   else if (roomId === 'study') { if (!roomInside) roomSit(); else if (hit.object.userData.coins || rooms.study.coinMeshes.includes(hit.object.parent)) { if (liuyao?.phase === 'ready') tossLiuyao(); else if (!liuyao || liuyao.phase === 'done') { liuyao = null; startLiuyao(); } } }
@@ -6654,7 +6628,7 @@ function ceziRead(ch) {
  * upturned eaves with a little pavilion roof and a gold finial, bamboo on the left, a plum in blossom and a Taihu
  * rock on the right, a lily pond and stepping stones in front. Look in from outside, or step up to the desk.
  */
-const STUDY_ASSETS = 'study/', STUDY_PRE = 'study_10281823';
+const STUDY_ASSETS = 'study/', STUDY_PRE = 'study_10290111';
 const STUDY_VIEW = {
   // the garden is twice as wide as the tent's or the shrine's platform: a phone held upright steps back further to keep it whole
   orbit: { at: V(0, 2.1, 1.1), orbit: { yaw: 0, pitch: 0.4, dist: 27, narrow: 1.3 }, yaw: 0.8, pitch: 0.2, fov: [44, 28] },
@@ -6678,8 +6652,10 @@ function studyRanges() {
   for (let i = 0; i < 26; i++) { const x = r() * 2048, y = 360 + r() * 120, w = 120 + r() * 260; const m = g.createRadialGradient(x, y, 0, x, y, w); m.addColorStop(0, 'rgba(170,184,206,.16)'); m.addColorStop(1, 'rgba(170,184,206,0)'); g.fillStyle = m; g.fillRect(x - w, y - w, w * 2, w * 2); }
   return tex(c);
 }
-/** stars all round that twinkle, and the moon with its halo */
-function studySky(s) {
+/** the study's sky: the night sky over the ink ranges, the moon high on the right */
+function studySky(s) { return nightSky(s, studyRanges(), V(9, 13, -42), 4.5); }
+/** stars all round that twinkle, the moon with its halo, and a painted backdrop low on the horizon behind (the tea room uses it too) */
+function nightSky(s, back, moonAt, backY) {
   const N = 900, pos = [], seed = [], mag = [], rng = mulberry(4417);
   for (let i = 0; i < N; i++) {
     const z = rng() * 1.1 - 0.1, a = rng() * TAU, rr = Math.sqrt(Math.max(0, 1 - z * z));
@@ -6699,9 +6675,9 @@ function studySky(s) {
     g.fillStyle = halo; g.fillRect(0, 0, 512, 512); g.fillStyle = '#f2e8cc'; g.beginPath(); g.arc(256, 256, 96, 0, TAU); g.fill(); return tex(c);
   })();
   const moon = new THREE.Sprite(new THREE.SpriteMaterial({ map: moonTex, transparent: true, depthWrite: false, fog: false }));
-  moon.position.set(9, 13, -42); moon.scale.setScalar(9); moon.renderOrder = -1; s.add(moon);
-  const ranges = new THREE.Mesh(new THREE.PlaneGeometry(110, 27.5), new THREE.MeshBasicMaterial({ map: studyRanges(), transparent: true, depthWrite: false, fog: false }));
-  ranges.position.set(0, 4.5, -46); ranges.renderOrder = -1; s.add(ranges);
+  moon.position.copy(moonAt); moon.scale.setScalar(9); moon.renderOrder = -1; s.add(moon);
+  const ranges = new THREE.Mesh(new THREE.PlaneGeometry(110, 27.5), new THREE.MeshBasicMaterial({ map: back, transparent: true, depthWrite: false, fog: false }));
+  ranges.position.set(0, backY, -46); ranges.renderOrder = -1; s.add(ranges);
   return (t) => { mat.uniforms.t.value = t; };
 }
 async function buildBakedStudyRoom() {
@@ -6959,6 +6935,1089 @@ function showCezi(r) {
     [['再测一字', startCezi, true], ['收起', () => { hidePanel(); setUI('room'); }]]);
   $('panel').classList.add('long');
 }
+
+/* ---------- 雷诺曼 and 茶叶占卜: the texts of the tea table ---------- */
+/*
+ * The thirty-six cards in the order of the old decks (the Game of Hope, about 1799, and the Lenormand decks after it),
+ * each with the playing card those decks print in a corner, as rank and suit (H 红桃, D 方块, C 梅花, S 黑桃). A card: its
+ * name, its English name, that playing card, a keyword that names what the card is about, the reading for a single draw
+ * (written for this book), and a short noun phrase that the three-card line and the nine-card square string together.
+ */
+const LENORMAND = [
+  ['骑士', 'Rider', '9H', '消息', '有个消息正骑马赶来，事情要动起来了。门开着，留意新的来信和来人。', '一个在路上的消息'],
+  ['幸运草', 'Clover', '6D', '机缘', '一点小小的好运气就在身边，来得快，走得也快。看见了，就顺手接住。', '一点转瞬即逝的机缘'],
+  ['船', 'Ship', '10S', '远行', '远方在召唤：一段旅程、一次搬动，或心里一直想去的地方。可以开始收拾行囊了。', '一段通往远方的航程'],
+  ['房子', 'House', 'KH', '安居', '回到让你安心的地方。家、熟悉的人和日常的秩序，是你的底气。', '一个让你安心的家'],
+  ['树', 'Tree', '7H', '生长', '慢慢长，根扎得深才站得稳。照顾好身体，急不来的事交给时间。', '一棵慢慢扎根的树'],
+  ['云', 'Clouds', 'KC', '迷雾', '眼前有点看不清，像天上压着一层云。先别急着下结论，等风把它吹散。', '一层还没散开的云'],
+  ['蛇', 'Snake', 'QC', '曲折', '这条路要绕一绕，事情比看起来复杂，话里也可能藏着弯。慢一点、灵活一点，绕过去反而更稳。', '一段弯弯绕绕的路'],
+  ['棺材', 'Coffin', '9D', '落幕', '有件事停在这里了，该给它一个收尾。好好跟它道别、把它放下，空出来的地方，才放得下新的东西。', '一件正在落幕的事'],
+  ['花束', 'Bouquet', 'QS', '馈赠', '有一份心意要送到你手里：一件礼物、一个邀请，或一句真心的夸奖。也记得把花分给别人。', '一份送到手里的心意'],
+  ['镰刀', 'Scythe', 'JD', '决断', '到了该收割、也该割舍的时候。决定可以干脆一点，落刀之前先看清脚下。', '一个干脆利落的决定'],
+  ['鞭子', 'Whip', 'JC', '反复', '同一件事在来回拉扯：也许是争论，也许是你在和自己较劲。把反复的劲头，用在值得练手的那件事上。', '一件来回拉扯的事'],
+  ['鸟', 'Birds', '7D', '交谈', '耳边一阵叽叽喳喳：电话、闲聊，或两个人之间的话。心里慌的时候，说出来就松了一半。', '几段要说开的话'],
+  ['孩子', 'Child', 'JS', '开端', '一个小小的开始，像刚冒头的新芽。用新手的心情去试，不必一下子做好。', '一个小小的开始'],
+  ['狐狸', 'Fox', '9C', '警觉', '多留个心眼：有些话、有些安排，未必像表面那样。先照顾好自己，也是一种聪明。', '一处要多留心的地方'],
+  ['熊', 'Bear', '10C', '力量', '你比自己以为的更有力量。它也常指身边能照看你、给你资源的人；也许这回，轮到你照看别人。', '一股沉稳的力量'],
+  ['星星', 'Stars', '6H', '指引', '抬头看看，方向一直都在。心里的愿望，可以一步一步走近它。', '一片指路的星光'],
+  ['鹳鸟', 'Stork', 'QH', '转变', '改变正在发生：换个地方、换个做法，或者心境一点点更新。顺着它走，会轻松一些。', '一次正在发生的改变'],
+  ['狗', 'Dog', '10H', '友谊', '身边有可靠的人，愿意拉你一把。也别忘了，你也是别人心里那个可靠的朋友。', '一位可靠的朋友'],
+  ['塔', 'Tower', '6S', '边界', '站到高一点的地方看事情，守住原则，也给自己留一点独处的时间。它也可能指一个机构、一栋大楼，或要走一趟的办事窗口。', '一座安静的高塔'],
+  ['花园', 'Garden', '8S', '相聚', '去人多的地方走走：一场聚会、一个社团、一个线上的群，或一次展览。把自己放进人群里，会遇见新的光。', '一场热闹的相聚'],
+  ['山', 'Mountain', '8C', '阻碍', '眼前横着一座山，事情会慢一些。可以一步步往上爬，也可以找条路绕过去，记得带够干粮。', '一座要翻越的山'],
+  ['岔路', 'Crossroads', 'QD', '选择', '前面是岔路口，不止一条路可以走。停一停，听听哪条路让你心里亮一些。', '一个分岔的路口'],
+  ['老鼠', 'Mice', '7C', '消耗', '有些东西在一点点溜走：时间、精力，或一些小小的担心。早点补上漏洞，比事后懊恼省力。', '一些悄悄溜走的东西'],
+  ['心', 'Heart', 'JH', '真心', '用心去做，柔软一点也没关系。爱可以给别人，也记得留一份给自己。', '一颗柔软的真心'],
+  ['戒指', 'Ring', 'AC', '承诺', '一个约定、一段承诺，或一件要一直做下去的事。认真对待它，它也会稳稳地托住你。', '一个认真许下的约定'],
+  ['书', 'Book', '10D', '未知', '答案还夹在书页里：有些事还没摊开，有些事值得再学一学。不懂的地方，就翻开来读。', '一本还没读完的书'],
+  ['信', 'Letter', '7S', '书信', '可能有一封信、一份文件，或一条等你回的消息。把话写下来，事情会更清楚。', '一封写好的信'],
+  ['绅士', 'Gentleman', 'AH', '男士', '这张牌指向一位男士：也许是你自己，也许是你在意的某个人。试着站到他的位置，也给他一点体谅。', '一位男士'],
+  ['淑女', 'Lady', 'AS', '女士', '这张牌指向一位女士：也许是你自己，也许是你在意的某个人。试着站到她的位置，也给她一点体谅。', '一位女士'],
+  ['百合', 'Lily', 'KS', '安宁', '平和、成熟与安静，是你此刻的底气。不必争，把节奏放慢，从容本身就是力量。', '一份从容的安宁'],
+  ['太阳', 'Sun', 'AD', '活力', '阳光照进来了，可以大大方方去做。有劲的时候把握住，也记得歇一歇。', '一片明亮的阳光'],
+  ['月亮', 'Moon', '8H', '直觉', '相信你的感觉。心里的情绪值得被温柔对待，你做的事也有人在看。', '一轮照见心事的月亮'],
+  ['钥匙', 'Key', '8D', '关键', '钥匙其实已经在你手里。找准关键的那一处，试着转一转。', '一把开门的钥匙'],
+  ['鱼', 'Fish', 'KD', '丰盛', '丰盛像流水，来来去去。好好经营手里的东西，也大方地分一些出去。', '一池流动的丰盛'],
+  ['锚', 'Anchor', '9S', '坚守', '稳住，把锚抛下去。长久的事要耐心，你站定的地方就是港口。', '一只稳稳的锚'],
+  ['十字架', 'Cross', '6C', '担子', '肩上有一份担子，心里也有一份信念。累了就放下歇一会儿——放下，也是一种答案。', '一份沉甸甸的担子'],
+];
+/*
+ * The spreads. Three cards make a line read as one sentence, the middle card its subject. Nine make a square: the
+ * centre is the heart of the matter, the left column the road behind, the right the road ahead, the top row what is
+ * on your mind and the bottom row what lies under your feet, within reach; a corner card sits in a row and a column both.
+ */
+const LN_SPREADS = {
+  single: { name: '单张', note: '一张牌，一句提醒', n: 1 },
+  line: { name: '三张连读', note: '来处 · 中心 · 去处', n: 3, slots: ['来处', '中心', '去处'] },
+  square: { name: '九宫格', note: '核心与四个方向', n: 9, slots: ['心上 · 来处', '心上', '心上 · 去处', '来处', '核心', '去处', '脚下 · 来处', '脚下', '脚下 · 去处'] },
+};
+/** how the nine-card square reads: each of the four sides is three cards, named here in their order on the table */
+const LN_SIDES = [
+  ['来处', '左边一列', [0, 3, 6], '走过来的路'],
+  ['去处', '右边一列', [2, 5, 8], '接下来的方向'],
+  ['心上', '上面一行', [0, 1, 2], '心里想着的事'],
+  ['脚下', '下面一行', [6, 7, 8], '脚下够得着、做得到的事'],
+];
+
+/*
+ * 茶叶占卜: the shapes the leaves can make in the cup, each with a reading written for this book, and what the place of a
+ * shape says: near the rim the days just ahead, on the wall a little later, at the bottom further off; by the handle
+ * things of your own and your home, across from it the world outside. A shape: name, the outline the leaves follow
+ * (drawn in _tea.js), the reading.
+ */
+const TEA_SYMBOLS = [
+  ['心', 'heart', '有人把你放在心上，你也在惦记着谁。'],
+  ['星星', 'star', '心里的愿望在发光，朝它走一小步就好。'],
+  ['新月', 'moon', '事情还在变化，像月亮有圆有缺，给它一点时间。'],
+  ['太阳', 'sun', '力气和暖意都在，适合把想做的事做起来。'],
+  ['飞鸟', 'bird', '也许有消息要来，也许是你该把心里话说出去了。'],
+  ['鱼', 'fish', '日子里有流动的丰盛，接住它，也分一些出去。'],
+  ['钥匙', 'key', '答案可能比你想的简单，找找那个关键的地方。'],
+  ['圆环', 'ring', '一件事正走向圆满，或者一个约定值得守住。'],
+  ['锚', 'anchor', '稳住，你有可以停靠的地方。'],
+  ['树', 'tree', '慢慢长起来的东西最结实，照顾好它的根。'],
+  ['房子', 'house', '家和熟悉的人，是你此刻的依靠。'],
+  ['山', 'mountain', '眼前有些难，不必一口气翻过去，一步一步来。'],
+  ['梯子', 'ladder', '一级一级往上走，每一步都算数。'],
+  ['桥', 'bridge', '两件事、两个人之间，正在搭起一条路。'],
+  ['小船', 'boat', '想去的地方在远方，可以慢慢动身了。'],
+  ['花', 'flower', '留意那些让你开心的小事，也别忘了夸夸自己。'],
+  ['叶子', 'leaf', '新的开始正在冒芽，给它一点阳光。'],
+  ['蝴蝶', 'butterfly', '轻一点，有些变化会让你更像你自己。'],
+  ['伞', 'umbrella', '风雨里有人替你撑着，你也可以替别人撑一撑。'],
+  ['铃铛', 'bell', '也许有值得庆祝的事，记得和身边的人分享。'],
+  ['风筝', 'kite', '愿望往高处飞，手里的线别松开。'],
+  ['漩涡', 'spiral', '灵感在打转，也可能是在原地绕圈，停下来理一理。'],
+  ['三角', 'triangle', '意料之外的转机；也可能是一件牵涉三个人的事。'],
+  ['方框', 'square', '安稳、有边界，也提醒你别把自己框得太紧。'],
+  ['问号', 'question', '心里还在犹豫，不必急着给出答案。'],
+  ['猫', 'cat', '照顾好自己的节奏，独处也是一种休息。'],
+  ['羽毛', 'feather', '放轻一点，很多事没有想的那么重。'],
+  ['蜡烛', 'candle', '有一点光照着你，也许来自身边的人；路可以一步一步看清。'],
+  ['皇冠', 'crown', '你做得好的地方，值得被看见。'],
+];
+/** where in the cup: how high up the wall (rim, wall, bottom), and which side of it (by the handle or across from it; a shape
+ * between the two is read by its height alone) */
+const TEA_ZONES = { rim: ['杯口', '靠近杯口，说的是眼前的事'], wall: ['杯壁', '在杯壁中段，说的是不久之后'], bottom: ['杯底', '沉在杯底，说的是更远的将来，或心底的事'] };
+const TEA_SIDES = { handle: ['靠杯柄', '挨着杯柄，和你自己、和家里有关'], far: ['杯柄对面', '在杯柄对面，和外面的人和事有关'] };
+
+/* ---------- the tea table's Lenormand cards: Victorian cut-paper silhouettes ---------- */
+/*
+ * A cream card with a double gold rule and little corner scrolls; in an oval window a dusk sky in the colour of the
+ * card's suit, and in it the card's picture cut as a black paper silhouette, the way Victorian silhouettists cut
+ * profiles and scenes; a touch of colour only where the picture needs it (a seal, a ribbon, a lit window, the sun).
+ * The playing card the old decks print sits in the top corner; the name is on a ribbon at the foot. Everything is
+ * drawn here. Pictures are drawn in a box 200 wide and 236 high round the oval's centre, y downwards.
+ */
+const LN_INK = '#211a1f', LN_GOLD = '#b88a3e', LN_ROSE = '#b2546a', LN_WARM = '#ffd98a';
+const LN_SUIT = {                      // the oval's dusk, top to bottom, by suit
+  H: ['#f8dccd', '#efb6ac', '#d98f93'], D: ['#fcebc4', '#f1c88e', '#dc9d6a'],
+  C: ['#e6eed6', '#bfd3aa', '#8fb08a'], S: ['#e3e0f2', '#b9b2db', '#8d86bd'],
+};
+const LN_NIGHT = ['#3a3f72', '#4c4a86', '#7a6a9c'];      // the stars and the moon are night cards whatever their suit
+
+/** the four suits as paths, centred on (x, y), r about half their height */
+function lnSuit(g, s, x, y, r) {
+  g.beginPath();
+  if (s === 'H') { g.moveTo(x, y + r); g.bezierCurveTo(x - r * 1.6, y - r * 0.2, x - r * 0.7, y - r * 1.3, x, y - r * 0.45); g.bezierCurveTo(x + r * 0.7, y - r * 1.3, x + r * 1.6, y - r * 0.2, x, y + r); }
+  else if (s === 'D') { g.moveTo(x, y - r); g.quadraticCurveTo(x + r * 0.35, y - r * 0.3, x + r * 0.75, y); g.quadraticCurveTo(x + r * 0.35, y + r * 0.3, x, y + r); g.quadraticCurveTo(x - r * 0.35, y + r * 0.3, x - r * 0.75, y); g.quadraticCurveTo(x - r * 0.35, y - r * 0.3, x, y - r); }
+  else if (s === 'S') { g.moveTo(x, y - r); g.bezierCurveTo(x + r * 1.6, y + r * 0.1, x + r * 0.7, y + r * 1.0, x, y + r * 0.35); g.bezierCurveTo(x - r * 0.7, y + r * 1.0, x - r * 1.6, y + r * 0.1, x, y - r); g.moveTo(x, y + r * 0.2); g.lineTo(x + r * 0.32, y + r); g.lineTo(x - r * 0.32, y + r); }
+  else { [[0, -0.45], [-0.48, 0.12], [0.48, 0.12]].forEach(([dx, dy]) => { g.moveTo(x + dx * r + r * 0.42, y + dy * r); g.arc(x + dx * r, y + dy * r, r * 0.42, 0, TAU); }); g.moveTo(x, y); g.lineTo(x + r * 0.3, y + r); g.lineTo(x - r * 0.3, y + r); }
+  g.fill();
+}
+
+/* the silhouettist's tools: every shape is filled in ink, and shapes that overlap simply merge */
+function lnSmooth(pts, n = 8) {
+  const out = [];
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[Math.max(0, i - 1)], p1 = pts[i], p2 = pts[i + 1], p3 = pts[Math.min(pts.length - 1, i + 2)];
+    for (let k = 0; k < n; k++) {
+      const t = k / n, t2 = t * t, t3 = t2 * t;
+      out.push([0, 1].map((j) => 0.5 * (2 * p1[j] + (-p0[j] + p2[j]) * t + (2 * p0[j] - 5 * p1[j] + 4 * p2[j] - p3[j]) * t2 + (-p0[j] + 3 * p1[j] - 3 * p2[j] + p3[j]) * t3)));
+    }
+  }
+  out.push(pts[pts.length - 1]); return out;
+}
+function lnKit(g) {
+  const K = {
+    ell(x, y, rx, ry, rot = 0) { g.beginPath(); g.ellipse(x, y, rx, ry, rot, 0, TAU); g.fill(); },
+    circ(x, y, r) { g.beginPath(); g.arc(x, y, r, 0, TAU); g.fill(); },
+    poly(pts) { g.beginPath(); pts.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); g.closePath(); g.fill(); },
+    line(pts, w, smooth = false) { const p = smooth ? lnSmooth(pts) : pts; g.lineWidth = w; g.lineCap = g.lineJoin = 'round'; g.beginPath(); p.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); g.stroke(); },
+    path(d) { g.fill(new Path2D(d)); },
+    stroke(d, w) { g.lineWidth = w; g.lineCap = g.lineJoin = 'round'; g.stroke(new Path2D(d)); },
+    /** a stroke that thins from w0 to w1 along a smoothed curve: stems, tails, branches, a snake */
+    taper(pts, w0, w1, wf) {
+      const p = lnSmooth(pts, 10), L = [], R = [];
+      p.forEach(([x, y], i) => {
+        const a = p[Math.max(0, i - 1)], b = p[Math.min(p.length - 1, i + 1)], dx = b[0] - a[0], dy = b[1] - a[1], d = Math.hypot(dx, dy) || 1;
+        const t = i / (p.length - 1), w = (wf ? wf(t) : w0 + (w1 - w0) * t) / 2;
+        L.push([x - (dy / d) * w, y + (dx / d) * w]); R.push([x + (dy / d) * w, y - (dx / d) * w]);
+      });
+      K.poly([...L, ...R.reverse()]);
+      K.circ(p[0][0], p[0][1], (wf ? wf(0) : w0) / 2);
+    },
+    rect(x, y, w, h) { g.fillRect(x, y, w, h); },
+    star(x, y, r, n = 5, inner = 0.45, rot = -Math.PI / 2) { g.beginPath(); for (let i = 0; i < n * 2; i++) { const a = rot + (i * Math.PI) / n, rr = i % 2 ? r * inner : r; g.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr); } g.closePath(); g.fill(); },
+    heart(x, y, s, rot = 0) { g.save(); g.translate(x, y); g.rotate(rot); g.beginPath(); g.moveTo(0, s * 0.9); g.bezierCurveTo(-s * 1.4, -s * 0.1, -s * 0.6, -s * 1.1, 0, -s * 0.4); g.bezierCurveTo(s * 0.6, -s * 1.1, s * 1.4, -s * 0.1, 0, s * 0.9); g.fill(); g.restore(); },
+    /** the ground: a low mound across the oval with tufts of grass along its top */
+    ground(y = 84, seed = 1, wave = 6) {
+      const r = mulberry(seed), top = [];
+      for (let x = -130; x <= 130; x += 4) top.push([x, y + Math.sin(x * 0.03 + seed) * wave + Math.sin(x * 0.11 + seed * 2) * 1.5]);
+      K.poly([...top, [130, 160], [-130, 160]]);
+      for (let i = 0; i < 46; i++) { const [x, yy] = top[Math.floor(r() * top.length)], h = 4 + r() * 9, lean = (r() - 0.5) * 6; K.poly([[x - 1.6, yy + 1], [x + lean, yy - h], [x + 1.6, yy + 1]]); }
+    },
+    birds(list) { list.forEach(([x, y, s]) => K.line([[x - s, y - s * 0.3], [x - s * 0.45, y - s * 0.55], [x, y], [x + s * 0.45, y - s * 0.55], [x + s, y - s * 0.3]], Math.max(1, s * 0.22), true)); },
+    in(color, fn) { const f = g.fillStyle, s = g.strokeStyle; g.fillStyle = g.strokeStyle = color; fn(); g.fillStyle = f; g.strokeStyle = s; },
+  };
+  return K;
+}
+
+/** the thirty-six pictures, by card number; each draws with the ink already set */
+const LN_PICTURE = {
+  1(K) {      // Rider: a horse at full gallop, the rider in a top hat leaning into it
+    K.ground(86, 1); K.birds([[-62, -78, 7], [-42, -88, 5]]);
+    K.ell(0, 16, 40, 18, -0.04); K.ell(28, 12, 18, 17); K.ell(-28, 12, 20, 18);
+    K.taper([[26, 6], [40, -12], [54, -32]], 24, 13); K.ell(61, -30, 14, 7.5, 0.75); K.ell(68, -21, 7, 6, 0.6);
+    K.poly([[51, -40], [55, -52], [58, -40]]); K.line([[30, -2], [40, -16], [50, -34]], 4);
+    K.line([[32, 26], [48, 40], [66, 36]], 7); K.line([[24, 28], [34, 48], [28, 64]], 7);
+    K.line([[-32, 26], [-50, 40], [-72, 46]], 8); K.line([[-24, 28], [-20, 48], [-30, 62]], 7);
+    K.taper([[-44, 4], [-62, -2], [-76, 10], [-84, 28]], 10, 3);
+    K.taper([[2, -2], [6, -22], [12, -40]], 16, 12); K.circ(14, -50, 7.5);
+    K.rect(7, -73, 14, 17); K.line([[3, -57], [25, -57]], 3);
+    K.poly([[0, -16], [-18, -8], [-14, -2], [2, -6]]);
+    K.line([[9, -34], [26, -22], [46, -24]], 5); K.line([[2, -4], [16, 10], [12, 26]], 7);
+    K.line([[46, -24], [62, -22]], 1.2);
+  },
+  2(K) {      // Clover: a four-leaf clover on a curving stem
+    K.ground(92, 2, 4);
+    K.taper([[0, -2], [6, 30], [-4, 64], [4, 96]], 7, 4);
+    [0.785, 2.356, 3.927, 5.498].forEach((a) => K.heart(Math.cos(a) * 27, -16 + Math.sin(a) * 27, 30, a + Math.PI / 2));
+    K.in('rgba(255,244,226,.35)', () => [0.785, 2.356, 3.927, 5.498].forEach((a) => K.line([[Math.cos(a) * 6, -16 + Math.sin(a) * 6], [Math.cos(a) * 42, -16 + Math.sin(a) * 42]], 1.4)));
+    [[-62, 74, 11], [64, 70, 10]].forEach(([x, y, s]) => { [-1.57, 0.52, 2.62].forEach((a) => K.heart(x + Math.cos(a) * s * 0.9, y + Math.sin(a) * s * 0.9, s, a + Math.PI / 2)); K.line([[x, y], [x + 2, y + 18]], 2); });
+  },
+  3(K) {      // Ship: a three-master under full sail on a swelling sea
+    K.birds([[-70, -86, 6], [58, -92, 5], [74, -80, 4]]);
+    K.path('M -78 20 L 76 20 Q 68 44 42 48 L -46 48 Q -70 44 -78 20 Z');
+    K.line([[72, 22], [98, 4]], 3);
+    [[-34, -76], [4, -98], [40, -70]].forEach(([x, top]) => {
+      K.line([[x, 22], [x, top]], 3.4);
+      const h = (20 - top) / 3;
+      for (let k = 0; k < 2; k++) { const y0 = top + 6 + k * (h + 4), w = 22 + k * 5; K.path(`M ${x - w} ${y0} Q ${x} ${y0 + 6} ${x + w} ${y0} L ${x + w - 3} ${y0 + h} Q ${x} ${y0 + h + 9} ${x - w + 3} ${y0 + h} Z`); }
+      K.poly([[x, top], [x + 14, top + 3], [x, top + 6]]);
+    });
+    K.path('M 72 20 L 96 6 L 70 -8 Z');
+    K.in(LN_WARM, () => [-40, -24, -8, 8, 24, 40].forEach((x) => K.rect(x, 30, 5, 4)));
+    const wave = [];
+    for (let x = -130; x <= 130; x += 6) wave.push([x, 46 + Math.sin(x * 0.07) * 6 + Math.sin(x * 0.19) * 2]);
+    K.poly([...wave, [130, 160], [-130, 160]]);
+    K.in('rgba(255,244,226,.45)', () => { for (let x = -110; x < 110; x += 26) K.line([[x, 70 + Math.sin(x) * 4], [x + 12, 66 + Math.sin(x) * 4]], 1.6); });
+  },
+  4(K) {      // House: a cottage with a lit door and windows, smoke curling from the chimney, a picket fence
+    K.ground(66, 4, 3);
+    K.rect(-48, -8, 96, 72); K.poly([[-60, -6], [0, -56], [60, -6]]); K.rect(26, -52, 12, 30); K.rect(23, -55, 18, 5);
+    K.in('rgba(60,50,60,.35)', () => { K.circ(36, -66, 7); K.circ(44, -78, 9); K.circ(38, -94, 11); });
+    K.in(LN_WARM, () => { K.path('M -9 64 L -9 34 A 9 9 0 0 1 9 34 L 9 64 Z'); K.rect(-38, 10, 18, 20); K.rect(20, 10, 18, 20); K.circ(0, -24, 7); });
+    K.line([[-29, 10], [-29, 30]], 2); K.line([[-38, 20], [-20, 20]], 2); K.line([[29, 10], [29, 30]], 2); K.line([[20, 20], [38, 20]], 2);
+    for (const s of [-1, 1]) { for (let x = 56; x < 120; x += 9) K.poly([[s * x - 3, 70], [s * x - 3, 50], [s * x, 46], [s * x + 3, 50], [s * x + 3, 70]]); K.line([[s * 54, 56], [s * 124, 56]], 2.4); }
+    K.circ(-84, 10, 16); K.circ(-74, -4, 14); K.circ(-92, -8, 12); K.line([[-82, 20], [-82, 60]], 5);
+  },
+  5(K) {      // Tree: a spreading oak with a rope swing
+    K.ground(88, 5, 4);
+    K.taper([[0, 92], [2, 50], [0, 12]], 24, 14);
+    K.taper([[0, 22], [-22, 2], [-44, -18]], 11, 4); K.taper([[0, 14], [22, -6], [40, -28]], 11, 4); K.taper([[0, 4], [-4, -30]], 10, 4);
+    K.taper([[-6, 90], [-22, 96]], 8, 3); K.taper([[6, 90], [24, 97]], 8, 3);
+    [[-44, -34, 30], [-12, -58, 34], [26, -46, 32], [48, -16, 24], [-54, -4, 22], [0, -26, 30], [18, -76, 22], [-34, -72, 20], [56, -42, 20], [-22, -10, 20]].forEach(([x, y, r]) => K.circ(x, y, r));
+    const r = mulberry(55); for (let i = 0; i < 30; i++) { const a = r() * TAU, d = 52 + r() * 22; K.circ(Math.cos(a) * d * 1.05, -36 + Math.sin(a) * d * 0.72, 4 + r() * 5); }
+    K.line([[34, -6], [34, 46]], 1.4); K.line([[48, -10], [48, 46]], 1.4); K.rect(30, 45, 22, 4);
+  },
+  6(K) {      // Clouds: a heavy cloud with a little rain, a paler one drifting behind
+    K.ground(96, 6, 3);
+    K.in('rgba(70,60,72,.45)', () => [[36, -12, 22], [58, -20, 18], [16, -4, 16], [74, -6, 14], [44, 0, 18]].forEach(([x, y, r]) => K.circ(x, y, r)));
+    [[-30, -50, 28], [-2, -62, 30], [26, -50, 24], [-54, -36, 20], [44, -38, 18], [-14, -36, 24], [10, -34, 22]].forEach(([x, y, r]) => K.circ(x, y, r));
+    for (let i = 0; i < 9; i++) { const x = -48 + i * 11; K.line([[x, -14 + (i % 2) * 6], [x - 5, 6 + (i % 3) * 5]], 1.6); }
+    K.taper([[70, 96], [72, 64], [70, 44]], 6, 3); K.circ(70, 40, 12); K.circ(62, 48, 9); K.circ(78, 50, 9);
+  },
+  7(K) {      // Snake: coiled on the ground round a stone, head raised
+    K.ground(92, 7, 3); K.ell(-48, 84, 22, 12);
+    K.taper([[-74, 78], [-30, 86], [12, 78], [32, 54], [6, 36], [-28, 36], [-36, 14], [-10, -2], [22, -8], [36, -28], [30, -46]], 3, 10, (t) => 3 + 13 * Math.sin(Math.min(1, t * 1.6) * Math.PI / 2) * (t > 0.85 ? 0.8 : 1));
+    K.ell(33, -52, 10, 7, -0.4);
+    K.line([[40, -58], [50, -64], [54, -60]], 1.2); K.line([[50, -64], [53, -70]], 1.2);
+    K.in('rgba(255,240,215,.4)', () => { const p = lnSmooth([[12, 78], [32, 54], [6, 36], [-28, 36], [-36, 14], [-10, -2], [22, -8]], 6); p.forEach(([x, y], i) => { if (i % 4 === 0) K.star(x, y, 2.4, 4, 0.5, 0); }); K.circ(35, -54, 1.6); });
+  },
+  8(K) {      // Coffin, softened: a long wooden casket with a sash of ribbon, a spray of lilies laid along its lid
+    K.ground(86, 8, 3);
+    K.path('M -80 44 L 80 44 L 74 82 L -74 82 Z'); K.path('M -86 44 L -76 26 L 76 26 L 86 44 Z'); K.rect(-88, 42, 176, 6);
+    K.in('rgba(255,240,215,.22)', () => { K.line([[-70, 58], [70, 58]], 1.2); K.line([[-68, 70], [68, 70]], 1.2); [[-58, 64], [58, 64]].forEach(([x, y]) => K.circ(x, y, 3)); });
+    K.in(LN_ROSE, () => { K.rect(30, 26, 12, 56); K.ell(26, 22, 12, 6, 0.5); K.ell(46, 22, 12, 6, -0.5); K.circ(36, 24, 5); K.poly([[33, 26], [22, 46], [29, 46], [36, 30]]); });
+    K.taper([[-74, 20], [-30, 14], [20, 8], [56, 2]], 3, 2);
+    [[-34, 14, -0.15], [6, 9, -0.05], [-6, 12, 0.1]].forEach(([x, y, a], i) => K.taper([[x, y], [x + 14 + i * 4, y - 14 - i * 6]], 2.4, 1.6));
+    lnLily(K, 56, 2, -0.15, 1); lnLily(K, 24, -22, -0.75, 0.9); lnLily(K, 40, -14, -0.4, 0.8);
+    [[-50, 16, -0.15], [-14, 10, -0.2], [-30, 6, -0.6]].forEach(([x, y, a]) => K.ell(x, y, 13, 3.6, a));
+  },
+  9(K) {      // Bouquet: roses and sprigs gathered in a ribbon
+    K.ground(100, 9, 2);
+    for (let i = -3; i <= 3; i++) K.line([[i * 3, 40], [i * 6, 96]], 2.6);
+    [[-34, -14, 14], [0, -34, 17], [34, -14, 14], [-16, 8, 13], [18, 8, 13], [-46, 12, 10], [46, 12, 10], [0, -6, 13]].forEach(([x, y, r], i) => {
+      K.circ(x, y, r); for (let k = 0; k < 7; k++) { const a = (k / 7) * TAU + i; K.circ(x + Math.cos(a) * r * 0.9, y + Math.sin(a) * r * 0.9, r * 0.42); }
+      K.in('rgba(255,236,220,.32)', () => { g_spiral(K, x, y, r * 0.6); });
+    });
+    [[-56, -4, -0.6], [56, -4, 0.6], [-26, 28, -0.9], [26, 28, 0.9], [-50, -34, -1.2], [50, -34, 1.2]].forEach(([x, y, a]) => K.ell(x, y, 14, 6, a));
+    const r = mulberry(9); for (let i = 0; i < 26; i++) { const a = -Math.PI * (0.1 + r() * 0.8), d = 50 + r() * 22; K.circ(Math.cos(a) * d, Math.sin(a) * d * 0.9 - 2, 2 + r() * 1.6); }
+    K.in(LN_ROSE, () => { K.rect(-10, 38, 20, 8); K.ell(-16, 38, 14, 7, -0.3); K.ell(16, 38, 14, 7, 0.3); K.poly([[-4, 44], [-18, 70], [-10, 70], [0, 48]]); K.poly([[4, 44], [18, 70], [10, 70], [0, 48]]); });
+  },
+  10(K) {     // Scythe: leaning on a sheaf of wheat at harvest time
+    K.ground(90, 10, 3); K.birds([[-70, -60, 5]]);
+    K.taper([[-54, 94], [-14, 10], [26, -74]], 7, 5); K.line([[-30, 44], [-18, 40]], 4); K.line([[0, -18], [12, -22]], 4);
+    K.path('M 28 -76 Q -22 -100 -84 -64 Q -26 -82 26 -64 Z');
+    for (let i = -6; i <= 6; i++) { K.line([[56 + i * 0.6, 92], [56 + i * 4.2, -10 + Math.abs(i) * 3]], 2); K.ell(56 + i * 4.4, -16 + Math.abs(i) * 3, 3.2, 8, i * 0.08); }
+    K.rect(44, 36, 24, 6);
+  },
+  11(K) {     // Whip: two coachman's whips crossed, their lashes curling outwards
+    K.ground(92, 11, 3);
+    for (const d of [-1, 1]) {
+      K.taper([[-d * 54, 96], [-d * 12, 24], [d * 28, -46]], 8, 3);
+      K.in('rgba(255,240,215,.35)', () => { for (let k = 0; k < 5; k++) { const t = 0.05 + k * 0.035, x = -d * 54 + d * 82 * t, y = 96 - 142 * t; K.line([[x - 4, y - 1], [x + 4, y + 1]], 1.2); } });
+      K.ell(-d * 54, 96, 6, 9, d * 0.5); K.circ(d * 28, -46, 3);
+      K.taper([[d * 28, -46], [d * 42, -72], [d * 62, -84], [d * 78, -70], [d * 74, -50], [d * 84, -32], [d * 100, -30]], 3, 0.8);
+    }
+  },
+  12(K) {     // Birds: a pair on a flowering branch, talking
+    K.birds([[-60, -80, 6], [-44, -90, 4]]);
+    K.taper([[-120, 30], [-60, 22], [0, 30], [70, 18], [104, 2]], 9, 3);
+    K.taper([[30, 26], [52, 42], [62, 58]], 4, 1.5);
+    [[-80, 18, -0.5], [-40, 34, 0.6], [24, 36, 0.8], [80, 6, -0.6], [56, 50, 0.4]].forEach(([x, y, a]) => K.ell(x, y, 10, 4, a));
+    const bird = (x, y, dir) => { K.ell(x, y, 15, 10, dir * 0.15); K.circ(x + dir * 11, y - 9, 7); K.poly([[x + dir * 17, y - 11], [x + dir * 25, y - 9], [x + dir * 17, y - 7]]); K.poly([[x - dir * 12, y - 2], [x - dir * 30, y + 6], [x - dir * 26, y + 10], [x - dir * 10, y + 6]]); K.line([[x - 3, y + 8], [x - 4, y + 15]], 1.4); K.line([[x + 3, y + 8], [x + 4, y + 15]], 1.4); };
+    bird(-22, 8, 1); bird(26, 6, -1);
+    K.in(LN_GOLD, () => { K.circ(-4, -26, 2); K.line([[-2, -26], [-2, -38]], 1.2); K.circ(6, -34, 2); K.line([[8, -34], [8, -46]], 1.2); K.line([[-2, -38], [8, -46]], 1.6); });
+  },
+  13(K) {     // Child: a little girl bowling a hoop along
+    K.ground(86, 13, 3); K.birds([[60, -78, 5]]);
+    K.circ(-14, -52, 10); K.path('M -27 -54 Q -26 -70 -12 -68 Q 2 -66 0 -54 Q -10 -60 -27 -54 Z'); K.ell(-24, -44, 5, 8, 0.3);
+    K.path('M -22 -40 L -6 -40 L 12 16 L -42 16 Z'); K.in('rgba(255,244,228,.3)', () => K.path('M -20 -14 L -8 -14 L -2 12 L -30 12 Z'));
+    K.line([[-22, 16], [-24, 50]], 5); K.line([[-8, 16], [-4, 50]], 5); K.ell(-26, 52, 6, 3); K.ell(-2, 52, 6, 3);
+    K.line([[-10, -32], [10, -18], [30, -6]], 4.5);
+    K.line([[30, -6], [44, 30]], 2.2);
+    g_ring(K, 56, 42, 26, 4);
+  },
+  14(K) {     // Fox: trotting through the grass, tail tipped white
+    K.ground(84, 14, 3);
+    K.ell(4, 20, 34, 14); K.ell(-24, 14, 16, 14);
+    K.ell(-36, 0, 12, 10); K.poly([[-44, -4], [-66, 6], [-44, 10]]);
+    K.poly([[-42, -6], [-38, -26], [-32, -6]]); K.poly([[-32, -6], [-24, -24], [-22, -4]]);
+    [[-20, 28, -24, 64], [-10, 30, -4, 64], [20, 28, 16, 64], [30, 26, 38, 62]].forEach(([x0, y0, x1, y1]) => K.line([[x0, y0], [x1, y1]], 5));
+    K.path('M 30 12 Q 66 -18 92 12 Q 80 36 36 28 Z');
+    K.in('#f3e6cc', () => K.path('M 76 4 Q 90 2 92 12 Q 86 22 76 20 Q 80 12 76 4 Z'));
+    K.in('rgba(255,240,215,.7)', () => K.circ(-40, -2, 1.6));
+  },
+  15(K) {     // Bear: lumbering past the pines
+    K.in('rgba(70,60,72,.35)', () => [[-80, 60, 26], [-56, 64, 34], [74, 62, 30]].forEach(([x, y, h]) => K.poly([[x - 12, y], [x, y - h * 2], [x + 12, y]])));
+    K.ground(84, 15, 3);
+    K.path('M -58 34 Q -66 6 -44 -6 Q -24 -18 -2 -16 Q 14 -24 26 -14 Q 34 -6 40 0 Q 50 -2 58 6 Q 72 10 74 18 Q 70 24 60 24 Q 50 30 40 30 Q 30 40 20 42 L -40 44 Q -56 44 -58 34 Z');
+    K.circ(46, -4, 5); K.circ(54, -2, 4.4);
+    [[-46, 34, -50, 70, 1], [-28, 38, -24, 72, 0], [14, 34, 10, 70, 1], [30, 30, 34, 70, 0]].forEach(([x0, y0, x1, y1, back]) => { K.taper([[x0, y0], [(x0 + x1) / 2 + (back ? -2 : 2), (y0 + y1) / 2], [x1, y1]], 18, 13); K.ell(x1 + 3, y1 + 2, 10, 5); });
+    K.in('rgba(255,240,215,.7)', () => K.circ(58, 8, 1.6));
+  },
+  16(K) {     // Stars: a stargazer and a telescope on a hill under a sky full of stars
+    K.in(LN_GOLD, () => { K.star(-10, -64, 16, 8, 0.38, 0); K.star(40, -40, 7, 5); K.star(-54, -30, 6, 5); K.star(64, -80, 5, 5); K.star(18, -96, 4, 5); K.star(-70, -76, 4, 5); K.star(-30, -6, 3.4, 5); K.star(70, -10, 3, 5); });
+    K.in('rgba(255,236,190,.5)', () => K.line([[-10, -64], [40, -40], [70, -10]], 0.8));
+    K.ground(70, 16, 10);
+    K.line([[10, 70], [26, 40]], 3); K.line([[42, 70], [26, 40]], 3); K.line([[26, 70], [26, 40]], 3);
+    K.taper([[14, 46], [52, 18]], 9, 6);
+    K.circ(-14, 6, 7); K.path('M -22 16 L -6 16 L -2 58 L -26 58 Z'); K.line([[-8, 22], [12, 38]], 4); K.line([[-20, 58], [-20, 72]], 4); K.line([[-10, 58], [-8, 72]], 4); K.rect(-21, -6, 14, 5);
+  },
+  17(K) {     // Stork: standing on its nest on a chimney top, another flying in
+    K.path('M -120 120 L -120 70 L 120 50 L 120 120 Z'); K.rect(-18, 20, 34, 48); K.rect(-22, 16, 42, 6);
+    K.path('M -30 18 Q -2 4 30 18 Q 0 26 -30 18 Z');
+    K.in('rgba(255,240,215,.3)', () => { for (let i = 0; i < 6; i++) K.line([[-26 + i * 9, 18], [-20 + i * 9, 12]], 1); });
+    K.line([[0, 14], [-2, -10]], 2); K.line([[6, 14], [8, -2], [2, -10]], 2);
+    K.ell(2, -22, 24, 12, -0.25); K.poly([[20, -30], [40, -24], [22, -20]]);
+    K.taper([[-16, -26], [-22, -48], [-14, -62]], 8, 6); K.circ(-14, -64, 6);
+    K.poly([[-18, -66], [-44, -50], [-16, -60]]);
+    K.ell(50, -82, 10, 5, 0.2); K.line([[40, -84], [32, -84]], 2); K.poly([[46, -84], [62, -98], [56, -80]]); K.poly([[52, -82], [70, -70], [58, -78]]);
+  },
+  18(K) {     // Dog: a faithful spaniel sitting up, a ball at its feet
+    K.ground(86, 18, 3);
+    K.path('M -44 84 Q -54 50 -36 30 Q -24 18 -12 14 Q -2 -2 4 -18 Q 8 -34 20 -40 Q 34 -44 40 -32 Q 44 -26 54 -24 Q 62 -22 60 -14 Q 56 -8 46 -10 Q 38 -8 34 -2 Q 30 12 26 26 Q 24 44 26 60 L 28 84 Z');
+    K.path('M 18 -36 Q 6 -30 8 -10 Q 10 4 18 6 Q 24 -6 24 -22 Z');
+    K.ell(-36, 74, 22, 14); K.ell(-14, 84, 14, 4);
+    K.line([[16, 30], [12, 84]], 7); K.ell(14, 85, 8, 3.4); K.ell(34, 85, 8, 3.4);
+    K.taper([[-56, 68], [-72, 52], [-74, 36]], 8, 3);
+    K.in(LN_ROSE, () => { K.line([[12, -8], [34, -6]], 3.4); K.circ(66, 78, 9); });
+    K.in('rgba(255,240,215,.75)', () => K.circ(36, -30, 1.8));
+  },
+  19(K) {     // Tower: a round stone tower on a hill, its windows lit, a pennant flying
+    K.ground(80, 19, 8); K.birds([[-62, -40, 5], [-48, -52, 4]]);
+    K.path('M -24 84 L -20 -54 L 20 -54 L 24 84 Z'); K.rect(-28, -66, 56, 14);
+    for (let k = 0; k < 5; k++) K.rect(-28 + k * 12, -76, 8, 11);
+    K.line([[0, -76], [0, -104]], 2); K.poly([[0, -104], [22, -98], [0, -92]]);
+    K.in(LN_WARM, () => { K.path('M -5 -20 L -5 -32 A 5 5 0 0 1 5 -32 L 5 -20 Z'); K.path('M -5 30 L -5 18 A 5 5 0 0 1 5 18 L 5 30 Z'); K.rect(-12, -46, 4, 6); K.rect(8, -46, 4, 6); });
+    K.in('rgba(255,240,215,.2)', () => { for (let y = -46; y < 84; y += 10) K.line([[-22, y], [22, y]], 0.8); });
+    K.path('M 24 84 L 24 54 L 70 54 L 70 84 Z'); for (let k = 0; k < 4; k++) K.rect(24 + k * 13, 46, 8, 9);
+  },
+  20(K) {     // Garden: a rose arbour over the path, clipped topiary, a fountain beyond
+    K.in('rgba(70,60,72,.4)', () => { K.rect(-6, -24, 12, 30); K.ell(0, -26, 22, 6); K.ell(0, 6, 30, 6); K.line([[0, -26], [-14, -40]], 2); K.line([[0, -26], [14, -40]], 2); });
+    K.ground(66, 20, 2);
+    K.in('rgba(255,244,226,.42)', () => K.path('M -10 66 L 10 66 L 34 120 L -34 120 Z'));
+    K.line([[-40, 66], [-40, -20]], 5); K.line([[40, 66], [40, -20]], 5); K.stroke('M -40 -20 Q -40 -64 0 -64 Q 40 -64 40 -20', 5);
+    const r = mulberry(20); for (let i = 0; i < 34; i++) { const t = r(), a = Math.PI * t, x = -40 * Math.cos(a), y = -20 - 44 * Math.sin(a); K.circ(x + (r() - 0.5) * 10, y + (r() - 0.5) * 8, 3 + r() * 3); }
+    K.in(LN_ROSE, () => { for (let i = 0; i < 10; i++) { const a = Math.PI * (0.05 + i * 0.1); K.circ(-40 * Math.cos(a), -22 - 44 * Math.sin(a), 2.4); } });
+    for (const s of [-1, 1]) { K.rect(s * 76 - 4, 40, 8, 26); K.circ(s * 76, 26, 16); K.circ(s * 76, 2, 11); K.rect(s * 76 - 9, 62, 18, 6); }
+    K.rect(-130, 58, 72, 10); K.rect(58, 58, 72, 10);
+  },
+  21(K) {     // Mountain: a peak with snow on it, a path winding up, pines at its foot
+    K.in('rgba(70,60,72,.38)', () => K.poly([[-130, 40], [-70, -34], [-40, -6], [10, -50], [60, 0], [130, -30], [130, 60], [-130, 60]]));
+    K.poly([[-110, 90], [-30, -70], [-14, -54], [4, -84], [80, 20], [120, 60], [120, 90]]);
+    K.in('#f4ece0', () => { K.poly([[-30, -70], [-14, -54], [4, -84], [18, -64], [8, -60], [0, -66], [-12, -46], [-22, -58], [-34, -62]]); });
+    K.in('rgba(255,244,226,.35)', () => K.line([[-20, 90], [10, 60], [-14, 30], [12, 0], [-2, -30]], 2, true));
+    K.ground(92, 21, 2); [[-80, 86], [-66, 90], [70, 84], [86, 88]].forEach(([x, y]) => K.poly([[x - 8, y], [x, y - 26], [x + 8, y]]));
+    K.birds([[56, -70, 5], [70, -78, 4]]);
+  },
+  22(K) {     // Crossroads: a signpost where the road forks
+    K.in('rgba(70,60,72,.35)', () => K.poly([[-130, 20], [-60, -6], [0, 8], [70, -12], [130, 14], [130, 40], [-130, 40]]));
+    K.ground(30, 22, 2);
+    K.in('rgba(255,244,226,.45)', () => K.path('M -14 130 L -4 64 Q 0 46 -30 32 L -18 30 Q 4 40 2 46 Q 6 38 30 30 L 42 32 Q 10 46 6 64 L 18 130 Z'));
+    K.line([[0, 100], [0, -60]], 6);
+    K.path('M -4 -54 L -58 -66 L -66 -56 L -58 -46 L -4 -40 Z'); K.path('M 4 -30 L 58 -40 L 66 -30 L 58 -20 L 4 -18 Z');
+    K.in('rgba(255,240,215,.35)', () => { K.line([[-50, -56], [-14, -50]], 1.2); K.line([[14, -28], [50, -32]], 1.2); });
+    [[-80, 30], [84, 30]].forEach(([x, y]) => { K.line([[x, y], [x, y - 20]], 4); K.circ(x, y - 30, 14); K.circ(x - 8, y - 22, 10); K.circ(x + 8, y - 22, 10); });
+  },
+  23(K) {     // Mice: three of them at a wedge of cheese
+    K.ground(80, 23, 2);
+    K.path('M -44 80 L 44 80 L 44 24 L -44 50 Z'); K.in('rgba(255,236,200,.5)', () => { K.circ(-22, 62, 6); K.circ(6, 50, 7); K.circ(26, 66, 5); K.circ(30, 38, 4); });
+    const mouse = (x, y, dir, s = 1) => { K.ell(x, y, 15 * s, 9 * s); K.poly([[x + dir * 10 * s, y - 6 * s], [x + dir * 26 * s, y + 2 * s], [x + dir * 10 * s, y + 6 * s]]); K.circ(x + dir * 9 * s, y - 10 * s, 5.5 * s); K.line([[x - dir * 14 * s, y], [x - dir * 26 * s, y - 14 * s], [x - dir * 22 * s, y - 28 * s], [x - dir * 30 * s, y - 34 * s]], 1.6, true); K.in('rgba(255,240,215,.7)', () => K.circ(x + dir * 18 * s, y - 2 * s, 1.2 * s)); };
+    mouse(-72, 62, 1, 1.5); mouse(74, 64, -1, 1.45); mouse(6, 6, 1, 1.25);
+  },
+  24(K) {     // Heart: a lace-edged valentine heart
+    const r = mulberry(24);
+    for (let i = 0; i < 40; i++) { const t = i / 40 * TAU, x = 16 * Math.sin(t) ** 3, y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)); K.circ(x * 4.4, y * 4.4 - 6, 8); }
+    K.heart(0, -6, 52);
+    K.in('rgba(255,240,226,.45)', () => { g_heartLine(K, 0, -4, 38); });
+    K.in(LN_ROSE, () => K.heart(0, -6, 18));
+    K.ground(102, 24, 2);
+    [[-64, 78], [64, 78], [-80, 92], [80, 92]].forEach(([x, y]) => { K.circ(x, y, 6); K.ell(x + 8, y + 4, 6, 3, 0.4); });
+    void r;
+  },
+  25(K) {     // Ring: a ring with a cut stone, resting on a tasselled cushion
+    K.path('M -70 70 Q -74 46 -50 44 L 50 44 Q 74 46 70 70 Q 72 92 50 92 L -50 92 Q -72 92 -70 70 Z');
+    [[-70, 50], [70, 50], [-70, 88], [70, 88]].forEach(([x, y]) => { K.circ(x, y, 4); K.poly([[x - 3, y], [x + 3, y], [x + 5, y + 12], [x - 5, y + 12]]); });
+    g_ring(K, 0, 6, 34, 9, 1.18);
+    K.poly([[-14, -34], [-8, -44], [8, -44], [14, -34], [0, -18]]); K.rect(-10, -32, 20, 6);
+    K.in('rgba(255,250,236,.6)', () => { K.line([[-8, -44], [-2, -34], [0, -18]], 1); K.line([[8, -44], [2, -34], [0, -18]], 1); K.line([[-14, -34], [14, -34]], 1); });
+    K.in(LN_GOLD, () => { K.star(28, -58, 7, 4, 0.3, 0); K.star(-30, -50, 5, 4, 0.3, 0); K.star(40, -30, 4, 4, 0.3, 0); });
+  },
+  26(K) {     // Book: open on a lectern beside a candle, a ribbon marking the place
+    K.path('M -10 50 L 10 50 L 16 94 L -16 94 Z'); K.rect(-36, 92, 72, 6);
+    K.path('M 0 -4 Q -36 -22 -78 -12 L -74 44 Q -34 34 0 50 Z'); K.path('M 0 -4 Q 36 -22 78 -12 L 74 44 Q 34 34 0 50 Z');
+    K.in('rgba(255,244,226,.5)', () => { for (let k = 0; k < 6; k++) { const y = -2 + k * 8; K.line([[-66, y - 4 + k * 0.2], [-10, y + 4]], 1.2); K.line([[10, y + 4], [66, y - 4 + k * 0.2]], 1.2); } });
+    K.in(LN_ROSE, () => K.path('M 4 44 L 10 44 L 10 76 L 7 70 L 4 76 Z'));
+    K.rect(70, 34, 10, 40); K.ell(75, 74, 14, 4);
+    K.in(LN_WARM, () => { K.ell(75, 26, 3.2, 7); });
+  },
+  27(K) {     // Letter: a sealed envelope and the quill that wrote it
+    K.taper([[-76, 92], [-20, 0], [36, -86]], 3, 1.5);
+    K.path('M 36 -86 Q 6 -70 -18 -20 Q -6 -40 26 -60 Q 10 -50 -8 -30 Q 30 -56 36 -86 Z');
+    K.path('M -64 -24 L 64 -24 L 64 56 L -64 56 Z');
+    K.in('rgba(255,244,226,.4)', () => { K.line([[-64, -24], [0, 22], [64, -24]], 1.6); K.line([[-64, 56], [-14, 14]], 1.2); K.line([[64, 56], [14, 14]], 1.2); });
+    K.in('#a82c2c', () => { K.circ(0, 22, 12); for (let k = 0; k < 8; k++) { const a = k / 8 * TAU; K.circ(Math.cos(a) * 11, 22 + Math.sin(a) * 11, 3.4); } });
+    K.in('rgba(255,220,200,.6)', () => K.star(0, 22, 5, 5));
+    K.path('M 60 74 L 84 74 L 82 94 L 62 94 Z'); K.ell(72, 74, 13, 4);
+  },
+  28(K) {     // Gentleman: a profile bust in a top hat, facing right, as a silhouettist would cut it
+    K.path('M -46 110 Q -50 74 -24 60 Q -28 46 -26 30 Q -40 22 -42 2 Q -44 -24 -30 -40 L 24 -42 Q 28 -36 28 -30 Q 32 -26 33 -20 Q 34 -16 32 -12 L 46 2 Q 48 7 40 8 L 36 9 Q 38 13 35 15 Q 37 18 34 20 Q 35 22 34 25 Q 32 30 24 32 Q 22 40 26 46 L 38 54 Q 64 60 72 80 Q 78 96 76 110 Z');
+    K.path('M -36 -40 L -34 -98 Q -4 -104 22 -98 L 26 -40 Z'); K.path('M -52 -40 Q -8 -50 42 -40 Q -4 -32 -52 -40 Z');
+    K.in('rgba(255,244,226,.38)', () => { K.path('M 12 40 Q 28 44 38 54 Q 32 66 18 64 Q 24 52 12 40 Z'); K.line([[-36, -50], [24, -50]], 2.4); K.path('M -4 70 L 8 104 L 18 104 L 10 70 Z'); });
+    K.path('M -16 0 Q -24 18 -18 34 Q -30 22 -28 4 Z');
+  },
+  29(K) {     // Lady: her profile facing left, hair up in a bun with a ringlet, a cameo at her throat
+    K.path('M 46 110 Q 52 76 26 62 Q 30 48 26 32 Q 34 20 34 -2 Q 34 -30 12 -42 Q -12 -48 -24 -36 Q -28 -30 -28 -24 Q -32 -20 -33 -14 L -42 -2 Q -43 3 -36 4 L -32 5 Q -34 9 -31 11 Q -33 14 -30 16 Q -31 18 -30 21 Q -28 26 -20 28 Q -20 36 -24 44 Q -54 58 -68 78 Q -76 96 -76 110 Z');
+    K.circ(30, -42, 18); K.circ(42, -26, 11); K.circ(16, -56, 13); K.circ(4, -48, 10);
+    K.taper([[34, -12], [44, 6], [36, 24], [44, 40]], 8, 4);
+    K.in(LN_ROSE, () => { K.ell(-6, -52, 7, 4.4, -0.4); K.circ(4, -56, 3); });
+    K.in('rgba(255,244,226,.38)', () => { for (let k = 0; k < 8; k++) K.circ(-40 + k * 10, 60 + Math.abs(k - 3.5) * 2, 4.6); });
+    K.in('#f3e6cc', () => K.ell(-8, 74, 8, 10)); K.in(LN_ROSE, () => K.ell(-8, 74, 5, 6.6));
+  },
+  30(K) {     // Lily: tall white lilies in flower, buds still closed
+    K.ground(92, 30, 3);
+    K.taper([[0, 96], [2, 30], [-2, -30]], 5, 3); K.taper([[2, 46], [26, 10], [34, -8]], 4, 2.5); K.taper([[0, 36], [-26, 4], [-36, -12]], 4, 2.5);
+    lnLily(K, -2, -30, -1.75, 1.25); lnLily(K, 34, -8, -0.75, 1.1); lnLily(K, -36, -12, -2.4, 1.1);
+    K.ell(16, -64, 5, 14, 0.35); K.ell(-24, -58, 4.6, 13, -0.35); K.line([[12, -52], [6, -36]], 2); K.line([[-20, -46], [-10, -32]], 2);
+    [[-14, 70, -0.5, -1], [16, 62, 0.5, 1], [-12, 30, -0.7, -1], [14, 18, 0.7, 1]].forEach(([x, y, a, d]) => K.ell(x + d * 10, y - 4, 20, 4.5, a));
+  },
+  31(K) {     // Sun: a smiling sun over the hills and a farmstead
+    K.in(LN_GOLD, () => { for (let k = 0; k < 16; k++) { const a = (k / 16) * TAU; if (k % 2) K.taper([[Math.cos(a) * 40, -40 + Math.sin(a) * 40], [Math.cos(a + 0.08) * 52, -40 + Math.sin(a + 0.08) * 52], [Math.cos(a - 0.06) * 64, -40 + Math.sin(a - 0.06) * 64]], 5, 1); else K.poly([[Math.cos(a - 0.1) * 38, -40 + Math.sin(a - 0.1) * 38], [Math.cos(a) * 70, -40 + Math.sin(a) * 70], [Math.cos(a + 0.1) * 38, -40 + Math.sin(a + 0.1) * 38]]); } K.circ(0, -40, 36); });
+    K.in('rgba(150,96,30,.55)', () => { K.line([[-16, -46], [-8, -48]], 2.4); K.line([[8, -48], [16, -46]], 2.4); K.stroke('M -12 -28 Q 0 -20 12 -28', 2.4); });
+    K.ground(60, 31, 12);
+    K.rect(40, 26, 30, 22); K.poly([[36, 28], [55, 12], [74, 28]]); K.in(LN_WARM, () => K.rect(50, 34, 7, 7));
+    [[-70, 40], [-54, 46]].forEach(([x, y]) => { K.line([[x, y], [x, y - 14]], 3); K.circ(x, y - 22, 11); });
+  },
+  32(K) {     // Moon: a crescent with a sleepy face over the roofs and chimneys of a town
+    const g = K.g;
+    K.in('#f5e6b8', () => { g.beginPath(); moonPath(g, -6, -46, 40, 0.42, 0.84, -0.3); g.fill(); });
+    K.in('rgba(150,110,60,.55)', () => { K.stroke('M -30 -54 Q -24 -50 -20 -54', 2); K.stroke('M -28 -32 Q -22 -28 -16 -32', 2); });
+    K.in(LN_GOLD, () => { K.star(50, -80, 5, 5); K.star(64, -40, 4, 5); K.star(-70, -86, 4, 5); K.star(34, -18, 3, 5); });
+    [[-120, 40, 40], [-80, 24, 36], [-44, 34, 30], [-14, 18, 36], [22, 30, 30], [52, 14, 40], [92, 28, 40]].forEach(([x, y, w]) => { K.rect(x, y, w, 120); K.poly([[x - 3, y + 2], [x + w / 2, y - 16], [x + w + 3, y + 2]]); });
+    [[-70, 0], [-4, -6], [70, -8]].forEach(([x, y]) => K.rect(x, y, 7, 22));
+    K.in(LN_WARM, () => { K.rect(-70, 44, 7, 9); K.rect(-2, 36, 7, 9); K.rect(64, 34, 7, 9); K.rect(30, 50, 6, 8); });
+  },
+  33(K) {     // Key: an old iron key with a trefoil bow, a ribbon tied through it
+    const g = K.g; g.save(); g.rotate(-0.6);
+    [[-58, -12], [-46, -26], [-46, 2]].forEach(([x, y]) => K.circ(x, y, 13)); K.circ(-50, -12, 10);
+    K.in('#f3e6cc', () => [[-58, -12], [-46, -26], [-46, 2]].forEach(([x, y]) => K.circ(x, y, 5)));
+    K.rect(-40, -17, 100, 10); K.rect(-34, -21, 6, 18); K.rect(-24, -21, 4, 18);
+    K.path('M 40 -8 L 40 18 L 46 18 L 46 10 L 52 10 L 52 22 L 60 22 L 60 -8 Z');
+    g.restore();
+    K.in(LN_ROSE, () => { K.ell(-34, 26, 12, 6, -0.6); K.ell(-50, 40, 12, 6, 0.9); K.line([[-40, 30], [-46, 62]], 3); K.line([[-40, 30], [-28, 60]], 3); });
+    K.in(LN_GOLD, () => { K.star(50, -60, 6, 4, 0.3, 0); K.star(70, -30, 4, 4, 0.3, 0); });
+  },
+  34(K) {     // Fish: two fish leaping from the waves
+    const fish = (x, y, a, s) => { const g = K.g; g.save(); g.translate(x, y); g.rotate(a); g.scale(s, s); K.path('M -34 0 Q -10 -22 22 -6 L 40 -18 L 34 0 L 40 18 L 22 6 Q -10 22 -34 0 Z'); K.path('M -6 -14 Q 4 -26 14 -10 Z'); K.in('rgba(255,244,226,.7)', () => K.circ(-22, -3, 2.2)); g.restore(); };
+    fish(-36, -30, 0.6, 1.1); fish(36, -10, -0.5 + Math.PI, 0.95);
+    K.in('rgba(255,244,226,.6)', () => [[-4, -60, 3], [6, -72, 2.2], [-10, -82, 1.8]].forEach(([x, y, r]) => { const g = K.g; g.lineWidth = 1.2; g.beginPath(); g.arc(x, y, r, 0, TAU); g.stroke(); }));
+    const wave = []; for (let x = -130; x <= 130; x += 6) wave.push([x, 50 + Math.sin(x * 0.06) * 8]);
+    K.poly([...wave, [130, 160], [-130, 160]]);
+    K.in('rgba(255,244,226,.45)', () => { for (let x = -100; x < 110; x += 30) K.line([[x, 70], [x + 14, 66]], 1.6); });
+  },
+  35(K) {     // Anchor: on the sand with its rope, a starfish beside it
+    K.ground(88, 35, 2);
+    g_ring(K, 0, -74, 10, 5);
+    K.rect(-4, -64, 8, 112); K.rect(-34, -56, 68, 8); K.circ(-36, -52, 5); K.circ(36, -52, 5);
+    K.stroke('M -50 30 Q -46 58 0 60 Q 46 58 50 30', 8);
+    K.poly([[-58, 22], [-44, 26], [-54, 40]]); K.poly([[58, 22], [44, 26], [54, 40]]);
+    K.in('rgba(255,244,226,.5)', () => K.line([[-4, -40], [10, -30], [-8, -16], [10, -2], [-8, 12], [6, 24]], 2, true));
+    K.in(LN_ROSE, () => K.star(64, 84, 9, 5, 0.42));
+  },
+  36(K) {     // Cross: a plain wooden cross on a hillside at dusk, wildflowers at its foot
+    K.birds([[-60, -70, 5], [-44, -80, 4], [60, -60, 4]]);
+    K.ground(70, 36, 14);
+    K.rect(-5, -70, 10, 146); K.rect(-34, -42, 68, 9);
+    K.in('rgba(255,240,215,.22)', () => { K.line([[-1, -64], [-1, 60]], 1); K.line([[-28, -38], [28, -38]], 1); });
+    K.in(LN_ROSE, () => [[-22, 66], [-14, 72], [18, 68], [26, 74], [10, 76]].forEach(([x, y]) => K.circ(x, y, 3)));
+    [[-22, 66], [-14, 72], [18, 68], [26, 74], [10, 76]].forEach(([x, y]) => K.line([[x, y + 2], [x, y + 14]], 1.4));
+  },
+};
+/* small shared drawings */
+function lnLily(K, x, y, a, s = 1) {
+  const g = K.g; g.save(); g.translate(x, y); g.rotate(a); g.scale(s, s);
+  K.path('M 0 -3 L 14 -5 L 14 5 L 0 3 Z');
+  for (const k of [-1, 0, 1]) K.taper([[10, k * 3], [20, k * 7], [28, k * 13], [30, k * 19 + (k ? 0 : 2)], [26, k * 24 + (k ? 0 : 4)]], 4, 2, (t) => 3 + 8 * Math.sin(Math.PI * Math.min(1, t * 1.15)));
+  K.in(LN_GOLD, () => { for (const k of [-1, -0.4, 0.4, 1]) { K.line([[14, k * 2], [32, k * 6]], 0.9); K.ell(33, k * 6.4, 2.4, 1.3, k * 0.2); } });
+  g.restore();
+}
+function g_spiral(K, x, y, r) { const g = K.g; g.lineWidth = 1.2; g.beginPath(); for (let t = 0; t < 14; t++) { const a = t * 0.7, rr = r * (t / 14); g.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr); } g.stroke(); }
+function g_ring(K, x, y, r, w, sy = 1) { const g = K.g; g.lineWidth = w; g.beginPath(); g.ellipse(x, y, r, r * sy, 0, 0, TAU); g.stroke(); }
+function g_heartLine(K, x, y, s) { const g = K.g; g.lineWidth = 1.6; g.setLineDash([3, 4]); g.beginPath(); g.moveTo(x, y + s * 0.9); g.bezierCurveTo(x - s * 1.4, y - s * 0.1, x - s * 0.6, y - s * 1.1, x, y - s * 0.4); g.bezierCurveTo(x + s * 0.6, y - s * 1.1, x + s * 1.4, y - s * 0.1, x, y + s * 0.9); g.stroke(); g.setLineDash([]); }
+
+/** one card's face, w pixels wide (the card is 400 by 620 at w = 400) */
+function lenormandCard(k, w = 400) {
+  const [name, en, inset] = LENORMAND[k], no = k + 1, s = w / 400, c = canvas(w, w * 1.55), g = c.getContext('2d');
+  g.scale(s, s);
+  const rnd = mulberry(700 + no);
+  // the card: cream, a little aged at the edges, with a fine grain
+  g.fillStyle = '#f3e6cc'; g.fillRect(0, 0, 400, 620);
+  const age = g.createRadialGradient(200, 300, 160, 200, 310, 420); age.addColorStop(0, 'rgba(255,250,236,0)'); age.addColorStop(1, 'rgba(170,120,70,.32)');
+  g.fillStyle = age; g.fillRect(0, 0, 400, 620);
+  for (let i = 0; i < 1800; i++) { g.fillStyle = `rgba(${rnd() < 0.5 ? '120,90,60' : '255,255,245'},${0.03 + rnd() * 0.05})`; g.fillRect(rnd() * 400, rnd() * 620, 1.4, 1.4); }
+  // the double gold rule with scrolls in the corners
+  g.strokeStyle = LN_GOLD; g.lineWidth = 3; g.strokeRect(14, 14, 372, 592); g.lineWidth = 1.2; g.strokeRect(22, 22, 356, 576);
+  for (const [cx, cy, sx, sy] of [[22, 22, 1, 1], [378, 22, -1, 1], [22, 598, 1, -1], [378, 598, -1, -1]]) {
+    g.save(); g.translate(cx, cy); g.scale(sx, sy); g.lineWidth = 1.6;
+    g.beginPath(); g.moveTo(6, 30); g.bezierCurveTo(6, 14, 14, 6, 30, 6); g.stroke();
+    g.beginPath(); g.arc(18, 18, 5, 0, TAU); g.stroke(); g.fillStyle = LN_GOLD; g.beginPath(); g.arc(18, 18, 2, 0, TAU); g.fill();
+    g.beginPath(); g.moveTo(34, 6); g.quadraticCurveTo(46, 12, 44, 20); g.moveTo(6, 34); g.quadraticCurveTo(12, 46, 20, 44); g.stroke();
+    g.restore();
+  }
+  // the oval window: the suit's dusk (a night sky for the stars and the moon), a faint sun low in it
+  const OX = 200, OY = 270, RX = 148, RY = 178, sky = no === 16 || no === 32 ? LN_NIGHT : LN_SUIT[inset.slice(-1)];
+  g.save(); g.beginPath(); g.ellipse(OX, OY, RX, RY, 0, 0, TAU); g.clip();
+  const gr = g.createLinearGradient(0, OY - RY, 0, OY + RY); sky.forEach((cc, i) => gr.addColorStop(i / (sky.length - 1), cc)); g.fillStyle = gr; g.fillRect(0, 0, 400, 620);
+  if (sky !== LN_NIGHT) { const sun = g.createRadialGradient(OX, OY + 60, 10, OX, OY + 60, 170); sun.addColorStop(0, 'rgba(255,248,226,.55)'); sun.addColorStop(1, 'rgba(255,248,226,0)'); g.fillStyle = sun; g.fillRect(0, 0, 400, 620); }
+  else for (let i = 0; i < 40; i++) { g.fillStyle = `rgba(255,240,210,${0.25 + rnd() * 0.5})`; g.beginPath(); g.arc(OX + (rnd() - 0.5) * 2 * RX, OY - RY + rnd() * RY * 1.2, 0.6 + rnd() * 1.2, 0, TAU); g.fill(); }
+  // the picture is cut paper laid over the tinted ground: a soft shadow under it, and the oval darkening a little at its edge
+  g.save(); g.shadowColor = 'rgba(40,18,30,.4)'; g.shadowBlur = 7; g.shadowOffsetY = 3;
+  g.translate(OX, OY); g.scale(RX / 100, RX / 100);
+  g.fillStyle = g.strokeStyle = LN_INK;
+  const K = lnKit(g); K.g = g;
+  LN_PICTURE[no](K);
+  g.restore();
+  const vig = g.createRadialGradient(OX, OY, RX * 0.7, OX, OY, RY * 1.02); vig.addColorStop(0, 'rgba(60,30,40,0)'); vig.addColorStop(1, 'rgba(60,30,40,.28)');
+  g.fillStyle = vig; g.fillRect(0, 0, 400, 620);
+  g.restore();
+  g.strokeStyle = LN_GOLD; g.lineWidth = 3; g.beginPath(); g.ellipse(OX, OY, RX, RY, 0, 0, TAU); g.stroke();
+  g.lineWidth = 1; g.beginPath(); g.ellipse(OX, OY, RX + 6, RY + 6, 0, 0, TAU); g.stroke();
+  // the playing card in the corner, as on the old decks
+  const red = 'HD'.includes(inset.slice(-1)), rank = inset.slice(0, -1);
+  g.save(); g.translate(38, 38); g.rotate(-0.06);
+  g.fillStyle = 'rgba(80,50,30,.25)'; g.fillRect(3, 4, 54, 76);
+  g.fillStyle = '#fffaf0'; g.strokeStyle = '#8a7050'; g.lineWidth = 1.2; g.beginPath(); g.roundRect(0, 0, 54, 76, 5); g.fill(); g.stroke();
+  g.fillStyle = red ? '#b0302c' : '#221a1e'; g.textAlign = 'center'; g.font = `600 ${rank.length > 1 ? 22 : 26}px "Cormorant Garamond", serif`; g.fillText(rank, 27, 30);
+  lnSuit(g, inset.slice(-1), 27, 52, 11);
+  g.restore();
+  // the number at the top
+  g.fillStyle = '#6a4a2a'; g.textAlign = 'center'; g.font = 'italic 600 30px "Cormorant Garamond", serif'; g.fillText(String(no), 200, 66);
+  g.strokeStyle = LN_GOLD; g.lineWidth = 1; [[150, 182], [218, 250]].forEach(([a, b]) => { g.beginPath(); g.moveTo(a, 56); g.lineTo(b, 56); g.stroke(); });
+  // the ribbon with the name
+  const ry = 492;
+  g.fillStyle = '#7a4a52'; [[1, 60], [-1, 340]].forEach(([d, x]) => { g.beginPath(); g.moveTo(x, ry + 6); g.lineTo(x - d * 34, ry + 4); g.lineTo(x - d * 22, ry + 30); g.lineTo(x - d * 34, ry + 56); g.lineTo(x, ry + 54); g.closePath(); g.fill(); });
+  g.fillStyle = '#9b5a64'; g.beginPath(); g.moveTo(58, ry); g.quadraticCurveTo(200, ry - 14, 342, ry); g.lineTo(342, ry + 50); g.quadraticCurveTo(200, ry + 36, 58, ry + 50); g.closePath(); g.fill();
+  g.strokeStyle = 'rgba(255,226,180,.7)'; g.lineWidth = 1.2; g.beginPath(); g.moveTo(66, ry + 6); g.quadraticCurveTo(200, ry - 7, 334, ry + 6); g.moveTo(66, ry + 44); g.quadraticCurveTo(200, ry + 31, 334, ry + 44); g.stroke();
+  g.fillStyle = '#fff4dc'; g.font = `900 ${name.length > 2 ? 30 : 34}px "Noto Serif SC", serif`; g.textBaseline = 'middle'; g.fillText([...name].join(name.length > 2 ? '' : ' '), 200, ry + 20);
+  g.fillStyle = '#6a4a2a'; g.font = 'italic 500 26px "Cormorant Garamond", serif'; g.fillText(en, 200, ry + 82);
+  return c;
+}
+/** the back of every card: teal and gold, a teacup in a medallion, little stars all round */
+function lenormandBack(w = 400) {
+  const s = w / 400, c = canvas(w, w * 1.55), g = c.getContext('2d'); g.scale(s, s);
+  const rnd = mulberry(911);
+  g.fillStyle = '#2c5c5a'; g.fillRect(0, 0, 400, 620);
+  const gl = g.createRadialGradient(200, 310, 40, 200, 310, 380); gl.addColorStop(0, 'rgba(120,190,180,.35)'); gl.addColorStop(1, 'rgba(10,30,30,.4)'); g.fillStyle = gl; g.fillRect(0, 0, 400, 620);
+  g.strokeStyle = 'rgba(214,180,110,.28)'; g.lineWidth = 1;
+  for (let x = -620; x < 400; x += 26) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x + 620, 620); g.stroke(); g.beginPath(); g.moveTo(x + 620, 0); g.lineTo(x, 620); g.stroke(); }
+  g.fillStyle = 'rgba(233,166,184,.55)'; for (let y = 13; y < 620; y += 26) for (let x = (y / 26) % 2 ? 13 : 0; x < 400; x += 26) { g.beginPath(); g.arc(x, y, 1.6, 0, TAU); g.fill(); }
+  g.strokeStyle = '#d6b46e'; g.lineWidth = 3; g.strokeRect(14, 14, 372, 592); g.lineWidth = 1.2; g.strokeRect(24, 24, 352, 572);
+  g.fillStyle = '#244a48'; g.beginPath(); g.ellipse(200, 310, 112, 150, 0, 0, TAU); g.fill();
+  g.strokeStyle = '#d6b46e'; g.lineWidth = 3; g.stroke(); g.lineWidth = 1; g.beginPath(); g.ellipse(200, 310, 120, 158, 0, 0, TAU); g.stroke();
+  g.fillStyle = '#d6b46e';
+  // the teacup and saucer
+  g.beginPath(); g.moveTo(146, 300); g.lineTo(254, 300); g.bezierCurveTo(250, 354, 226, 372, 200, 372); g.bezierCurveTo(174, 372, 150, 354, 146, 300); g.fill();
+  g.lineWidth = 8; g.strokeStyle = '#d6b46e'; g.beginPath(); g.arc(258, 326, 16, -1.2, 1.4); g.stroke();
+  g.beginPath(); g.ellipse(200, 380, 76, 10, 0, 0, TAU); g.fill();
+  g.fillStyle = 'rgba(233,166,184,.9)'; [[178, 330], [200, 340], [222, 330]].forEach(([x, y]) => { g.beginPath(); g.arc(x, y, 5, 0, TAU); g.fill(); });
+  g.strokeStyle = 'rgba(214,180,110,.8)'; g.lineWidth = 2.4; [[180, 0], [200, 1], [220, 2]].forEach(([x, k]) => { g.beginPath(); g.moveTo(x, 290); g.bezierCurveTo(x - 10, 270 - k * 4, x + 10, 256, x, 236 - k * 6); g.stroke(); });
+  g.fillStyle = '#d6b46e';
+  const star8 = (x, y, r) => { g.beginPath(); for (let i = 0; i < 16; i++) { const a = (i * Math.PI) / 8, rr = i % 2 ? r * 0.4 : r; g.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr); } g.closePath(); g.fill(); };
+  star8(200, 196, 14); star8(150, 232, 6); star8(250, 232, 6);
+  for (let i = 0; i < 18; i++) star8(40 + rnd() * 320, 40 + rnd() * 540, 2 + rnd() * 2.4);
+  g.font = 'italic 600 26px "Cormorant Garamond", serif'; g.textAlign = 'center'; g.fillText('Lenormand', 200, 430);
+  for (const [x, y, r] of [[200, 60, 0], [200, 560, Math.PI]]) { g.save(); g.translate(x, y); g.rotate(r); g.beginPath(); for (let k = -3; k <= 3; k++) { g.moveTo(0, 0); g.lineTo(k * 12, -20 + Math.abs(k) * 3); } g.lineWidth = 1.6; g.strokeStyle = '#d6b46e'; g.stroke(); g.restore(); }
+  return c;
+}
+
+/* ---------- the tea room baked in Blender (blender/build_tea.py): a Victorian tea shop on a night street ---------- */
+/*
+ * Page 4's tea house in the round: a teal shopfront with a gilt fascia and a striped awning, a slate mansard with lit
+ * dormers, a gas lamp, rose topiaries and a pillar box on the pavement; inside, a parlour round a laid tea table. Two ways
+ * of asking at the table: 雷诺曼, cards dealt from the deck at your place (one, a line of three or a square of nine), and
+ * 茶叶占卜: drink the cup, swirl it three times, turn it over on its saucer, then look at the leaves left inside.
+ */
+const TEA_ASSETS = 'tea/', TEA_PRE = 'tea_10290320';
+const TEA_VIEW = {
+  orbit: { at: V(0, 3.4, 0.4), narrowAt: V(0, 5.6, 0.4), orbit: { yaw: 0, pitch: 0.4, dist: 22.5, narrow: 1.08 }, yaw: 0.8, pitch: 0.2, fov: [44, 28] },
+  inside: { eye: V(0, 1.97, 1.42), at: V(0, 1.28, -0.2), yaw: 0.7, pitch: 0.42, fov: [70, 54] },
+};
+/** the town behind the shop, as on the book page: terraces with lit windows and chimneys, a clock tower; low on the horizon,
+ * so a wide screen sees its roofs over the shop's and a tall one the sky above them too, and fading out at its foot */
+function teaTown() {
+  const c = canvas(2048, 512), g = c.getContext('2d'), r = mulberry(404);
+  const row = (base, hmin, hmax, color, lit, seed) => {
+    const rr = mulberry(seed); let x = -20;
+    while (x < 2068) {
+      const w = 60 + rr() * 90, top = base - hmin - rr() * (hmax - hmin), roof = rr();
+      g.fillStyle = color; g.fillRect(x, top, w, 512 - top);
+      g.beginPath();
+      if (roof < 0.4) { g.moveTo(x - 4, top); g.lineTo(x + w / 2, top - 22 - rr() * 14); g.lineTo(x + w + 4, top); }
+      else if (roof < 0.7) { g.moveTo(x - 4, top); g.lineTo(x + 10, top - 18); g.lineTo(x + w - 10, top - 18); g.lineTo(x + w + 4, top); }
+      g.fill();
+      for (let k = 0; k < 1 + rr() * 2; k++) { const cx = x + 10 + rr() * (w - 24); g.fillRect(cx, top - 26 - (roof < 0.7 ? 14 : 0), 8, 28); }
+      for (let wy = top + 10; wy < 470; wy += 18) for (let wx = x + 8; wx < x + w - 10; wx += 16) {
+        if (rr() < lit) { g.fillStyle = rr() < 0.8 ? 'rgba(255,214,140,.85)' : 'rgba(255,180,190,.75)'; g.fillRect(wx, wy, 5, 8); g.fillStyle = color; }
+      }
+      x += w + 2;
+    }
+  };
+  row(260, 50, 130, '#3a2c55', 0.08, 21);
+  // the clock tower, a little left of the middle, its face lit
+  g.fillStyle = '#2a2042'; g.fillRect(820, 90, 64, 430); g.beginPath(); g.moveTo(810, 92); g.lineTo(852, 22); g.lineTo(894, 92); g.fill(); g.fillRect(849, 0, 6, 26);
+  g.fillStyle = 'rgba(255,226,170,.95)'; g.beginPath(); g.arc(852, 136, 18, 0, TAU); g.fill();
+  g.strokeStyle = '#2a2042'; g.lineWidth = 3; g.beginPath(); g.moveTo(852, 136); g.lineTo(852, 124); g.moveTo(852, 136); g.lineTo(862, 140); g.stroke();
+  row(320, 30, 90, '#241b38', 0.12, 22);
+  for (let i = 0; i < 26; i++) { const x = r() * 2048, y = 280 + r() * 80, w = 140 + r() * 260, m = g.createRadialGradient(x, y, 0, x, y, w); m.addColorStop(0, 'rgba(200,150,190,.12)'); m.addColorStop(1, 'rgba(200,150,190,0)'); g.fillStyle = m; g.fillRect(x - w, y - w, 2 * w, 2 * w); }
+  g.globalCompositeOperation = 'destination-out';                          // the town thins into the night towards its foot
+  const fade = g.createLinearGradient(0, 300, 0, 500); fade.addColorStop(0, 'rgba(0,0,0,0)'); fade.addColorStop(1, 'rgba(0,0,0,1)'); g.fillStyle = fade; g.fillRect(0, 300, 2048, 212);
+  g.globalCompositeOperation = 'source-over';
+  return tex(c);
+}
+/** rose-sprigged china for the visitor's cup and saucer: wraps round a lathe, gold at the rim */
+function teaChina() {
+  const c = canvas(512, 128), g = c.getContext('2d');
+  g.fillStyle = '#fbf7f0'; g.fillRect(0, 0, 512, 128); g.fillStyle = '#d8b46a'; g.fillRect(0, 0, 512, 7); g.fillRect(0, 13, 512, 2);
+  for (let k = 0; k < 6; k++) {
+    const x = 40 + k * 85, y = 70 + (k % 2 ? 10 : -6);
+    g.fillStyle = '#7a9a6a'; [[-1, 0.3], [1, -0.2], [0.2, 1]].forEach(([dx, a]) => { g.beginPath(); g.ellipse(x + dx * 12, y + 6, 9, 4, a, 0, TAU); g.fill(); });
+    [['#e9a6b8', 0, 0, 9], ['#f3c4cc', 12, 4, 7]].forEach(([cc, dx, dy, rr]) => { g.fillStyle = cc; g.beginPath(); g.arc(x + dx, y + dy, rr, 0, TAU); g.fill(); g.fillStyle = '#c86a84'; g.beginPath(); g.arc(x + dx, y + dy, rr * 0.4, 0, TAU); g.fill(); });
+  }
+  return tex(c);
+}
+async function buildBakedTeaRoom() {
+  const gltf = await loadBakedGLB(TEA_ASSETS, TEA_PRE);
+  const s = bakedScene(gltf, 0x140e22);
+  s.add(new THREE.HemisphereLight(0xfff0e0, 0x5a4048, 1.5));               // only the live cup and cards are lit by it
+  const fx = [], warm = tentGlow('rgba(255,236,190,1)', 'rgba(255,170,80,.45)'), flame = tentFlame();
+  const sprite = (map, pos, size, color, kind) => {
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map, color, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true }));
+    sp.position.copy(pos); sp.scale.setScalar(size); s.add(sp); const f = { sp, size, base: color.clone(), kind, seed: Math.random() * 100 }; fx.push(f); return f;
+  };
+  let cup = null, deck = null, table = null, canary = null; const chimneys = [];
+  gltf.scene.traverse((o) => {
+    if (!o.name.startsWith('FX_')) return;
+    const p = o.getWorldPosition(new THREE.Vector3()), n = o.name;
+    if (n.startsWith('FX_candle')) { sprite(flame, p.clone().add(V(0, 0.004, 0)), 0.045, new THREE.Color(2.2, 1.7, 1.2), 'flame'); sprite(warm, p, 0.3, new THREE.Color(0.8, 0.5, 0.25), 'glow'); }
+    else if (n.startsWith('FX_lantern_LanternLightGas')) sprite(warm, p, 1.3, new THREE.Color(0.85, 0.55, 0.25), 'glow');
+    else if (n.startsWith('FX_lantern_LanternLightChand')) sprite(warm, p.clone().add(V(0, -0.1, 0)), 0.42, new THREE.Color(0.7, 0.48, 0.24), 'glow');
+    else if (n.startsWith('FX_lantern_LanternLightStand')) sprite(warm, p, 0.9, new THREE.Color(0.8, 0.45, 0.35), 'glow');
+    else if (n.startsWith('FX_lantern_LanternLightFascia')) sprite(warm, p.clone().add(V(0, 0.06, 0)), 0.5, new THREE.Color(0.85, 0.6, 0.3), 'glow');
+    else if (n.startsWith('FX_lantern_AtticLamp')) sprite(warm, p, n.includes('Win') ? 0.8 : 1.2, new THREE.Color(0.5, 0.32, 0.14), 'breath');
+    else if (n.startsWith('FX_ember')) { sprite(warm, p, 0.7, new THREE.Color(1.0, 0.42, 0.14), 'glow'); sprite(warm, p.clone().add(V(0.05, 0.04, 0)), 0.3, new THREE.Color(1.4, 0.6, 0.2), 'flame'); }
+    else if (n.startsWith('FX_smoke')) chimneys.push(p.clone());
+    else if (n === 'FX_cup') cup = p.clone();
+    else if (n === 'FX_deck') deck = p.clone();
+    else if (n === 'FX_table') table = p.clone();
+    else if (n === 'FX_canary') canary = p.clone();
+  });
+  const sky = nightSky(s, teaTown(), V(-10, 14, -42), -4.6);
+  // what you can touch: the table to sit at, the deck, the cup, and the canary in its cage
+  const hidden = new THREE.MeshBasicMaterial({ visible: false }), t0 = table ?? V(0, 1.33, 0.15);
+  const tableHit = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.62, 0.8, 16), hidden); tableHit.position.set(t0.x, t0.y - 0.38, t0.z); tableHit.userData.table = true; s.add(tableHit);
+  const birdHit = new THREE.Mesh(new THREE.SphereGeometry(0.28, 8, 6), hidden); birdHit.position.copy(canary ?? V(-1.85, 2.9, 1.25)); birdHit.userData.canary = true; s.add(birdHit);
+  const lnDeck = teaDeck(s, deck ?? V(-0.16, 1.334, 0.51));
+  const tc = teaCup(s, cup ?? V(0.12, 1.33, 0.51));
+  let smokeT = 0;
+  const update = (dt, t) => {
+    fxPulse(fx, t); sky(t); updateLn(dt); updateTeaLeaves(dt, t);
+    if ((smokeT -= dt) < 0) { smokeT = 0.22; for (const p of chimneys) smoke.emit(tmpV.copy(p).add(V(rnd(-0.03, 0.03), 0, rnd(-0.03, 0.03))), tmpW.set(rnd(0.02, 0.06), rnd(0.18, 0.28), rnd(-0.02, 0.02)), { life: rnd(3, 4.5), size: 0.2, drag: 0.15, color: new THREE.Color(0.24, 0.22, 0.3) }); }
+    if (tc.steam && tc.full > 0.3 && Math.random() < dt * 5) smoke.emit(tmpV.copy(tc.at).add(V(rnd(-0.015, 0.015), 0.07, rnd(-0.015, 0.015))), tmpW.set(rnd(-0.005, 0.005), rnd(0.03, 0.05), rnd(-0.005, 0.005)), { life: rnd(1.4, 2.2), size: 0.03, drag: 0.4, color: new THREE.Color(0.9, 0.88, 0.86) });
+  };
+  return { scene: s, table: tableHit, hits: [tableHit, birdHit, ...lnDeck.hits, ...tc.hits], warm: { intensity: 0 }, warmBase: 0, mobiles: [], flames: [], glow: [], baked: true, update, deck: lnDeck, cup: tc, canary: birdHit };
+}
+
+/* ---------- 雷诺曼: the deck at your place, dealt into the air before you, turned one card at a time ---------- */
+let lnCards = [], lnSpread = null, lnShuffle = null;
+const lnFaces = {};
+let lnBackMat = null;
+const LN_W = 0.3, LN_H = 0.465;
+/** the deck: a stack of cards lying face down by the visitor's cup */
+function teaDeck(s, at) {
+  lnBackMat ??= new THREE.MeshBasicMaterial({ map: tex(lenormandBack(256)) });
+  const g = new THREE.Group(), edge = new THREE.MeshStandardMaterial({ color: 0xefe4cc, roughness: 0.8 }), hits = [];
+  for (let i = 0; i < 12; i++) {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(0.062, 0.0011, 0.096), [edge, edge, lnBackMat, edge, edge, edge]);
+    m.position.set(rnd(-0.0015, 0.0015), 0.0006 + i * 0.0011, rnd(-0.0015, 0.0015)); m.rotation.y = rnd(-0.03, 0.03); m.userData.deck = true; g.add(m); hits.push(m);
+  }
+  g.position.copy(at); g.rotation.y = 0.08; s.add(g);
+  const hit = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.06, 0.16), new THREE.MeshBasicMaterial({ visible: false })); hit.position.copy(at); hit.userData.deck = true; s.add(hit); hits.push(hit);
+  return { g, at: at.clone(), hits, cards: g.children };
+}
+function lnFaceMat(k) { return (lnFaces[k] ??= new THREE.MeshBasicMaterial({ map: tex(lenormandCard(k, 360)) })); }
+const LN_INSET = { H: '红桃', D: '方块', C: '梅花', S: '黑桃' };
+const lnInset = (k) => { const s = LENORMAND[k][2]; return `${LN_INSET[s.slice(-1)]} ${s.slice(0, -1)}`; };
+
+function showLnChooser() {
+  const R = rooms.tea;
+  if (roomId !== 'tea' || !R || busy || lnShuffle || teaLeaves?.phase && teaLeaves.phase !== 'done') return;
+  if (!roomInside) { roomSit(); return; }
+  clearLn();
+  showPanel('<small>Lenormand · 选一个牌阵</small><h3>想怎么看这件事？</h3><p class="spread-pick"><b>单张</b>　一张牌，一句提醒<br><b>三张连读</b>　来处 · 中心 · 去处，连成一句话<br><b>九宫格</b>　核心，和它的来处、去处、心上、脚下</p>',
+    [['单张', () => pickLn('single')], ['三张连读', () => pickLn('line'), true], ['九宫格', () => pickLn('square')]]);
+}
+function pickLn(kind) {
+  hidePanel(); lnSpread = kind;
+  const D = rooms.tea.deck;
+  // the shuffle: the deck splits in two, the halves riffle together twice, then it squares up
+  lnShuffle = { t: 0, dur: 1.5, cards: D.cards.map((m) => ({ m, p: m.position.clone(), side: Math.random() < 0.5 ? -1 : 1 })) };
+  sfx('riffle'); setTimeout(() => sfx('riffle'), 700); setUI('room');
+}
+function updateLn(dt) {
+  if (lnShuffle) {
+    const S = lnShuffle; S.t += dt; const k = Math.min(1, S.t / S.dur), lift = Math.sin(Math.PI * k);
+    S.cards.forEach((c, i) => {
+      const ph = Math.sin(k * TAU * 2 + i * 0.4);
+      c.m.position.set(c.p.x + c.side * 0.045 * Math.sin(Math.PI * k) * (0.6 + 0.4 * ph), c.p.y + lift * 0.03 * (i / 12), c.p.z);
+      c.m.rotation.z = c.side * 0.25 * lift * (0.5 + 0.5 * ph);
+    });
+    if (k >= 1) { S.cards.forEach((c) => { c.m.position.copy(c.p); c.m.rotation.z = 0; }); lnShuffle = null; dealLn(); }
+  }
+  for (const c of lnCards) {
+    if (c.t < 1) { c.t = Math.min(1, c.t + dt / 0.7); const k = ease(Math.max(0, c.t)); c.group.position.lerpVectors(c.from, c.to, k).add(V(0, Math.sin(k * Math.PI) * 0.12, 0)); if (c.t > 0 && Math.random() < 0.4) sparks.emit(c.group.position, tmpW.set(0, 0.04, 0), { life: 0.6, size: 0.01 }); }
+    c.group.lookAt(camera.position);
+    if (c.flipping) c.flip = Math.min(1, c.flip + dt / 0.6);
+    c.group.rotateY(ease(c.flip) * Math.PI);
+  }
+  updateLnTags();
+}
+/** deal the chosen spread, face down, into the air before you: one card, a row of three, or a three-by-three square */
+function dealLn() {
+  const S = LN_SPREADS[lnSpread], n = S.n, order = [];
+  while (order.length < n) { const k = Math.floor(Math.random() * 36); if (!order.includes(k)) order.push(k); }
+  const fwd = camera.getWorldDirection(new THREE.Vector3()), right = new THREE.Vector3().crossVectors(fwd, UP).normalize(), camUp = new THREE.Vector3().crossVectors(right, fwd);
+  const cols = n === 9 ? 3 : n, rows = n === 9 ? 3 : 1;
+  const dist = 0.78 * cardReach(), halfH = dist * Math.tan((camera.fov * DEG) / 2), halfW = halfH * camera.aspect;
+  const gap = n === 9 ? 1.08 : 1.14, gapY = n === 9 ? (camera.aspect < 0.8 ? 1.16 : 1.06) : 1;
+  const sc = Math.min(n === 1 ? 0.62 : n === 3 ? 0.5 : 0.36, (halfW * 2 * 0.86) / (cols * LN_W * gap), (halfH * 2 * (n === 9 ? 0.74 : 0.6)) / (rows * LN_H * gapY));
+  const from = rooms.tea.deck.at.clone().add(V(0, 0.02, 0)), lift = halfH * (n === 9 ? 0.12 : 0.14);
+  burstAt(sparks, from, 30, { speed: 0.25, up: 0.5, size: 0.016 }); sfx('pop');
+  lnCards = order.map((k, i) => {
+    const g = new THREE.Group(), back = new THREE.Mesh(new THREE.PlaneGeometry(LN_W, LN_H), lnBackMat), face = new THREE.Mesh(new THREE.PlaneGeometry(LN_W, LN_H), lnFaceMat(k));
+    face.rotation.y = Math.PI; back.userData.ln = i; face.userData.ln = i; g.add(back, face);
+    g.position.copy(from); g.scale.setScalar(sc); rooms.tea.scene.add(g);
+    const cx = (i % cols) - (cols - 1) / 2, cy = (rows - 1) / 2 - Math.floor(i / cols);
+    const to = camera.position.clone().addScaledVector(fwd, dist).addScaledVector(right, cx * LN_W * sc * gap).addScaledVector(camUp, cy * LN_H * sc * gapY + lift);
+    return { k, group: g, from: from.clone(), to, t: -i * 0.09, flip: 0, flipping: false, slot: S.slots?.[i], h: LN_H * sc, camUp };
+  });
+  lnTags(lnSpread === 'line');
+  toast(n === 1 ? '点开这张牌' : `${S.name}摆好了 · 一张一张点开`);
+  setUI('room');
+}
+function flipLn(i) {
+  const c = lnCards[i];
+  if (!c || c.flipping || c.t < 1) return;
+  c.flipping = true; sfx('page'); setUI('room');
+  setTimeout(() => {
+    burstAt(sparks, c.group.position, 20, { speed: 0.25, up: 0.3, size: 0.014 });
+    if (lnCards.length === 1) { setTimeout(() => showLnCard(c.k), 350); return; }
+    toast(`${c.slot} · ${LENORMAND[c.k][0]}`);
+    if (lnCards.every((o) => o.flipping)) setTimeout(showLnSummary, 900);
+  }, 550);
+}
+const lnNext = () => lnCards.findIndex((c) => !c.flipping);
+function flipAllLn() { lnCards.forEach((c, i) => setTimeout(() => whenLanded(i, () => flipLn(i)), i * 260)); }
+function whenLanded(i, fn) { const c = lnCards[i]; if (!c) return; if (c.t < 1) { setTimeout(() => whenLanded(i, fn), 120); return; } fn(); }
+const LN_NOTE = `牌面为本书原创的剪影画，牌义为本书新写；牌的次序和牌角的扑克牌沿用旧时雷诺曼牌的传统。<br>${DISCLAIM.replace('X', '牌面')}`;
+function showLnCard(k) {
+  const [name, en, , key, line] = LENORMAND[k];
+  sfx('chime');
+  showPanel(`<span class="seal">牌</span><small>雷诺曼 · 第 ${k + 1} 张 · ${en} · 牌角 ${lnInset(k)}</small><h3>${name}</h3><p class="gua-image">牌意 · ${key}</p><p>${line}</p><div class="note">${LN_NOTE}</div>`,
+    [['再翻一次', () => { clearLn(); hidePanel(); setTimeout(showLnChooser, 200); }, true], ['收起', () => { clearLn(); hidePanel(); setUI('room'); }]]);
+}
+function showLnSummary() {
+  if (!lnCards.length) return;
+  const card = (c) => LENORMAND[c.k], phrase = (i) => card(lnCards[i])[5];
+  let body;
+  if (lnSpread === 'line') {
+    const rows = lnCards.map((c) => { const [name, en, , key, line] = card(c); return `<li><b>${c.slot}</b>　${name} <i>${en}</i> · ${key}<span>${line}</span></li>`; }).join('');
+    body = `<h3>你的三张连读</h3><p class="ln-sentence">这件事的中心是${phrase(1)}；它的来处是${phrase(0)}，去处是${phrase(2)}。</p><ul class="spread-list">${rows}</ul>`;
+  } else {
+    const [name, en, , key, line] = card(lnCards[4]);
+    const sides = LN_SIDES.map(([side, where, idx, what]) => `<li><b>${side}</b>　${where} · ${what}<span>${idx.map((i) => card(lnCards[i])[0]).join(' · ')}：${idx.map(phrase).join('、')}</span></li>`).join('');
+    body = `<h3>你的九宫格</h3><p class="ln-sentence"><b>核心 · ${name}</b> <i>${en}</i> · ${key}<br>${line}</p><ul class="spread-list">${sides}</ul>`;
+  }
+  sfx('chime');
+  const corners = lnSpread === 'square' ? '四个角上的牌同时在一行和一列里，会被读到两次。<br>' : '';
+  showPanel(`<span class="seal">牌</span><small>${LN_SPREADS[lnSpread].name} · ${LN_SPREADS[lnSpread].note}</small>${body}<div class="note">${corners}${LN_NOTE}</div>`,
+    [['再翻一次', () => { clearLn(); hidePanel(); setTimeout(showLnChooser, 200); }, true], ['收起', () => { clearLn(); hidePanel(); setUI('room'); }]]);
+  $('panel').classList.add('long');
+}
+function clearLn() { lnCards.forEach((c) => c.group.parent?.remove(c.group)); lnCards = []; lnSpread = null; lnShuffle = null; lnTags(false); }
+/** the place names under a line of three, kept on screen as the cards move */
+function lnTags(on) {
+  let box = $('lnTags');
+  if (!on) { box?.remove(); return; }
+  if (!box) { box = el('div', 'spread-tags'); box.id = 'lnTags'; document.body.appendChild(box); }
+  box.replaceChildren(...lnCards.map((c) => { const t = el('span', 'spread-tag'); t.textContent = c.slot; return t; }));
+}
+function updateLnTags() {
+  const box = $('lnTags'); if (!box) return;
+  const r = renderer.domElement.getBoundingClientRect();
+  lnCards.forEach((c, i) => {
+    const t = box.children[i]; if (!t) return;
+    tmpV.copy(c.group.position).addScaledVector(c.camUp, -(c.h * 0.5 + 0.016)).project(camera);
+    t.style.left = `${r.left + ((tmpV.x + 1) / 2) * r.width}px`; t.style.top = `${r.top + ((1 - tmpV.y) / 2) * r.height}px`;
+    t.classList.toggle('open', c.flipping); t.style.opacity = c.t > 0.6 ? 1 : 0;
+  });
+}
+
+/* ---------- 茶叶占卜: drink, swirl three times, turn the cup over, and read what the leaves left ---------- */
+/*
+ * The inside of the cup is painted as seen from straight above: the centre is the bottom, the edge the rim, the handle to
+ * the right. Two or three shapes form among the stray leaves, each in a zone (rim, wall, bottom) and on a side (by the
+ * handle, across from it, or between); a gold ring and a number mark each one once the cup is read.
+ */
+/** the inside of the cup, bottom to rim, as (radius, height): the tea's surface follows it */
+const TEA_IN = [[0.0005, 0.006], [0.02, 0.007], [0.036, 0.034], [0.042, 0.058], [0.0445, 0.066]];
+function teaInR(y) { for (let i = 1; i < TEA_IN.length; i++) { const [r0, y0] = TEA_IN[i - 1], [r1, y1] = TEA_IN[i]; if (y <= y1) return r0 + ((r1 - r0) * (y - y0)) / (y1 - y0); } return TEA_IN[TEA_IN.length - 1][0]; }
+let teaLeaves = null;
+function teaCup(s, at) {
+  const china = new THREE.MeshStandardMaterial({ map: teaChina(), roughness: 0.25, metalness: 0, emissive: 0x2a2420 });
+  const g = new THREE.Group(), body = new THREE.Group(); g.add(body);
+  const prof = [[0, 0.002], [0.022, 0.002], [0.025, 0.008], [0.04, 0.035], [0.046, 0.06], [0.047, 0.066]].map(([r, y]) => new THREE.Vector2(r, y));
+  body.add(new THREE.Mesh(new THREE.LatheGeometry(prof, 40), china));
+  // the inside: its own lathe, mapped from above so the painted leaves sit where they are drawn
+  const inProf = TEA_IN.map(([r, y]) => new THREE.Vector2(r, y));
+  const inGeo = new THREE.LatheGeometry(inProf, 48), pos = inGeo.attributes.position, uv = inGeo.attributes.uv;
+  for (let i = 0; i < pos.count; i++) uv.setXY(i, 0.5 + pos.getX(i) / (2 * 0.0445), 0.5 - pos.getZ(i) / (2 * 0.0445));
+  const W = 512, cv = canvas(W, W), cg = cv.getContext('2d'), map = tex(cv);
+  const inside = new THREE.Mesh(inGeo, new THREE.MeshStandardMaterial({ map, roughness: 0.2, side: THREE.BackSide, emissive: 0x302820 })); body.add(inside);
+  const rim = new THREE.Mesh(new THREE.RingGeometry(0.0443, 0.0472, 48), new THREE.MeshStandardMaterial({ color: 0xd8b46a, roughness: 0.3, metalness: 0.6, side: THREE.DoubleSide })); rim.rotation.x = -Math.PI / 2; rim.position.y = 0.066; body.add(rim);
+  const handle = new THREE.Mesh(new THREE.TorusGeometry(0.016, 0.0045, 8, 20, Math.PI * 1.25), china); handle.position.set(0.05, 0.04, 0); handle.rotation.z = -Math.PI * 0.62; body.add(handle);
+  const tea = new THREE.Mesh(new THREE.CircleGeometry(1, 40), new THREE.MeshStandardMaterial({ color: 0x6a3214, roughness: 0.05, transparent: true, opacity: 0.94 })); tea.rotation.x = -Math.PI / 2; body.add(tea);
+  const saucer = new THREE.Mesh(new THREE.LatheGeometry([[0, 0], [0.05, 0], [0.075, 0.011], [0.078, 0.015], [0.07, 0.013], [0.03, 0.006], [0, 0.007]].map(([r, y]) => new THREE.Vector2(r, y)), 40), china);
+  g.add(saucer); body.position.y = 0.007;
+  g.position.copy(at); g.rotation.y = -0.5; s.add(g);
+  const hit = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.1, 12), new THREE.MeshBasicMaterial({ visible: false })); hit.position.copy(at).add(V(0, 0.04, 0)); hit.userData.cup = true; s.add(hit);
+  const C = { g, body, tea, inside, cv, cg, map, W, at: at.clone(), hits: [hit, ...body.children], full: 1, steam: true };
+  setTeaLevel(C, 1); paintDregs(C, mulberry(Math.floor(Math.random() * 1e6)), 160);
+  return C;
+}
+/** how full the cup is, 0 to 1: the tea's surface sits on the inside wall at that height */
+function setTeaLevel(C, k) {
+  C.full = k; const y = 0.01 + k * 0.046;
+  C.tea.position.y = y; C.tea.scale.setScalar(Math.max(0.001, teaInR(y) - 0.0004)); C.tea.visible = k > 0.02;
+}
+/** porcelain inside, faintly stained, with stray leaves */
+function paintDregs(C, r, n) {
+  const { cg: g, W } = C, c = W / 2;
+  g.fillStyle = '#f8f3ea'; g.fillRect(0, 0, W, W);
+  const st = g.createRadialGradient(c, c, 10, c, c, c); st.addColorStop(0, 'rgba(176,120,70,.35)'); st.addColorStop(0.5, 'rgba(176,120,70,.12)'); st.addColorStop(0.92, 'rgba(176,120,70,.18)'); st.addColorStop(1, 'rgba(176,120,70,0)');
+  g.fillStyle = st; g.fillRect(0, 0, W, W);
+  g.strokeStyle = 'rgba(150,96,50,.3)'; g.lineWidth = 3; g.beginPath(); g.arc(c, c, W * 0.47, 0, TAU); g.stroke();
+  for (let i = 0; i < n; i++) { const a = r() * TAU, d = Math.sqrt(r()) * W * 0.46; teaFleck(g, c + Math.cos(a) * d, c + Math.sin(a) * d, r, 0.8); }
+  C.map.needsUpdate = true;
+}
+/** one tea leaf, curled and dark */
+function teaFleck(g, x, y, r, s = 1) {
+  const L = (3 + r() * 6) * s, w = L * (0.3 + r() * 0.3), a = r() * TAU;
+  g.fillStyle = r() < 0.5 ? 'rgba(40,24,12,.92)' : 'rgba(70,42,20,.88)';
+  g.beginPath(); g.ellipse(x, y, L, w, a, 0, TAU); g.fill();
+}
+/* the outlines the leaves gather along: strokes and filled shapes in a box -1..1, y up */
+const TEA_SHAPES = (() => {
+  const arc = (cx, cy, r, a0, a1, n = 18) => Array.from({ length: n + 1 }, (_, i) => { const a = a0 + (a1 - a0) * (i / n); return [cx + Math.cos(a) * r, cy + Math.sin(a) * r]; });
+  const heart = Array.from({ length: 40 }, (_, i) => { const t = (i / 40) * TAU; return [(16 * Math.sin(t) ** 3) / 17, (13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)) / 17]; });
+  const star = Array.from({ length: 10 }, (_, i) => { const a = Math.PI / 2 + (i * Math.PI) / 5, rr = i % 2 ? 0.38 : 0.95; return [Math.cos(a) * rr, Math.sin(a) * rr]; });
+  return {
+    heart: { fill: [heart] }, star: { fill: [star] },
+    moon: { fill: [[...arc(0, 0, 0.85, Math.PI * 0.35, Math.PI * 1.65), ...arc(0.35, 0, 0.62, Math.PI * 1.45, Math.PI * 0.55)]] },
+    sun: { fill: [arc(0, 0, 0.42, 0, TAU, 24)], strokes: Array.from({ length: 8 }, (_, i) => { const a = (i / 8) * TAU; return [[Math.cos(a) * 0.55, Math.sin(a) * 0.55], [Math.cos(a) * 0.92, Math.sin(a) * 0.92]]; }) },
+    bird: { strokes: [[[-1, 0.25], [-0.55, 0.62], [-0.15, 0.2], [0, 0.05]], [[0, 0.05], [0.15, 0.2], [0.55, 0.62], [1, 0.25]]], fill: [arc(0, -0.05, 0.16, 0, TAU, 12)] },
+    fish: { fill: [[[-0.75, 0], [-0.35, 0.36], [0.2, 0.32], [0.55, 0], [0.2, -0.32], [-0.35, -0.36]], [[0.5, 0], [0.95, 0.4], [0.85, 0], [0.95, -0.4]]] },
+    key: { strokes: [[[-0.35, 0], [0.95, 0]], [[0.62, 0], [0.62, -0.32]], [[0.82, 0], [0.82, -0.26]], arc(-0.62, 0, 0.3, 0, TAU, 20)] },
+    ring: { strokes: [arc(0, 0, 0.7, 0, TAU, 32)] },
+    anchor: { strokes: [[[0, 0.62], [0, -0.75]], [[-0.42, 0.42], [0.42, 0.42]], arc(0, -0.2, 0.62, Math.PI * 1.1, Math.PI * 1.9, 16), arc(0, 0.78, 0.16, 0, TAU, 12)] },
+    tree: { strokes: [[[0, -0.95], [0, 0.05]]], fill: [arc(0, 0.38, 0.55, 0, TAU, 24)] },
+    house: { fill: [[[-0.6, -0.8], [0.6, -0.8], [0.6, 0.1], [0.82, 0.1], [0, 0.82], [-0.82, 0.1], [-0.6, 0.1]]] },
+    mountain: { fill: [[[-1, -0.6], [-0.3, 0.72], [0.15, -0.1], [0.5, 0.32], [1, -0.6]]] },
+    ladder: { strokes: [[[-0.35, -0.95], [-0.35, 0.95]], [[0.35, -0.95], [0.35, 0.95]], ...[-0.6, -0.2, 0.2, 0.6].map((y) => [[-0.35, y], [0.35, y]])] },
+    bridge: { strokes: [arc(0, -0.75, 0.95, Math.PI * 0.18, Math.PI * 0.82, 20), [[-0.95, 0.12], [0.95, 0.12]], [[-0.62, 0.12], [-0.62, -0.45]], [[0.62, 0.12], [0.62, -0.45]]] },
+    boat: { fill: [[[-0.92, -0.2], [0.92, -0.2], [0.6, -0.62], [-0.6, -0.62]], [[0.04, 0.82], [0.62, -0.1], [0.04, -0.1]]], strokes: [[[0, -0.2], [0, 0.85]]] },
+    flower: { fill: Array.from({ length: 5 }, (_, i) => { const a = Math.PI / 2 + (i / 5) * TAU; return arc(Math.cos(a) * 0.36, 0.25 + Math.sin(a) * 0.36, 0.24, 0, TAU, 12); }), strokes: [[[0, 0.1], [0.05, -0.5], [0, -0.95]]] },
+    leaf: { fill: [[[0, -0.95], [0.42, -0.4], [0.5, 0.2], [0, 0.95], [-0.5, 0.2], [-0.42, -0.4]]] },
+    butterfly: { fill: [arc(-0.42, 0.3, 0.36, 0, TAU, 14), arc(0.42, 0.3, 0.36, 0, TAU, 14), arc(-0.32, -0.32, 0.25, 0, TAU, 12), arc(0.32, -0.32, 0.25, 0, TAU, 12)], strokes: [[[0, -0.6], [0, 0.6]]] },
+    umbrella: { fill: [[...arc(0, 0.1, 0.85, 0, Math.PI, 20)]], strokes: [[[0, 0.1], [0, -0.75]], arc(0.16, -0.75, 0.16, Math.PI, TAU, 8)] },
+    bell: { fill: [[[-0.75, -0.55], [0.75, -0.55], [0.5, -0.3], [0.42, 0.45], [0, 0.78], [-0.42, 0.45], [-0.5, -0.3]], arc(0, -0.72, 0.13, 0, TAU, 10)] },
+    kite: { fill: [[[0, 0.95], [0.45, 0.25], [0, -0.35], [-0.45, 0.25]]], strokes: [[[0, -0.35], [0.22, -0.55], [-0.12, -0.72], [0.15, -0.95]]] },
+    spiral: { strokes: [Array.from({ length: 50 }, (_, i) => { const a = i * 0.32, rr = 0.06 + i * 0.017; return [Math.cos(a) * rr, Math.sin(a) * rr]; })] },
+    triangle: { strokes: [[[0, 0.85], [0.85, -0.65], [-0.85, -0.65], [0, 0.85]]] },
+    square: { strokes: [[[-0.7, -0.7], [0.7, -0.7], [0.7, 0.7], [-0.7, 0.7], [-0.7, -0.7]]] },
+    question: { strokes: [[...arc(0, 0.38, 0.38, Math.PI * 1.0, Math.PI * -0.45, 16), [0.08, -0.15], [0, -0.38]]], fill: [arc(0, -0.78, 0.11, 0, TAU, 10)] },
+    cat: { fill: [arc(0, -0.05, 0.6, 0, TAU, 24), [[-0.58, 0.18], [-0.5, 0.92], [-0.12, 0.5]], [[0.58, 0.18], [0.5, 0.92], [0.12, 0.5]]] },
+    feather: { fill: [[[0, 0.95], [0.32, 0.4], [0.28, -0.3], [0, -0.55], [-0.24, -0.2], [-0.3, 0.45]]], strokes: [[[0, 0.95], [0, -0.95]]] },
+    candle: { fill: [[[-0.25, -0.95], [0.25, -0.95], [0.25, 0.3], [-0.25, 0.3]], [[0, 0.95], [0.16, 0.58], [0, 0.42], [-0.16, 0.58]]] },
+    crown: { fill: [[[-0.85, -0.55], [0.85, -0.55], [0.95, 0.55], [0.48, 0.05], [0, 0.72], [-0.48, 0.05], [-0.95, 0.55]]] },
+  };
+})();
+/** leaves gathered into one shape at (x, y), s pixels across: along its strokes and scattered through its filled parts */
+function paintShape(g, shape, x, y, s, r) {
+  const P = (px, py) => [x + px * s * 0.5, y - py * s * 0.5];
+  g.save(); g.fillStyle = g.strokeStyle = 'rgba(150,92,40,.2)'; g.lineWidth = s * 0.07; g.lineCap = g.lineJoin = 'round';         // the damp tea stain the leaves sit in
+  for (const line of shape.strokes ?? []) { g.beginPath(); line.forEach(([px, py], i) => { const [qx, qy] = P(px, py); if (i) g.lineTo(qx, qy); else g.moveTo(qx, qy); }); g.stroke(); }
+  for (const poly of shape.fill ?? []) { g.beginPath(); poly.forEach(([px, py], i) => { const [qx, qy] = P(px, py); if (i) g.lineTo(qx, qy); else g.moveTo(qx, qy); }); g.closePath(); g.fill(); }
+  g.restore();
+  for (const line of shape.strokes ?? []) for (let i = 0; i < line.length - 1; i++) {
+    const [ax, ay] = line[i], [bx, by] = line[i + 1], n = Math.max(2, Math.ceil(Math.hypot(bx - ax, by - ay) / 0.06));
+    for (let k = 0; k < n * 2; k++) { const t = k / (n * 2), [px, py] = P(ax + (bx - ax) * t, ay + (by - ay) * t); teaFleck(g, px + (r() - 0.5) * s * 0.035, py + (r() - 0.5) * s * 0.035, r, s / 110); }
+  }
+  for (const poly of shape.fill ?? []) {
+    const xs = poly.map((p) => p[0]), ys = poly.map((p) => p[1]), x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+    const n = Math.ceil(((x1 - x0) * (y1 - y0)) / 0.0035);
+    for (let k = 0; k < n; k++) { const px = x0 + r() * (x1 - x0), py = y0 + r() * (y1 - y0); if (inPoly(poly, px, py)) { const [qx, qy] = P(px, py); teaFleck(g, qx, qy, r, s / 130); } }
+    poly.forEach(([px, py], i) => { if (i % 2) return; const [qx, qy] = P(px, py); teaFleck(g, qx, qy, r, s / 120); });
+  }
+}
+function inPoly(poly, x, y) { let inside = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const [xi, yi] = poly[i], [xj, yj] = poly[j]; if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside; } return inside; }
+/** where the shapes fall: zone by distance from the centre, side by angle from the handle (to the right, at 0) */
+function teaPlaces(n, r) {
+  const zones = ['rim', 'wall', 'bottom'], sides = [['handle', 0], ['far', Math.PI], ['side', -Math.PI / 2], ['side', Math.PI / 2]], out = [];
+  const pool = []; for (const z of zones) for (const [side, a] of sides) if (z !== 'bottom' || side === 'side') pool.push({ zone: z, side: z === 'bottom' ? 'side' : side, a });
+  while (out.length < n && pool.length) {
+    const p = pool.splice(Math.floor(r() * pool.length), 1)[0];
+    // far enough apart that two shapes never run into each other
+    const at = (q) => { const d = { rim: 0.33, wall: 0.2, bottom: 0 }[q.zone]; return [Math.cos(q.a) * d, Math.sin(q.a) * d]; };
+    if (out.some((o) => { const [x0, y0] = at(o), [x1, y1] = at(p); return Math.hypot(x1 - x0, y1 - y0) < 0.25; })) continue;
+    out.push(p);
+  }
+  return out;
+}
+function startTeaLeaves() {
+  const R = rooms.tea;
+  if (roomId !== 'tea' || !R || busy || lnShuffle || lnCards.length || (teaLeaves && teaLeaves.phase !== 'done')) return;
+  if (!roomInside) { roomSit(); return; }
+  hidePanel(); const C = R.cup;
+  teaLeaves = { phase: 'drink', turns: 0, anim: null, C };
+  C.body.rotation.set(0, 0, 0); setTeaLevel(C, 1); C.steam = true; paintDregs(C, mulberry(Math.floor(Math.random() * 1e6)), 160);
+  toast('默念你的问题，慢慢喝完这杯茶，杯底留一点点'); sfx('soft'); setUI('room');
+}
+/** each step plays as a little animation of the cup: lifted and drunk, swirled, turned over, turned back */
+function teaStep() {
+  const L = teaLeaves; if (!L || L.anim) return;
+  if (L.phase === 'drink') { L.anim = { kind: 'drink', t: 0, dur: 2.2 }; sfx('sip'); }
+  else if (L.phase === 'swirl') { L.acc = 0; L.anim = { kind: 'swirl', t: 0, dur: 0.9 }; sfx('soft'); }
+  else if (L.phase === 'turn') { L.anim = { kind: 'turn', t: 0, dur: 1.2 }; sfx('soft'); }
+  else if (L.phase === 'wait') { L.anim = { kind: 'back', t: 0, dur: 1.1 }; sfx('clink'); }
+  setUI('room');
+}
+function updateTeaLeaves(dt) {
+  const L = teaLeaves; if (!L?.anim) return;
+  const A = L.anim, C = L.C; A.t += dt; const k = Math.min(1, A.t / A.dur), e = easeIO(k);
+  if (A.kind === 'drink') {
+    const lift = Math.sin(Math.PI * k);
+    C.body.position.set(0, 0.007 + lift * 0.09, lift * 0.06); C.body.rotation.x = lift * 0.55;
+    setTeaLevel(C, Math.max(0.04, 1 - e * 1.05)); C.steam = k < 0.5;
+  } else if (A.kind === 'swirl') {
+    C.body.rotation.y = (L.turns + e) * TAU; C.body.position.y = 0.007 + Math.sin(Math.PI * k) * 0.012;
+  } else if (A.kind === 'turn') {
+    C.body.position.y = 0.007 + Math.sin(Math.PI * k) * 0.08 + e * 0.066; C.body.rotation.x = e * Math.PI;
+    if (k >= 1) setTeaLevel(C, 0);
+  } else if (A.kind === 'back') {
+    C.body.position.y = 0.073 - e * 0.066 + Math.sin(Math.PI * k) * 0.08; C.body.rotation.x = Math.PI * (1 - e);
+  }
+  if (k < 1) return;
+  L.anim = null;
+  if (A.kind === 'drink') { L.phase = 'swirl'; sfx('clink'); toast('左手握着杯子，转三圈'); }
+  else if (A.kind === 'swirl') teaTurned(L);
+  else if (A.kind === 'turn') { L.phase = 'wait'; sfx('clink'); paintLeaves(L); setTimeout(() => { if (teaLeaves === L && L.phase === 'wait') teaStep(); }, 1500); }
+  else if (A.kind === 'back') { L.phase = 'read'; readCup(L); }
+  setUI('room');
+}
+/** one full turn of the cup done, by a swipe or the button; after the third it is ready to turn over */
+function teaTurned(L) { L.turns++; sfx('soft'); if (L.turns >= 3) { L.phase = 'turn'; toast('把杯子倒扣在碟子上'); } else toast(`第 ${L.turns} 圈`); setUI('room'); }
+/** swiping turns the cup round on its saucer: a swipe across most of a phone, or about half a wide screen, either way, is one full turn */
+function teaSwirl(dx) {
+  const L = teaLeaves; if (!L || L.phase !== 'swirl' || L.anim) return;
+  const turn = Math.max(300, innerWidth * 0.4);
+  L.acc = (L.acc ?? 0) + Math.abs(dx);
+  L.C.body.rotation.y = (L.turns + Math.min(1, L.acc / turn)) * TAU;
+  if (L.acc >= turn) { L.acc = 0; teaTurned(L); }
+}
+/** the leaves settle into two or three shapes among the strays (painted while the cup is upside down) */
+function paintLeaves(L) {
+  const C = L.C, r = mulberry(Math.floor(Math.random() * 1e6)), n = r() < 0.4 ? 2 : 3, W = C.W, c = W / 2;
+  paintDregs(C, r, 60);
+  const picks = []; while (picks.length < n) { const i = Math.floor(r() * TEA_SYMBOLS.length); if (!picks.includes(i)) picks.push(i); }
+  const places = teaPlaces(n, r);
+  L.found = places.map((p, i) => {
+    const d = { rim: 0.33, wall: 0.2, bottom: 0.0 }[p.zone] * W, a = p.a + (r() - 0.5) * 0.25, x = c + Math.cos(a) * d, y = c + Math.sin(a) * d, s = (p.zone === 'bottom' ? 0.26 : 0.24) * W;
+    paintShape(C.cg, TEA_SHAPES[TEA_SYMBOLS[picks[i]][1]], x, y, s, r);
+    return { k: picks[i], zone: p.zone, side: p.side, x, y, s };
+  });
+  C.map.needsUpdate = true;
+}
+/** look down into the cup; a gold ring and a number round each shape, one after another; then the reading */
+async function readCup(L) {
+  const C = L.C, at = C.at.clone().add(V(0, 0.03, 0)), dir = camera.position.clone().sub(at).setY(0).normalize();
+  busy = true; setUI('moving');
+  await flyRoom({ eye: at.clone().add(V(0, 0.27, 0)).addScaledVector(dir, 0.11), at, yaw: 0.2, pitch: 0.2, fov: [44, 34] }, 1200);
+  busy = false;
+  const g = C.cg;
+  for (const [i, f] of L.found.entries()) {
+    await wait(650); if (teaLeaves !== L) return;
+    g.save(); g.strokeStyle = 'rgba(214,170,80,.95)'; g.lineWidth = 4; g.setLineDash([10, 8]); g.beginPath(); g.arc(f.x, f.y, f.s * 0.62, 0, TAU); g.stroke(); g.restore();
+    const nx = Math.min(C.W * 0.9, f.x + f.s * 0.5), ny = Math.max(C.W * 0.1, f.y - f.s * 0.5);
+    g.fillStyle = 'rgba(176,130,50,.95)'; g.beginPath(); g.arc(nx, ny, C.W * 0.04, 0, TAU); g.fill();
+    g.fillStyle = '#fff8e8'; g.font = `600 ${Math.round(C.W * 0.055)}px "Cormorant Garamond", serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillText(String(i + 1), nx, ny + 1); C.map.needsUpdate = true;
+    sfx('pop'); burstAt(sparks, C.at.clone().add(V(0, 0.07, 0)), 8, { speed: 0.05, up: 0.08, size: 0.006, life: 0.6 });
+  }
+  await wait(700); if (teaLeaves !== L) return;
+  L.phase = 'done'; showTeaReading(L); setUI('room');
+}
+function showTeaReading(L) {
+  const rows = L.found.map((f, i) => {
+    const [name, , line] = TEA_SYMBOLS[f.k], [zone, zoneLine] = TEA_ZONES[f.zone], [side, sideLine] = TEA_SIDES[f.side] ?? [];
+    return `<li><b>${i + 1} · ${name}</b>　${zone}${side ? ` · ${side}` : ''}<span>${line}</span><span class="tea-where">${zoneLine}${sideLine ? `；${sideLine}` : ''}。</span></li>`;
+  }).join('');
+  sfx('chime');
+  showPanel(`<span class="seal">茶</span><small>茶叶占卜 · 杯里看见了 ${L.found.length} 样东西</small><h3>${L.found.map((f) => TEA_SYMBOLS[f.k][0]).join('、')}</h3><p class="gua-image">只读金圈里的形状，其余散叶不必看。</p><ul class="spread-list">${rows}</ul>`
+    + `<div class="note">杯里的茶叶形状由程序随机生成，解读为本书新写。<br>${DISCLAIM.replace('X', '茶叶的形状')}</div>`,
+    [['再来一杯', () => { hidePanel(); backToTea().then(startTeaLeaves); }, true], ['收起', () => { hidePanel(); backToTea(); setUI('room'); }]]);
+  $('panel').classList.add('long');
+}
+function backToTea() { return roomId === 'tea' && roomInside && ROOM_VIEW.tea !== TEA_VIEW.inside && !roomFly ? flyRoom(TEA_VIEW.inside, 900) : Promise.resolve(); }
+/** everything back on the table: the cards put away, a fresh cup poured */
+function resetTea() {
+  clearLn(); teaLeaves = null;
+  const C = rooms.tea?.cup; if (C) { C.body.position.set(0, 0.007, 0); C.body.rotation.set(0, 0, 0); setTeaLevel(C, 1); C.steam = true; paintDregs(C, mulberry(7), 160); }
+}
+/** the buttons along the bottom while a reading is under way; true when they take the place of the room's own */
+function teaButtons(act, hint) {
+  if (lnShuffle) { hint.textContent = '洗牌中……想着你的问题'; return true; }
+  if (lnCards.length) {
+    const i = lnNext();
+    if (i >= 0) {
+      hint.textContent = lnCards.length === 1 ? '点牌，或按下面的按钮翻开' : '点牌，或按下面的按钮，一张一张翻开';
+      act.append(button(lnCards.length === 1 ? '翻开这张牌' : `翻开第 ${i + 1} 张`, () => whenLanded(i, () => flipLn(i)), true));
+      if (lnCards.length > 1) act.append(button('全部翻开', flipAllLn));
+      act.append(button('收起牌', () => { clearLn(); hidePanel(); setUI('room'); }));
+      return true;
+    }
+    return false;
+  }
+  const L = teaLeaves;
+  if (L && L.phase !== 'done') {
+    hint.textContent = { drink: '默念你的问题，喝完这杯茶 · 点杯子也可以', swirl: `左右滑动转杯子，或按「转一圈」，一共三圈（${L.turns}/3）`, turn: '把杯子倒扣在碟子上', wait: '等茶汤流干，杯子会翻回来给你看', read: '杯里留下了什么……' }[L.phase];
+    if (!L.anim && L.phase !== 'read' && L.phase !== 'wait') act.append(button({ drink: '喝茶', swirl: '转一圈', turn: '倒扣杯子' }[L.phase], teaStep, true));
+    if (L.phase !== 'read') act.append(button('放下杯子', () => { resetTea(); setUI('room'); }));
+    return true;
+  }
+  return false;
+}
+/** a tap in the tea room: a card to turn, the deck, the cup, the canary, or the table to sit at */
+function teaTap(hit) {
+  const u = hit.object.userData;
+  if (u.ln !== undefined) { flipLn(u.ln); return; }
+  if (u.canary) { sfx('chirp'); burstAt(sparks, hit.object.position, 10, { speed: 0.08, up: 0.12, size: 0.01, life: 0.8 }); toast('金丝雀唱了一小段'); return; }
+  if (!roomInside) { roomSit(); return; }
+  if (u.deck) { if (!lnCards.length && (!teaLeaves || teaLeaves.phase === 'done')) { teaLeaves = null; showLnChooser(); } return; }
+  if (u.cup || rooms.tea.cup.hits.includes(hit.object)) { if (teaLeaves && teaLeaves.phase !== 'done') teaStep(); else if (!lnCards.length) { teaLeaves = null; startTeaLeaves(); } }
+}
 /** ?dev in the address: the frame counter and the window.__book test hooks */
 const DEV = /[?&]dev\b/.test(location.search);
 /* ================= running it ================= */
@@ -7049,6 +8108,7 @@ function setupInput() {
     if (mode === 'room') {
       if (ritual?.phase === 'shuffle') { ritualSwipe(dx); return; }
       if (lots?.phase === 'shake') { lotsShake(dx); return; }
+      if (teaLeaves?.phase === 'swirl') { teaSwirl(dx); return; }
       const v = ROOM_VIEW[roomId], base = v.orbit ? { yaw: v.orbit.yaw, pitch: v.orbit.pitch } : lookFrom(v.at, v.eye), k = (camera.fov / 62) * 0.0042 * (v.orbit ? 1.4 : 1);
       look.tyaw = THREE.MathUtils.clamp(look.tyaw + (v.orbit ? -dx : dx) * k, base.yaw - (v.yaw ?? 1.1), base.yaw + (v.yaw ?? 1.1));
       look.tpitch = THREE.MathUtils.clamp(look.tpitch + dy * k, base.pitch - (v.pitch ?? 0.7), base.pitch + (v.pitch ?? 0.7));
@@ -7166,6 +8226,15 @@ function sfx(kind) {
       o.connect(f).connect(g).connect(out); o.start(t); lfo.start(t); o.stop(t + 0.7); lfo.stop(t + 0.7);
     } else if (kind === 'bell') {
       [0, 1.1].forEach((d) => [392, 784, 1176, 1568].forEach((f, i) => tone(f, t + d, 2.4 - i * 0.3, [0.05, 0.025, 0.012, 0.008][i])));
+    } else if (kind === 'clink') {                                   // porcelain: a cup set down on its saucer
+      [2794, 3520, 4186].forEach((f, i) => tone(f, t + i * 0.012, 0.35 - i * 0.08, 0.03 - i * 0.008));
+    } else if (kind === 'riffle') {                                  // cards riffled together: a quick run of soft ticks
+      for (let i = 0; i < 18; i++) { const s = noise(0.03), f = actx.createBiquadFilter(), g = actx.createGain(); f.type = 'highpass'; f.frequency.value = 2400; g.gain.setValueAtTime(0.06, t + i * 0.035); g.gain.linearRampToValueAtTime(0, t + i * 0.035 + 0.03); s.connect(f).connect(g).connect(out); s.start(t + i * 0.035); }
+    } else if (kind === 'sip') {                                     // tea poured or sipped: a soft low wash
+      const s = noise(0.9), f = actx.createBiquadFilter(), g = actx.createGain(); f.type = 'bandpass'; f.Q.value = 1.4; f.frequency.setValueAtTime(900, t); f.frequency.linearRampToValueAtTime(500, t + 0.8);
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.07, t + 0.15); g.gain.linearRampToValueAtTime(0, t + 0.85); s.connect(f).connect(g).connect(out); s.start(t);
+    } else if (kind === 'chirp') {                                   // the canary
+      [0, 0.16, 0.3].forEach((d, i) => { const o = tone(2600 + i * 300, t + d, 0.12, 0.03); o.frequency.setValueAtTime(2600 + i * 300, t + d); o.frequency.exponentialRampToValueAtTime(4200, t + d + 0.08); });
     } else if (kind === 'coin') {
       [2093, 2637, 3136].forEach((f, i) => tone(f, t + i * 0.05, 0.5, 0.035));
     } else if (kind === 'purr') {
@@ -7300,7 +8369,7 @@ const LORE = {
   tent: ['塔罗', 'Tarot', `<p>塔罗牌出现在 <b>15 世纪的意大利</b>，最早是贵族们玩的一种纸牌游戏（tarocchi）。直到 18 世纪末，法国的神秘学家把它和古老的智慧联系起来，它才慢慢变成了占卜用的牌。</p><p>一副完整的塔罗有 <b>78 张</b>：22 张<b>大阿尔卡那</b>讲人生里的大主题，比如愚者、恋人、星星；56 张<b>小阿尔卡那</b>分成权杖、圣杯、宝剑、星币四种花色，讲日常的小事。</p><p>这个帐篷只用其中的 <b>22 张大阿尔卡那</b>，编号按韦特体系：8 是力量，11 是正义。</p><p>1909 年出版的<b>莱德-韦特塔罗</b>给每一张牌都配上了完整的画面，78 张全部由画师<b>帕梅拉·科尔曼·史密斯</b>（Pamela Colman Smith）绘制，今天大多数塔罗的画法都受它影响。这里的猫咪牌面也照着她的构图来画：恶魔牌上倒置的五角星，在原牌里表示物质压过了精神；世界牌四角的人、鹰、狮、牛，对应黄道上的四个固定星座。画里不放宗教标志，教皇手里是宝球，审判的旗上是太阳，隐士的灯里是一点星光。</p><p>抽牌的时候，与其说是在预言未来，不如说是借一幅画，照一照自己心里的事。</p>`],
   shrine: ['掷筊', 'Jiaobei', `<p>掷筊（也叫掷杯、跋杯）是<b>闽南、台湾和潮汕一带</b>庙宇里很常见的问事方式。</p><p>筊杯通常用木头或竹根削成，<b>一对两只</b>，像两弯新月：一面平，一面凸。在心里默念问题，再把它们轻轻掷到地上：</p><p><b>一平一凸</b>是「圣筊」，表示应允；<b>两面皆平</b>是「笑筊」，像是神明笑而不答；<b>两面皆凸</b>是「阴筊」，表示不妥，或时机未到。</p><p>很多人会连掷三次圣筊才算真正确认。至于<b>灵签</b>，是双手捧起签筒轻轻摇动，直到一支竹签落下；再掷筊请示，得圣筊才算是给自己的签，然后按签号取签诗来读。</p><p>这里的六十首签诗是为这本书新写的小诗，<b>不托名任何神明</b>，也不照搬哪座庙的签谱，只是陪你停下来想一想。</p>`],
   study: ['测字 · 六爻', 'Character & Coins', `<p><b>测字</b>又叫拆字，是把一个汉字拆开、加减笔画，或从字形字义去联想，来解读心里的事。宋代的谢石就以测字出名。</p><p><b>六爻</b>源自《周易》。传统的做法是把<b>三枚铜钱</b>连着掷六次，每次得到一爻，六爻合成一卦，再看卦象和变化的爻来推想事情的走向。</p>`],
-  tea: ['雷诺曼', 'Lenormand', `<p>雷诺曼卡以 19 世纪法国很有名的占卜师<b>玛丽·安娜·雷诺曼</b>命名，不过这副 <b>36 张</b>的牌其实源自 1799 年前后德国的一款桌游《希望之游戏》。</p><p>每张牌都是一个日常的意象：骑士、幸运草、船、房子、树……读牌时把几张牌连在一起，像读一句话那样理解，风格直接又生活化。</p>`],
+  tea: ['雷诺曼 · 茶叶', 'Lenormand & Tea Leaves', `<p>雷诺曼卡以 19 世纪法国很有名的占卜师<b>玛丽·安娜·雷诺曼</b>命名，不过这副 <b>36 张</b>的牌其实源自 1799 年前后德国纽伦堡的一款桌游《希望之游戏》，由约翰·卡斯帕·赫希特尔（Johann Kaspar Hechtel）设计。没有证据表明雷诺曼本人用过这副牌，是她去世后，出版商借她的名气给它命了名。当年的牌面上就印着一张小小的扑克牌，可以兼作纸牌来玩，后来的雷诺曼牌把它留了下来。</p><p>每张牌都是一个日常的意象：骑士、幸运草、船、房子、树……读牌时把几张牌连在一起，像读一句话那样理解，风格直接又生活化。三张一行时，中间那张是这件事的中心；九张摆成方阵时，中间那张是核心，四周的行和列各说一个方向。</p><p><b>茶叶占卜</b>（tasseography）在茶叶传入欧洲以后慢慢流行起来。维多利亚时代的英国人喝完下午茶，会把杯子转三圈、倒扣在碟子上，再看杯里剩下的茶叶像什么：靠近杯口的说眼前，沉在杯底的说远处，挨着杯柄的和自己有关。</p>`],
   window: ['灵摆', 'Pendulum', `<p>灵摆通常是一根细链吊着一枚<b>水晶或金属坠子</b>。手持链子保持不动，心里问一个只能回答「是」或「否」的问题，再看坠子是前后摆、左右摆，还是画圈。</p><p>科学上认为，这种摆动来自我们自己察觉不到的细微肌肉动作，叫作<b>意念动作效应</b>。所以它更像一面小镜子，帮你听一听自己的直觉。</p>`],
   hearth: ['卢恩符文', 'Runes', `<p>卢恩符文是古代日耳曼人使用的字母。最古老的「<b>古弗萨克</b>」共 24 个字母，大约从公元 2 世纪开始使用，后来在北欧演变成 16 个字母的「新弗萨克」。</p><p>每个符文既是一个音，也有自己的名字和意象，比如 <b>ᚠ Fehu</b> 代表财富，<b>ᚱ Raidho</b> 代表旅途。</p><p>把符文刻在小石块或木片上、抽出来占卜的做法，主要是在 20 世纪流行起来的。</p>`],
 };
@@ -7312,7 +8381,7 @@ function showLore(id) {
 /** before a reading: a breath, and the question held quietly in mind */
 function askQuestion(id) {
   return new Promise(async (done) => {
-    const tarot = ROOMS[id].kind === 'tarot', how = tarot ? '想好了，就从桌上的牌堆里抽牌' : ROOMS[id].kind === 'study' ? '想好了，就到书案前掷铜钱起一卦，或写下一个字' : '想好了，就把木筊轻轻掷出';
+    const tarot = ROOMS[id].kind === 'tarot', how = tarot ? '想好了，就从桌上的牌堆里抽牌' : ROOMS[id].kind === 'study' ? '想好了，就到书案前掷铜钱起一卦，或写下一个字' : ROOMS[id].kind === 'tea' ? '想好了，就到茶桌前翻几张雷诺曼，或喝完一杯茶看看杯底' : '想好了，就把木筊轻轻掷出';
     const box = el('div', 'ask', `<div class="inner"><div class="ring"></div><div class="breath">吸 气 · 呼 气</div><h3>默念你的问题</h3><p>闭上眼，慢慢呼吸三次<br>在心里，把想问的事轻轻说一遍</p></div>`);
     const inner = box.querySelector('.inner');
     let q = null;
@@ -7453,7 +8522,7 @@ function setUI(state) {
   }
   if (state === 'room') {
     const r = ROOMS[roomId], baked = !!rooms[roomId]?.baked, tent = roomId === 'tent';
-    hint.textContent = baked ? (tent ? (roomInside ? '点桌上的牌堆开始占卜 · 拖动可以环顾帐篷' : '左右拖动看看帐篷 · 点桌子，坐到桌前') : roomId === 'study' ? (roomInside ? '掷铜钱起一卦，或写一个字测一测 · 拖动可以环顾书斋' : '左右拖动看看书斋 · 点书案，走到桌前') : (roomInside ? '点签筒求签，或点木筊掷筊 · 拖动可以环顾殿内' : '左右拖动看看神龛 · 点供桌，走到桌前')) : r.kind === 'jiaobei' ? '默念你的问题，再掷一次木筊' : '点桌上的牌，抽一张';
+    hint.textContent = baked ? (tent ? (roomInside ? '点桌上的牌堆开始占卜 · 拖动可以环顾帐篷' : '左右拖动看看帐篷 · 点桌子，坐到桌前') : roomId === 'study' ? (roomInside ? '掷铜钱起一卦，或写一个字测一测 · 拖动可以环顾书斋' : '左右拖动看看书斋 · 点书案，走到桌前') : roomId === 'tea' ? (roomInside ? '翻雷诺曼，或喝茶看杯底 · 拖动环顾茶室' : '拖动看看茶室 · 点茶桌坐下') : (roomInside ? '点签筒求签，或点木筊掷筊 · 拖动可以环顾殿内' : '左右拖动看看神龛 · 点供桌，走到桌前')) : r.kind === 'jiaobei' ? '默念你的问题，再掷一次木筊' : '点桌上的牌，抽一张';
     if (roomId === 'shrine' && lots && lots.phase !== 'ask' && lots.phase !== 'again' && lots.phase !== 'slip') {
       hint.textContent = { shake: '左右滑动摇签筒，或连点「摇签」· 心里想着你的问题', drop: '一支签落了下来……', confirm: '掷筊请示：这一签可是给我的？', granted: '圣筊！去签诗柜取签诗', drawer: '签诗柜里，你的那一格抽屉打开了' }[lots.phase] ?? '';
       if (lots.phase === 'shake') act.append(button('摇签', () => lotsShake(420), true), button('取消', () => { resetLots(); setUI('room'); }));
@@ -7470,6 +8539,10 @@ function setUI(state) {
       }
       act.append(button(liuyao ? '再起一卦' : '掷铜钱起卦', () => { liuyao = null; startLiuyao(); }, true), button(cezi ? '再测一字' : '测一个字', startCezi));
     }
+    if (roomId === 'tea' && roomInside) {
+      if (teaButtons(act, hint)) return;
+      act.append(button('翻雷诺曼', showLnChooser, true), button('读茶叶', () => { teaLeaves = null; startTeaLeaves(); }));
+    }
     if (r.kind === 'jiaobei' && baked && roomInside) act.append(button('求签', startLots, true), button('掷筊', throwBei));
     else if (r.kind === 'jiaobei' && !baked) act.append(button('掷筊', throwBei, true));
     if (roomId === 'tent' && ritual && ritual.phase !== 'done') {
@@ -7480,7 +8553,7 @@ function setUI(state) {
     }
     if (baked && tent) act.append(roomInside ? button('开始占卜', showSpreadChooser, true) : button('坐到桌前', roomSit, true));
     if (tent && cards.length) cardButtons(act);
-    if (baked && !tent && !roomInside) act.append(button(roomId === 'study' ? '走到书案前' : '走到供桌前', roomSit, true));
+    if (baked && !tent && !roomInside) act.append(button(roomId === 'study' ? '走到书案前' : roomId === 'tea' ? '坐到茶桌前' : '走到供桌前', roomSit, true));
     if (baked && roomInside) act.append(button('起身看看', roomStand));
     act.append(button(`ⓘ ${LORE[roomId][0]}小知识`, () => showLore(roomId)), button('回到书里', leaveRoom));
   }
@@ -7488,9 +8561,9 @@ function setUI(state) {
 $('sound').addEventListener('click', () => { soundOn = !soundOn; $('sound').textContent = soundOn ? '声音 · 开' : '声音 · 关'; });
 /** the gentle reminder behind the corner button; the short version stands under the front door */
 const NOTICE = [
-  '这里的塔罗、掷筊、灵签、六爻、测字等，是东西方民俗文化的趣味科普演示。抽牌、掷筊、求签、起卦的结果由程序随机生成，测字的解读按字形预先写好，都不具备预测功能。',
+  '这里的塔罗、掷筊、灵签、六爻、测字、雷诺曼、茶叶占卜等，是东西方民俗文化的趣味科普演示。抽牌、掷筊、求签、起卦的结果和杯里茶叶的形状由程序随机生成，测字的解读按字形预先写好，都不具备预测功能。',
   '内容仅供休闲娱乐，不构成医疗、法律、投资或任何人生决策建议。',
-  '神龛、书斋、签诗与牌面均为原创艺术创作，不代表任何宗教、庙宇或神明；六爻的卦名与象辞节录自《周易》（公有领域）。',
+  '神龛、书斋、茶室、签诗与牌面均为原创艺术创作，不代表任何宗教、庙宇或神明；六爻的卦名与象辞节录自《周易》（公有领域）。',
   '页面不收集、不上传任何个人信息。',
   '小屋里的「人生海海」霓虹灯牌，是向五月天《人生海海》致敬的粉丝设计，与五月天及其唱片公司无关，相关权利归原权利人所有。',
   '命运掌握在自己手中，请保持理性，自主抉择。如果你正经历困扰，请向信任的人或专业人士寻求帮助。',

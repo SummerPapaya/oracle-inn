@@ -16,7 +16,7 @@ const ROOMS = {
   tent:   { name: '星幕帐篷',     methods: '塔罗',        kind: 'tarot',   ready: true },
   shrine: { name: '东方神龛',     methods: '掷筊 · 灵签', kind: 'jiaobei', ready: true },
   study:  { name: '文房书案',     methods: '测字 · 六爻', kind: 'study',   ready: true },
-  tea:    { name: '维多利亚茶桌', methods: '雷诺曼' },
+  tea:    { name: '维多利亚茶桌', methods: '雷诺曼 · 茶叶占卜', kind: 'tea', ready: true },
   window: { name: '月下窗台',     methods: '灵摆' },
   hearth: { name: '北欧炉边',     methods: '卢恩符文' },
 };
@@ -728,12 +728,10 @@ function updateRig(dt) {
 /* ---------- a taste of the pages still being bound: one small thing to try on each ---------- */
 /*
  * Tapping the little house on an unfinished page (or its button) plays a short preview on the page itself and
- * says what it showed: a Lenormand card, a pendulum's answer, a rune stone.
+ * says what it showed: a pendulum's answer, a rune stone.
  * What lands is what the panel reports.
  */
 let teaser = null;
-// Lenormand, by its usual numbers; 8 (the coffin) and 36 (the cross) are left out of this little preview
-const LENORMAND = [[1, '骑士', '好消息正骑马赶来。'], [2, '四叶草', '一点小小的好运就在身边。'], [3, '船', '远方在召唤，适合出发。'], [4, '房子', '回到让你安心的地方。'], [5, '树', '慢慢生长，照顾好身体。'], [6, '云', '暂时看不清，等风吹散。'], [7, '蛇', '绕一点路，反而更稳。'], [9, '花束', '会有一个小小的惊喜。'], [10, '镰刀', '该断则断，干脆一点。'], [11, '鞭子', '别和自己较劲，松一松。'], [12, '鸟', '多聊聊，答案在对话里。'], [13, '孩子', '用新手的心情重新开始。'], [14, '狐狸', '多留个心眼，看清再决定。'], [15, '熊', '你比自己以为的更有力量。'], [16, '星星', '方向就在头顶，抬头看看。'], [17, '鹳', '改变正在发生，顺势而为。'], [18, '狗', '可靠的朋友会帮你一把。'], [19, '塔', '守住自己的原则。'], [20, '花园', '去人多的地方走走。'], [21, '山', '眼前有座山，绕过去或慢慢爬。'], [22, '岔路', '两条路都可以，听听心的选择。'], [23, '老鼠', '留意那些悄悄溜走的小事。'], [24, '心', '用爱去做，不会错。'], [25, '戒指', '一个约定值得珍惜。'], [26, '书', '答案还藏着，再多了解一点。'], [27, '信', '有消息要来，或者该写封信了。'], [28, '绅士', '想想那位你在意的人。'], [29, '淑女', '把温柔也留一点给自己。'], [30, '百合', '平和与安静是你的底气。'], [31, '太阳', '今天会是明亮的一天。'], [32, '月亮', '相信你的灵感和直觉。'], [33, '钥匙', '你已经握着那把钥匙了。'], [34, '鱼', '丰盛在流动，大方一点。'], [35, '锚', '稳住，它会帮你站定。']];
 // runes drawn as strokes on a 10 × 16 grid; only ones without a modern history of misuse
 const RUNES = [['Fehu', '丰盛', '付出会有回报，丰收在路上。', [[3, 1, 3, 15], [3, 5, 8, 2], [3, 9, 8, 6]]], ['Uruz', '力量', '你身上有股韧劲，可以扛住。', [[2, 15, 2, 1, 8, 5, 8, 15]]],
   ['Ansuz', '讯息', '留意别人的一句话，里面有答案。', [[3, 1, 3, 15], [3, 2, 8, 5], [3, 6, 8, 9]]], ['Raidho', '旅程', '出发吧，路会在脚下展开。', [[3, 1, 3, 15], [3, 1, 8, 4, 3, 8, 8, 15]]],
@@ -743,7 +741,7 @@ const RUNES = [['Fehu', '丰盛', '付出会有回报，丰收在路上。', [[3
   ['Berkano', '新生', '新的开始正在萌芽。', [[3, 1, 3, 15], [3, 1, 8, 4, 3, 8, 8, 12, 3, 15]]], ['Ehwaz', '同行', '有人和你一起走，会更稳。', [[2, 15, 2, 1, 5, 5, 8, 1, 8, 15]]],
   ['Mannaz', '自我', '好好认识自己，答案在里面。', [[2, 15, 2, 1, 8, 8], [8, 15, 8, 1, 2, 8]]], ['Laguz', '直觉', '顺着水流，相信直觉。', [[3, 1, 3, 15], [3, 1, 8, 5]]],
   ['Ingwaz', '孕育', '安静地酝酿，时候到了自会开花。', [[5, 3, 8, 8, 5, 13, 2, 8, 5, 3]]], ['Dagaz', '破晓', '天快亮了，转机就在眼前。', [[2, 2, 2, 14, 8, 2, 8, 14, 2, 2]]]];
-const TEASE_BTN = { tea: '翻一张雷诺曼', window: '垂下灵摆', hearth: '摸一颗符文石' };
+const TEASE_BTN = { window: '垂下灵摆', hearth: '摸一颗符文石' };
 const TEASE_NOTE = '<div class="note">这一间还在装订中，下次翻开时就能完整地玩 · 仅供娱乐</div>';
 function teaserStart(id) {
   const P = spreads[cur]?.P;
@@ -761,35 +759,7 @@ function updateTeaser(dt, t) {
   if (!teaser.done && teaser.t > teaser.dur) { teaser.done = true; TEASE[teaser.id].reveal(teaser); }
 }
 const teaseAgain = (id) => [['再来一次', () => teaserStart(id), true], ['收起', hidePanel]];
-function lenormandFace(no, name, line) {
-  const c = canvas(256, 384), g = c.getContext('2d');
-  g.fillStyle = '#f4ead2'; g.fillRect(0, 0, 256, 384); g.strokeStyle = '#b8903e'; g.lineWidth = 8; g.strokeRect(10, 10, 236, 364); g.lineWidth = 2; g.strokeRect(22, 22, 212, 340);
-  g.fillStyle = '#7a5a2a'; g.textAlign = 'center'; g.font = 'italic 600 30px "Cormorant Garamond", serif'; g.fillText(`№ ${no}`, 128, 70);
-  g.fillStyle = '#3a2a1a'; g.font = `900 ${name.length > 2 ? 54 : 70}px "Noto Serif SC", serif`; g.fillText(name, 128, 210);
-  g.fillStyle = '#b8903e'; g.beginPath(); for (let i = 0; i < 16; i++) { const a = Math.PI / 2 + (i * Math.PI) / 8, r = i % 4 === 0 ? 16 : i % 2 ? 4 : 10; g.lineTo(128 + Math.cos(a) * r, 290 - Math.sin(a) * r); } g.fill();
-  return tex(c);
-}
 const TEASE = {
-  tea: {
-    make(T) {
-      T.card = LENORMAND[Math.floor(Math.random() * LENORMAND.length)];
-      const backC = canvas(128, 192), b = backC.getContext('2d'); b.fillStyle = '#24484a'; b.fillRect(0, 0, 128, 192); b.strokeStyle = '#d8b060'; b.lineWidth = 4; b.strokeRect(8, 8, 112, 176); b.beginPath(); b.arc(64, 96, 26, 0, TAU); b.stroke();
-      const geo = new THREE.PlaneGeometry(0.12, 0.18), g = new THREE.Group();
-      g.add(new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ map: lenormandFace(...T.card) })));
-      const bk = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ map: tex(backC) })); bk.rotation.y = Math.PI; g.add(bk);
-      g.position.copy(T.at); T.g.add(g); T.cardG = g; T.dur = 1.6; sfx('page');
-    },
-    tick(T, dt, t) {
-      const k = Math.min(1, T.t / 1.4), e = easeIO(k), g = T.cardG;
-      g.position.copy(T.at).add(V(0, 0.04 + 0.26 * e, 0)); g.scale.setScalar(0.5 + 0.7 * e);
-      const face = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(g.getWorldPosition(tmpV), camera.position, camera.up));
-      const spin = new THREE.Quaternion().setFromAxisAngle(V(0, 1, 0), (1 - e) * Math.PI * 3);
-      const parentQ = T.g.getWorldQuaternion(new THREE.Quaternion()).invert();
-      g.quaternion.copy(parentQ.multiply(face).multiply(spin)).multiply(new THREE.Quaternion().setFromAxisAngle(V(0, 1, 0), Math.PI));
-      if (Math.random() < dt * 20) sparks.emit(g.getWorldPosition(tmpV), tmpW.set(rnd(-0.05, 0.05), rnd(0.02, 0.08), rnd(-0.05, 0.05)), { life: 0.8, size: 0.012 });
-    },
-    reveal(T) { const [no, name, line] = T.card; showPanel(`<span class="seal">牌</span><small>预告 · 雷诺曼 · 第 ${no} 张</small><h3>${name}</h3><p>${line}</p>${TEASE_NOTE}`, teaseAgain('tea')); },
-  },
   window: {
     make(T) {
       T.ans = ['yes', 'no', 'wait'][Math.floor(Math.random() * 3)];

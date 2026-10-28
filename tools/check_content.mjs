@@ -1,6 +1,7 @@
 // Checks the texts of the readings: the tent's tarot (src/_cards.txt, src/_cards_major.txt), the shrine's slips
-// (src/_lingqian.txt) and the study's 六爻 (src/_liuyao.txt) and 测字 (src/_cezi.txt, src/_cezi_table.txt). Those files are
-// the one source the page is built from, and a proofreading table should be made from them too, never copied by hand.
+// (src/_lingqian.txt), the study's 六爻 (src/_liuyao.txt) and 测字 (src/_cezi.txt, src/_cezi_table.txt), and the tea table's
+// 雷诺曼 and 茶叶占卜 (src/_lenormand.txt). Those files are the one source the page is built from, and a proofreading table
+// should be made from them too, never copied by hand.
 // Usage: node tools/check_content.mjs           -> the checks; exits 1 if one fails
 //        node tools/check_content.mjs --json    -> also prints every text as JSON, for making a proofreading table
 import { readFileSync } from 'node:fs';
@@ -11,6 +12,7 @@ const C = new Function(`${src('_liuyao.txt')}\n${src('_cezi_table.txt')}\n${src(
 const array = (file, name) => { const t = src(file), a = t.indexOf(`const ${name} = [`); return new Function(`return ${t.slice(t.indexOf('[', a), t.indexOf('];', a) + 1)}`)(); };
 const MAJOR = array('_cards.txt', 'MAJOR'), MAJOR_REV = array('_cards_major.txt', 'MAJOR_REV'), ROMAN = array('_cards.txt', 'ROMAN');
 const { LINGQIAN } = new Function(`${src('_lingqian.txt')}\nreturn { LINGQIAN };`)();
+const LN = new Function(`${src('_lenormand.txt')}\nreturn { LENORMAND, LN_SPREADS, LN_SIDES, TEA_SYMBOLS, TEA_ZONES, TEA_SIDES };`)();
 let failed = 0;
 const fail = (msg) => { failed++; console.log('  ✗ ' + msg); };
 const dupes = (xs) => [...new Set(xs.filter((x, i) => xs.indexOf(x) !== i))];
@@ -46,6 +48,29 @@ for (const d of dupes(LINGQIAN.map((q) => q[1]))) fail(`two slips share the titl
 for (const d of dupes(LINGQIAN.map((q) => q[4]))) fail(`two slips share the 签意 ${d}`);
 console.log(`  60 slips, grades ${JSON.stringify(grades)}, ${LINGQIAN.filter((q) => q[3].includes('你')).length} readings speak to 你`);
 
+console.log('雷诺曼');
+const { LENORMAND, LN_SPREADS, LN_SIDES, TEA_SYMBOLS, TEA_ZONES, TEA_SIDES } = LN;
+if (LENORMAND.length !== 36) fail(`${LENORMAND.length} cards, not 36`);
+LENORMAND.forEach(([name, en, inset, key, line, phrase], i) => {
+  const n = i + 1;
+  if (!name || !en || !/^(10|[6-9AJQK])[HDCS]$/.test(inset || '')) fail(`${n} ${name}: name or playing card ${inset}?`);
+  if ([...(key || '')].length !== 2 || !ends(line) || !phrase || /[，。？！]$/.test(phrase)) fail(`${n} ${name}: keyword, reading or phrase missing or unfinished`);
+  if (BANNED.test(line) || BANNED.test(phrase)) fail(`${n} ${name}: a verdict or a promise`);
+});
+// the old decks print a piquet pack and four sixes in their corners: 6 to 10, J, Q, K and A of each suit, each once
+for (const d of dupes(LENORMAND.map((c) => c[2]))) fail(`two cards carry the playing card ${d}`);
+for (const k of [1, 3, 4, 5]) for (const d of dupes(LENORMAND.map((c) => c[k]))) fail(`two cards share ${['', 'the English name', '', 'the keyword', 'a reading', 'a phrase'][k]} ${d}`);
+for (const [k, S] of Object.entries(LN_SPREADS)) if (S.slots ? S.slots.length !== S.n : S.n !== 1) fail(`spread ${k}: ${S.n} cards but ${S.slots?.length} places`);
+for (const [side, , idx] of LN_SIDES) if (idx.length !== 3 || idx.some((i) => i < 0 || i > 8) || idx.includes(4)) fail(`side ${side} of the square: ${idx}`);
+console.log(`  36 cards; spreads ${Object.values(LN_SPREADS).map((S) => S.name).join(' / ')}`);
+console.log('茶叶占卜');
+for (const [name, shape, line] of TEA_SYMBOLS) {
+  if (!name || !shape || !ends(line)) fail(`${name}: shape or reading missing or unfinished`);
+  if (BANNED.test(line)) fail(`${name}: a verdict or a promise`);
+}
+for (const k of [0, 1, 2]) for (const d of dupes(TEA_SYMBOLS.map((t) => t[k]))) fail(`two shapes share ${d}`);
+for (const [k, [name, line]] of Object.entries({ ...TEA_ZONES, ...TEA_SIDES })) if (!name || (k !== 'side' && !line)) fail(`place ${k} unnamed`);
+console.log(`  ${TEA_SYMBOLS.length} shapes the leaves can make`);
 
 console.log('六爻');
 const { GUA, TRIGRAM } = C;
@@ -102,6 +127,9 @@ if (process.argv.includes('--json')) {
   console.log(JSON.stringify({
     tarot: MAJOR.map(([name, en, , up, key], k) => ({ no: k, roman: ROMAN[k], name, en, key, up, rev: MAJOR_REV[k] })),
     lingqian: LINGQIAN.map(([grade, title, poem, jie, gist], i) => ({ no: i + 1, grade, title, poem, jie, gist })),
+    lenormand: LENORMAND.map(([name, en, inset, key, line, phrase], i) => ({ no: i + 1, name, en, inset, key, line, phrase })),
+    lnSpreads: LN_SPREADS, lnSides: LN_SIDES,
+    tea: TEA_SYMBOLS.map(([name, shape, line]) => ({ name, shape, line })), teaZones: TEA_ZONES, teaSides: TEA_SIDES,
     gua: GUA.map(([no, name, up, lo, image, key, line, note]) => ({ no, name, full: C.guaFullName(GUA[no - 1]), up, low: lo, image, key, line, note: note || '' })),
     cezi: chars.map((ch) => ({ ch, parts: CEZI[ch][0], line: CEZI[ch][1], pick: picks.includes(ch), heavy: CEZI_HEAVY.includes(ch) })),
     picks: CEZI_PICKS,

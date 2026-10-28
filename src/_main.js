@@ -88,6 +88,7 @@ function setupInput() {
     if (mode === 'room') {
       if (ritual?.phase === 'shuffle') { ritualSwipe(dx); return; }
       if (lots?.phase === 'shake') { lotsShake(dx); return; }
+      if (teaLeaves?.phase === 'swirl') { teaSwirl(dx); return; }
       const v = ROOM_VIEW[roomId], base = v.orbit ? { yaw: v.orbit.yaw, pitch: v.orbit.pitch } : lookFrom(v.at, v.eye), k = (camera.fov / 62) * 0.0042 * (v.orbit ? 1.4 : 1);
       look.tyaw = THREE.MathUtils.clamp(look.tyaw + (v.orbit ? -dx : dx) * k, base.yaw - (v.yaw ?? 1.1), base.yaw + (v.yaw ?? 1.1));
       look.tpitch = THREE.MathUtils.clamp(look.tpitch + dy * k, base.pitch - (v.pitch ?? 0.7), base.pitch + (v.pitch ?? 0.7));
@@ -205,6 +206,15 @@ function sfx(kind) {
       o.connect(f).connect(g).connect(out); o.start(t); lfo.start(t); o.stop(t + 0.7); lfo.stop(t + 0.7);
     } else if (kind === 'bell') {
       [0, 1.1].forEach((d) => [392, 784, 1176, 1568].forEach((f, i) => tone(f, t + d, 2.4 - i * 0.3, [0.05, 0.025, 0.012, 0.008][i])));
+    } else if (kind === 'clink') {                                   // porcelain: a cup set down on its saucer
+      [2794, 3520, 4186].forEach((f, i) => tone(f, t + i * 0.012, 0.35 - i * 0.08, 0.03 - i * 0.008));
+    } else if (kind === 'riffle') {                                  // cards riffled together: a quick run of soft ticks
+      for (let i = 0; i < 18; i++) { const s = noise(0.03), f = actx.createBiquadFilter(), g = actx.createGain(); f.type = 'highpass'; f.frequency.value = 2400; g.gain.setValueAtTime(0.06, t + i * 0.035); g.gain.linearRampToValueAtTime(0, t + i * 0.035 + 0.03); s.connect(f).connect(g).connect(out); s.start(t + i * 0.035); }
+    } else if (kind === 'sip') {                                     // tea poured or sipped: a soft low wash
+      const s = noise(0.9), f = actx.createBiquadFilter(), g = actx.createGain(); f.type = 'bandpass'; f.Q.value = 1.4; f.frequency.setValueAtTime(900, t); f.frequency.linearRampToValueAtTime(500, t + 0.8);
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.07, t + 0.15); g.gain.linearRampToValueAtTime(0, t + 0.85); s.connect(f).connect(g).connect(out); s.start(t);
+    } else if (kind === 'chirp') {                                   // the canary
+      [0, 0.16, 0.3].forEach((d, i) => { const o = tone(2600 + i * 300, t + d, 0.12, 0.03); o.frequency.setValueAtTime(2600 + i * 300, t + d); o.frequency.exponentialRampToValueAtTime(4200, t + d + 0.08); });
     } else if (kind === 'coin') {
       [2093, 2637, 3136].forEach((f, i) => tone(f, t + i * 0.05, 0.5, 0.035));
     } else if (kind === 'purr') {
@@ -339,7 +349,7 @@ const LORE = {
   tent: ['塔罗', 'Tarot', `<p>塔罗牌出现在 <b>15 世纪的意大利</b>，最早是贵族们玩的一种纸牌游戏（tarocchi）。直到 18 世纪末，法国的神秘学家把它和古老的智慧联系起来，它才慢慢变成了占卜用的牌。</p><p>一副完整的塔罗有 <b>78 张</b>：22 张<b>大阿尔卡那</b>讲人生里的大主题，比如愚者、恋人、星星；56 张<b>小阿尔卡那</b>分成权杖、圣杯、宝剑、星币四种花色，讲日常的小事。</p><p>这个帐篷只用其中的 <b>22 张大阿尔卡那</b>，编号按韦特体系：8 是力量，11 是正义。</p><p>1909 年出版的<b>莱德-韦特塔罗</b>给每一张牌都配上了完整的画面，78 张全部由画师<b>帕梅拉·科尔曼·史密斯</b>（Pamela Colman Smith）绘制，今天大多数塔罗的画法都受它影响。这里的猫咪牌面也照着她的构图来画：恶魔牌上倒置的五角星，在原牌里表示物质压过了精神；世界牌四角的人、鹰、狮、牛，对应黄道上的四个固定星座。画里不放宗教标志，教皇手里是宝球，审判的旗上是太阳，隐士的灯里是一点星光。</p><p>抽牌的时候，与其说是在预言未来，不如说是借一幅画，照一照自己心里的事。</p>`],
   shrine: ['掷筊', 'Jiaobei', `<p>掷筊（也叫掷杯、跋杯）是<b>闽南、台湾和潮汕一带</b>庙宇里很常见的问事方式。</p><p>筊杯通常用木头或竹根削成，<b>一对两只</b>，像两弯新月：一面平，一面凸。在心里默念问题，再把它们轻轻掷到地上：</p><p><b>一平一凸</b>是「圣筊」，表示应允；<b>两面皆平</b>是「笑筊」，像是神明笑而不答；<b>两面皆凸</b>是「阴筊」，表示不妥，或时机未到。</p><p>很多人会连掷三次圣筊才算真正确认。至于<b>灵签</b>，是双手捧起签筒轻轻摇动，直到一支竹签落下；再掷筊请示，得圣筊才算是给自己的签，然后按签号取签诗来读。</p><p>这里的六十首签诗是为这本书新写的小诗，<b>不托名任何神明</b>，也不照搬哪座庙的签谱，只是陪你停下来想一想。</p>`],
   study: ['测字 · 六爻', 'Character & Coins', `<p><b>测字</b>又叫拆字，是把一个汉字拆开、加减笔画，或从字形字义去联想，来解读心里的事。宋代的谢石就以测字出名。</p><p><b>六爻</b>源自《周易》。传统的做法是把<b>三枚铜钱</b>连着掷六次，每次得到一爻，六爻合成一卦，再看卦象和变化的爻来推想事情的走向。</p>`],
-  tea: ['雷诺曼', 'Lenormand', `<p>雷诺曼卡以 19 世纪法国很有名的占卜师<b>玛丽·安娜·雷诺曼</b>命名，不过这副 <b>36 张</b>的牌其实源自 1799 年前后德国的一款桌游《希望之游戏》。</p><p>每张牌都是一个日常的意象：骑士、幸运草、船、房子、树……读牌时把几张牌连在一起，像读一句话那样理解，风格直接又生活化。</p>`],
+  tea: ['雷诺曼 · 茶叶', 'Lenormand & Tea Leaves', `<p>雷诺曼卡以 19 世纪法国很有名的占卜师<b>玛丽·安娜·雷诺曼</b>命名，不过这副 <b>36 张</b>的牌其实源自 1799 年前后德国纽伦堡的一款桌游《希望之游戏》，由约翰·卡斯帕·赫希特尔（Johann Kaspar Hechtel）设计。没有证据表明雷诺曼本人用过这副牌，是她去世后，出版商借她的名气给它命了名。当年的牌面上就印着一张小小的扑克牌，可以兼作纸牌来玩，后来的雷诺曼牌把它留了下来。</p><p>每张牌都是一个日常的意象：骑士、幸运草、船、房子、树……读牌时把几张牌连在一起，像读一句话那样理解，风格直接又生活化。三张一行时，中间那张是这件事的中心；九张摆成方阵时，中间那张是核心，四周的行和列各说一个方向。</p><p><b>茶叶占卜</b>（tasseography）在茶叶传入欧洲以后慢慢流行起来。维多利亚时代的英国人喝完下午茶，会把杯子转三圈、倒扣在碟子上，再看杯里剩下的茶叶像什么：靠近杯口的说眼前，沉在杯底的说远处，挨着杯柄的和自己有关。</p>`],
   window: ['灵摆', 'Pendulum', `<p>灵摆通常是一根细链吊着一枚<b>水晶或金属坠子</b>。手持链子保持不动，心里问一个只能回答「是」或「否」的问题，再看坠子是前后摆、左右摆，还是画圈。</p><p>科学上认为，这种摆动来自我们自己察觉不到的细微肌肉动作，叫作<b>意念动作效应</b>。所以它更像一面小镜子，帮你听一听自己的直觉。</p>`],
   hearth: ['卢恩符文', 'Runes', `<p>卢恩符文是古代日耳曼人使用的字母。最古老的「<b>古弗萨克</b>」共 24 个字母，大约从公元 2 世纪开始使用，后来在北欧演变成 16 个字母的「新弗萨克」。</p><p>每个符文既是一个音，也有自己的名字和意象，比如 <b>ᚠ Fehu</b> 代表财富，<b>ᚱ Raidho</b> 代表旅途。</p><p>把符文刻在小石块或木片上、抽出来占卜的做法，主要是在 20 世纪流行起来的。</p>`],
 };
@@ -351,7 +361,7 @@ function showLore(id) {
 /** before a reading: a breath, and the question held quietly in mind */
 function askQuestion(id) {
   return new Promise(async (done) => {
-    const tarot = ROOMS[id].kind === 'tarot', how = tarot ? '想好了，就从桌上的牌堆里抽牌' : ROOMS[id].kind === 'study' ? '想好了，就到书案前掷铜钱起一卦，或写下一个字' : '想好了，就把木筊轻轻掷出';
+    const tarot = ROOMS[id].kind === 'tarot', how = tarot ? '想好了，就从桌上的牌堆里抽牌' : ROOMS[id].kind === 'study' ? '想好了，就到书案前掷铜钱起一卦，或写下一个字' : ROOMS[id].kind === 'tea' ? '想好了，就到茶桌前翻几张雷诺曼，或喝完一杯茶看看杯底' : '想好了，就把木筊轻轻掷出';
     const box = el('div', 'ask', `<div class="inner"><div class="ring"></div><div class="breath">吸 气 · 呼 气</div><h3>默念你的问题</h3><p>闭上眼，慢慢呼吸三次<br>在心里，把想问的事轻轻说一遍</p></div>`);
     const inner = box.querySelector('.inner');
     let q = null;
@@ -492,7 +502,7 @@ function setUI(state) {
   }
   if (state === 'room') {
     const r = ROOMS[roomId], baked = !!rooms[roomId]?.baked, tent = roomId === 'tent';
-    hint.textContent = baked ? (tent ? (roomInside ? '点桌上的牌堆开始占卜 · 拖动可以环顾帐篷' : '左右拖动看看帐篷 · 点桌子，坐到桌前') : roomId === 'study' ? (roomInside ? '掷铜钱起一卦，或写一个字测一测 · 拖动可以环顾书斋' : '左右拖动看看书斋 · 点书案，走到桌前') : (roomInside ? '点签筒求签，或点木筊掷筊 · 拖动可以环顾殿内' : '左右拖动看看神龛 · 点供桌，走到桌前')) : r.kind === 'jiaobei' ? '默念你的问题，再掷一次木筊' : '点桌上的牌，抽一张';
+    hint.textContent = baked ? (tent ? (roomInside ? '点桌上的牌堆开始占卜 · 拖动可以环顾帐篷' : '左右拖动看看帐篷 · 点桌子，坐到桌前') : roomId === 'study' ? (roomInside ? '掷铜钱起一卦，或写一个字测一测 · 拖动可以环顾书斋' : '左右拖动看看书斋 · 点书案，走到桌前') : roomId === 'tea' ? (roomInside ? '翻雷诺曼，或喝茶看杯底 · 拖动环顾茶室' : '拖动看看茶室 · 点茶桌坐下') : (roomInside ? '点签筒求签，或点木筊掷筊 · 拖动可以环顾殿内' : '左右拖动看看神龛 · 点供桌，走到桌前')) : r.kind === 'jiaobei' ? '默念你的问题，再掷一次木筊' : '点桌上的牌，抽一张';
     if (roomId === 'shrine' && lots && lots.phase !== 'ask' && lots.phase !== 'again' && lots.phase !== 'slip') {
       hint.textContent = { shake: '左右滑动摇签筒，或连点「摇签」· 心里想着你的问题', drop: '一支签落了下来……', confirm: '掷筊请示：这一签可是给我的？', granted: '圣筊！去签诗柜取签诗', drawer: '签诗柜里，你的那一格抽屉打开了' }[lots.phase] ?? '';
       if (lots.phase === 'shake') act.append(button('摇签', () => lotsShake(420), true), button('取消', () => { resetLots(); setUI('room'); }));
@@ -509,6 +519,10 @@ function setUI(state) {
       }
       act.append(button(liuyao ? '再起一卦' : '掷铜钱起卦', () => { liuyao = null; startLiuyao(); }, true), button(cezi ? '再测一字' : '测一个字', startCezi));
     }
+    if (roomId === 'tea' && roomInside) {
+      if (teaButtons(act, hint)) return;
+      act.append(button('翻雷诺曼', showLnChooser, true), button('读茶叶', () => { teaLeaves = null; startTeaLeaves(); }));
+    }
     if (r.kind === 'jiaobei' && baked && roomInside) act.append(button('求签', startLots, true), button('掷筊', throwBei));
     else if (r.kind === 'jiaobei' && !baked) act.append(button('掷筊', throwBei, true));
     if (roomId === 'tent' && ritual && ritual.phase !== 'done') {
@@ -519,7 +533,7 @@ function setUI(state) {
     }
     if (baked && tent) act.append(roomInside ? button('开始占卜', showSpreadChooser, true) : button('坐到桌前', roomSit, true));
     if (tent && cards.length) cardButtons(act);
-    if (baked && !tent && !roomInside) act.append(button(roomId === 'study' ? '走到书案前' : '走到供桌前', roomSit, true));
+    if (baked && !tent && !roomInside) act.append(button(roomId === 'study' ? '走到书案前' : roomId === 'tea' ? '坐到茶桌前' : '走到供桌前', roomSit, true));
     if (baked && roomInside) act.append(button('起身看看', roomStand));
     act.append(button(`ⓘ ${LORE[roomId][0]}小知识`, () => showLore(roomId)), button('回到书里', leaveRoom));
   }
@@ -527,9 +541,9 @@ function setUI(state) {
 $('sound').addEventListener('click', () => { soundOn = !soundOn; $('sound').textContent = soundOn ? '声音 · 开' : '声音 · 关'; });
 /** the gentle reminder behind the corner button; the short version stands under the front door */
 const NOTICE = [
-  '这里的塔罗、掷筊、灵签、六爻、测字等，是东西方民俗文化的趣味科普演示。抽牌、掷筊、求签、起卦的结果由程序随机生成，测字的解读按字形预先写好，都不具备预测功能。',
+  '这里的塔罗、掷筊、灵签、六爻、测字、雷诺曼、茶叶占卜等，是东西方民俗文化的趣味科普演示。抽牌、掷筊、求签、起卦的结果和杯里茶叶的形状由程序随机生成，测字的解读按字形预先写好，都不具备预测功能。',
   '内容仅供休闲娱乐，不构成医疗、法律、投资或任何人生决策建议。',
-  '神龛、书斋、签诗与牌面均为原创艺术创作，不代表任何宗教、庙宇或神明；六爻的卦名与象辞节录自《周易》（公有领域）。',
+  '神龛、书斋、茶室、签诗与牌面均为原创艺术创作，不代表任何宗教、庙宇或神明；六爻的卦名与象辞节录自《周易》（公有领域）。',
   '页面不收集、不上传任何个人信息。',
   '小屋里的「人生海海」霓虹灯牌，是向五月天《人生海海》致敬的粉丝设计，与五月天及其唱片公司无关，相关权利归原权利人所有。',
   '命运掌握在自己手中，请保持理性，自主抉择。如果你正经历困扰，请向信任的人或专业人士寻求帮助。',

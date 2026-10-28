@@ -1,7 +1,7 @@
 # Fetches woff2 subsets from Google Fonts holding only the characters the pages use, and writes a fonts.css for them.
 # Run it again whenever the pages gain new characters (build.py warns when they do):  python3 tools/fetch_fonts.py
 # Then node tools/check_fonts.mjs reads the glyphs actually in the files and lists anything that would fall back.
-import re, sys, os, subprocess, urllib.parse, hashlib, glob
+import re, sys, os, subprocess, urllib.parse, hashlib, glob, time
 PUB = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'public'); OUT = os.path.join(PUB, 'vendor', 'fonts')
 os.makedirs(OUT, exist_ok=True)
 for old in [n for n in os.listdir(OUT) if n.endswith('.woff2')]: os.remove(os.path.join(OUT, old))
@@ -22,8 +22,11 @@ def in_gb(ch):
 beyond = ''.join(ch for ch in cjk if not in_gb(ch))                      # Long Cang stops at GB 2312: WenKai brushes these in
 rest = sorted(set(gb2312) - set(cjk))                                     # any character 测字 may be given, in Long Cang only
 def curl(url, binary=False):
-    r = subprocess.run(['curl', '-sSfL', '--retry', '3', '--max-time', '120', '-A', UA, url], capture_output=True, check=True)
-    return r.stdout if binary else r.stdout.decode()
+    for attempt in range(4):                     # Google now and then refuses a request outright; a pause and another try get it
+        r = subprocess.run(['curl', '-sSfL', '--retry', '3', '--max-time', '120', '-A', UA, url], capture_output=True)
+        if r.returncode == 0: return r.stdout if binary else r.stdout.decode()
+        time.sleep(3 + attempt * 3)
+    r.check_returncode()
 def ranges(chars):
     cps = sorted(set(ord(c) for c in chars)); out = []; i = 0
     while i < len(cps):

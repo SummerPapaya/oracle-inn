@@ -2,16 +2,19 @@
 # couplet either side of the window, the cloth book cases with their title labels, and the rice paper on the desk.
 # Everything is drawn here, nothing downloaded.  Run:  python3 study_tex.py
 #
-# The lettering uses the system Songti for now (preview only). The textures that ship must use open fonts subset to
-# their characters, as shrine_tex.py does (blender/fonts/); switch FONT_* below once those subsets are fetched.
+# The lettering is in the open fonts the site hosts (webfont.py): Noto Serif SC Black for the carved plaque, Bold for the
+# book labels, the brush hand Long Cang for the couplet.
 import math, os, random
-from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from PIL import Image, ImageDraw, ImageFilter
+import webfont
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 TEX = os.path.join(HERE, 'tex')
-SONGTI = '/System/Library/Fonts/Supplemental/Songti.ttc'
-FONT_CARVE, FONT_BRUSH = (SONGTI, 0), (SONGTI, 1)          # Songti SC Black for the carved plaque, Bold for brushwork
-def font(px, face=FONT_CARVE): return ImageFont.truetype(face[0], px, index=face[1])
+def font(ch, px, face):
+    f = webfont.font_for(ch, *face, px) if len(face) == 1 else webfont.font_for(ch, face[0], px, face[1])
+    assert f, f'{ch} is in none of the hosted {face[0]} files'
+    return f
+CARVE, LABEL, BRUSH = ('Noto Serif SC', '900'), ('Noto Serif SC', '700'), ('Long Cang',)
 def save(im, name, size=None):
     if size: im = im.resize(size, Image.LANCZOS)
     im.convert('RGB').save(os.path.join(TEX, name), quality=92); print('wrote', name, im.size if not size else size)
@@ -108,8 +111,9 @@ def plaque(W=2048, H=720):
     im = wood_board(W, H, '#3a2418', '#1a0e08', 5); d = ImageDraw.Draw(im)
     d.rectangle([18, 18, W - 18, H - 18], outline=hexc('#b8903e'), width=10)
     d.rectangle([52, 52, W - 52, H - 52], outline=hexc('#8a6a30'), width=4)
-    f = font(400); text = '问字斋'; step = (W - 300) / 3
+    text = '问字斋'; step = (W - 300) / 3
     for i, ch in enumerate(text):
+        f = font(ch, 400, CARVE)
         x = 150 + step * (i + 0.5); y = H / 2
         d.text((x + 8, y + 10), ch, font=f, fill=hexc('#120a06'), anchor='mm')          # the cut's shadow
         d.text((x, y), ch, font=f, fill=hexc('#5e9a7a'), anchor='mm')                   # stone green fill
@@ -123,9 +127,9 @@ def couplet(text, name, W=400, H=2000):
     for _ in range(260):                                            # 洒金: scattered gold flecks
         x, y = R.uniform(34, W - 34), R.uniform(76, H - 76); r = R.uniform(1, 4)
         d.polygon([(x + r * math.cos(a), y + r * math.sin(a)) for a in [R.uniform(0, 6.3) for _ in range(5)]], fill=hexc('#c8a654', R.randint(90, 200)))
-    f = font(int(W * 0.62), FONT_BRUSH); n = len(text); step = (H - 220) / n
+    n = len(text); step = (H - 220) / n
     for i, ch in enumerate(text):
-        d.text((W / 2, 110 + step * (i + 0.5)), ch, font=f, fill=hexc('#1a1410'), anchor='mm')
+        d.text((W / 2, 110 + step * (i + 0.5)), ch, font=font(ch, int(W * 0.7), BRUSH), fill=hexc('#1a1410'), anchor='mm')
     d.rectangle([0, 0, W, 60], fill=hexc('#6c8582')); d.rectangle([0, H - 60, W, H], fill=hexc('#6c8582'))
     save(grain(im, 7, 8), name, (200, 1000))
 
@@ -141,8 +145,7 @@ def books(W=2048, H=1024):
         for _ in range(900): x, y = R.uniform(x0, x0 + tw), R.uniform(0, H); d.point((x, y), fill=hexc('#000000', 40))
         lx0, lx1 = x0 + tw * 0.3, x0 + tw * 0.7; d.rectangle([lx0, 60, lx1, 60 + H * 0.5], fill=hexc('#ece2c8'))
         d.rectangle([lx0 + 6, 66, lx1 - 6, 54 + H * 0.5], outline=hexc('#9a3020'), width=3)
-        f = font(int(tw * 0.32), FONT_BRUSH)
-        for k, ch in enumerate(t): d.text(((lx0 + lx1) / 2, 60 + H * 0.5 * (k + 0.5) / len(t)), ch, font=f, fill=hexc('#1a1410'), anchor='mm')
+        for k, ch in enumerate(t): d.text(((lx0 + lx1) / 2, 60 + H * 0.5 * (k + 0.5) / len(t)), ch, font=font(ch, int(tw * 0.32), LABEL), fill=hexc('#1a1410'), anchor='mm')
         d.rectangle([x0 + 8, 8, x0 + tw - 8, H - 8], outline=hexc('#0e1420', 120), width=6)
     x0 = 6 * tw                                                      # page edges of a stack: thin cream lines
     d.rectangle([x0, 0, x0 + tw, H], fill=hexc('#e2d6b8'))

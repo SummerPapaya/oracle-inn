@@ -5,7 +5,7 @@
  * upturned eaves with a little pavilion roof and a gold finial, bamboo on the left, a plum in blossom and a Taihu
  * rock on the right, a lily pond and stepping stones in front. Look in from outside, or step up to the desk.
  */
-const STUDY_ASSETS = 'study/', STUDY_PRE = 'study_10281823';
+const STUDY_ASSETS = 'study/', STUDY_PRE = 'study_10290111';
 const STUDY_VIEW = {
   // the garden is twice as wide as the tent's or the shrine's platform: a phone held upright steps back further to keep it whole
   orbit: { at: V(0, 2.1, 1.1), orbit: { yaw: 0, pitch: 0.4, dist: 27, narrow: 1.3 }, yaw: 0.8, pitch: 0.2, fov: [44, 28] },
@@ -29,8 +29,10 @@ function studyRanges() {
   for (let i = 0; i < 26; i++) { const x = r() * 2048, y = 360 + r() * 120, w = 120 + r() * 260; const m = g.createRadialGradient(x, y, 0, x, y, w); m.addColorStop(0, 'rgba(170,184,206,.16)'); m.addColorStop(1, 'rgba(170,184,206,0)'); g.fillStyle = m; g.fillRect(x - w, y - w, w * 2, w * 2); }
   return tex(c);
 }
-/** stars all round that twinkle, and the moon with its halo */
-function studySky(s) {
+/** the study's sky: the night sky over the ink ranges, the moon high on the right */
+function studySky(s) { return nightSky(s, studyRanges(), V(9, 13, -42), 4.5); }
+/** stars all round that twinkle, the moon with its halo, and a painted backdrop low on the horizon behind (the tea room uses it too) */
+function nightSky(s, back, moonAt, backY) {
   const N = 900, pos = [], seed = [], mag = [], rng = mulberry(4417);
   for (let i = 0; i < N; i++) {
     const z = rng() * 1.1 - 0.1, a = rng() * TAU, rr = Math.sqrt(Math.max(0, 1 - z * z));
@@ -50,9 +52,9 @@ function studySky(s) {
     g.fillStyle = halo; g.fillRect(0, 0, 512, 512); g.fillStyle = '#f2e8cc'; g.beginPath(); g.arc(256, 256, 96, 0, TAU); g.fill(); return tex(c);
   })();
   const moon = new THREE.Sprite(new THREE.SpriteMaterial({ map: moonTex, transparent: true, depthWrite: false, fog: false }));
-  moon.position.set(9, 13, -42); moon.scale.setScalar(9); moon.renderOrder = -1; s.add(moon);
-  const ranges = new THREE.Mesh(new THREE.PlaneGeometry(110, 27.5), new THREE.MeshBasicMaterial({ map: studyRanges(), transparent: true, depthWrite: false, fog: false }));
-  ranges.position.set(0, 4.5, -46); ranges.renderOrder = -1; s.add(ranges);
+  moon.position.copy(moonAt); moon.scale.setScalar(9); moon.renderOrder = -1; s.add(moon);
+  const ranges = new THREE.Mesh(new THREE.PlaneGeometry(110, 27.5), new THREE.MeshBasicMaterial({ map: back, transparent: true, depthWrite: false, fog: false }));
+  ranges.position.set(0, backY, -46); ranges.renderOrder = -1; s.add(ranges);
   return (t) => { mat.uniforms.t.value = t; };
 }
 async function buildBakedStudyRoom() {

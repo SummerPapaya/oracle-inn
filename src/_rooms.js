@@ -277,7 +277,7 @@ async function loadBakedGLB(base, pre) {
   return new Promise((res, rej) => new GLTFLoader().parse(buf, base, res, rej));
 }
 /** the rooms that come baked from Blender, how to look at them, and how to build them */
-const BAKED = { tent: { view: () => TENT_VIEW, build: () => buildBakedTentRoom() }, shrine: { view: () => SHRINE_VIEW, build: () => buildBakedShrineRoom() }, study: { view: () => STUDY_VIEW, build: () => buildBakedStudyRoom() } };
+const BAKED = { tent: { view: () => TENT_VIEW, build: () => buildBakedTentRoom() }, shrine: { view: () => SHRINE_VIEW, build: () => buildBakedShrineRoom() }, study: { view: () => STUDY_VIEW, build: () => buildBakedStudyRoom() }, tea: { view: () => TEA_VIEW, build: () => buildBakedTeaRoom() } };
 const bakedP = {};
 function preloadBaked(id) { return (bakedP[id] ??= BAKED[id].build().catch((e) => { console.warn(`baked ${id} unavailable, using the paper one`, e); return null; })); }
 function preloadBakedTent() { return preloadBaked('tent'); }
@@ -508,19 +508,21 @@ async function buildBakedShrineRoom() {
     moon: moonGlow ? { material: { set opacity(v) { moonGlow.dim = v; } } } : { material: {} }, beiCfg, incensePos: incense, moonPos: moonGlow?.sp.position, setGlow: (g) => lamps.forEach((f) => { f.dim = g / 0.9; }) };
 }
 
+/** what an orbit looks at: a view may centre a screen held upright on another point */
+function orbitAt(v) { return camera.aspect < 0.8 && v.narrowAt ? v.narrowAt : v.at; }
 /** how far out a view's orbit sits: further on a screen held upright, by the view's own factor if it has one */
 function orbitDist(v) { return v.orbit.dist * (camera.aspect < 0.8 ? v.orbit.narrow ?? 1.15 : 1); }
 /** where the camera sits for a view, and its lens */
 function viewPose(v) {
   if (!v.orbit) return { pos: v.eye.clone(), at: v.at.clone() };
-  const d = orbitDist(v), cp = Math.cos(v.orbit.pitch);
-  return { pos: V(v.at.x + Math.sin(v.orbit.yaw) * cp * d, v.at.y + Math.sin(v.orbit.pitch) * d, v.at.z + Math.cos(v.orbit.yaw) * cp * d), at: v.at.clone() };
+  const d = orbitDist(v), cp = Math.cos(v.orbit.pitch), at = orbitAt(v);
+  return { pos: V(at.x + Math.sin(v.orbit.yaw) * cp * d, at.y + Math.sin(v.orbit.pitch) * d, at.z + Math.cos(v.orbit.yaw) * cp * d), at: at.clone() };
 }
 function viewFov(v) { const f = v.fov ?? [72, 62]; return camera.aspect < 0.8 ? f[0] : f[1]; }
 /** glide the camera from wherever it is to another view of the room */
 function flyRoom(v, ms = 1400) {
   const cur = ROOM_VIEW[roomId], fwd = camera.getWorldDirection(new THREE.Vector3());
-  const fromAt = cur.orbit ? cur.at.clone() : camera.position.clone().addScaledVector(fwd, camera.position.distanceTo(cur.at));
+  const fromAt = cur.orbit ? orbitAt(cur).clone() : camera.position.clone().addScaledVector(fwd, camera.position.distanceTo(cur.at));
   return new Promise((done) => { roomFly = { t0: performance.now(), ms, v, done, from: { pos: camera.position.clone(), at: fromAt, fov: camera.fov }, to: { ...viewPose(v), fov: viewFov(v) } }; });
 }
 function updateRoomFly() {
@@ -540,12 +542,12 @@ async function roomSit() {
   busy = true; hidePanel(); setUI('moving'); sfx('soft');
   await flyRoom(BAKED[roomId].view().inside, 1500);
   roomInside = true; busy = false; setUI('room');
-  toast({ tent: '点一下桌上的牌堆，开始占卜', shrine: '默念你的问题，点签筒求签，或点木筊掷筊', study: '宣纸已经铺好，三枚铜钱就在手边' }[roomId]);
+  toast({ tent: '点一下桌上的牌堆，开始占卜', shrine: '默念你的问题，点签筒求签，或点木筊掷筊', study: '宣纸已经铺好，三枚铜钱就在手边', tea: '茶刚斟好，牌就放在杯子旁边' }[roomId]);
 }
 /** stand up and step back out to the cut-away view */
 async function roomStand() {
   if (busy || roomFly || !roomInside || throwing) return;
-  busy = true; clearCards(); resetLots(); resetLiuyao(); hidePanel(); setUI('moving');
+  busy = true; clearCards(); resetLots(); resetLiuyao(); resetTea(); hidePanel(); setUI('moving');
   await flyRoom(BAKED[roomId].view().orbit, 1300);
   roomInside = false; busy = false; setUI('room');
 }
@@ -563,7 +565,7 @@ function updateRoomLook() {
   look.yaw += (look.tyaw - look.yaw) * 0.1;
   look.pitch += (look.tpitch - look.pitch) * 0.1;
   const v = ROOM_VIEW[roomId];
-  if (v?.orbit) { const d = orbitDist(v), cp = Math.cos(look.pitch); camera.position.set(v.at.x + Math.sin(look.yaw) * cp * d, v.at.y + Math.sin(look.pitch) * d, v.at.z + Math.cos(look.yaw) * cp * d); camera.lookAt(v.at); return; }
+  if (v?.orbit) { const d = orbitDist(v), cp = Math.cos(look.pitch), at = orbitAt(v); camera.position.set(at.x + Math.sin(look.yaw) * cp * d, at.y + Math.sin(look.pitch) * d, at.z + Math.cos(look.yaw) * cp * d); camera.lookAt(at); return; }
   camera.rotation.set(look.pitch, look.yaw, 0, 'YXZ');
 }
 function updateRoom(dt, t) {
@@ -618,7 +620,7 @@ function showRoom(id) {
 }
 async function leaveRoom() {
   if (busy || mode !== 'room') return;
-  busy = true; clearCards(); resetLots(); resetLiuyao(); hidePanel(); throwing = null; roomFly = null; roomInside = false;
+  busy = true; clearCards(); resetLots(); resetLiuyao(); resetTea(); hidePanel(); throwing = null; roomFly = null; roomInside = false;
   for (const id in BAKED) if (rooms[id]?.baked) ROOM_VIEW[id] = BAKED[id].view().orbit;
   $('flash').classList.add('on');
   await wait(450);
@@ -1162,8 +1164,10 @@ function roomTap(ndc) {
   if (roomId === 'tent') objs.push(...rooms.tent.deck.children, ...cards.map((c) => c.group.children).flat(), ...(rooms.tent.table ? [rooms.tent.table] : []));
   if (roomId === 'shrine') { const R = rooms.shrine; R.bei.forEach((b) => objs.push(...b.children)); if (R.cup) objs.push(...R.cup.children.filter((o) => o.isMesh)); if (R.cue?.visible) objs.push(...R.cue.children); if (R.table) objs.push(R.table); }
   if (roomId === 'study') objs.push(...rooms.study.hits);
+  if (roomId === 'tea') objs.push(...lnCards.flatMap((c) => c.group.children), ...rooms.tea.hits);
   const hit = ray.intersectObjects(objs, false)[0];
   if (!hit) return;
+  if (roomId === 'tea') { teaTap(hit); return; }
   if (hit.object.userData.card !== undefined) { const i = hit.object.userData.card; if (cards[i]?.spread) flipSpreadCard(i); else flipCard(i); }
   else if (roomId === 'shrine') { if (rooms.shrine.baked && !roomInside) roomSit(); else if (hit.object.userData.cup) startLots(); else throwBei(); }
   else if (roomId === 'study') { if (!roomInside) roomSit(); else if (hit.object.userData.coins || rooms.study.coinMeshes.includes(hit.object.parent)) { if (liuyao?.phase === 'ready') tossLiuyao(); else if (!liuyao || liuyao.phase === 'done') { liuyao = null; startLiuyao(); } } }

@@ -12,9 +12,9 @@ A pop-up book of fortune-telling rooms, in the browser. Step through a door floa
 
 > **A gentle reminder**
 >
-> - The tarot, moon blocks, fortune slips, I Ching coins, character reading and the rest are a light-hearted demonstration of Eastern and Western folk customs. Cards, blocks, slips and hexagrams are drawn at random by the program, and the character readings are written in advance from the shape of each character; nothing here can predict anything.
+> - The tarot, moon blocks, fortune slips, I Ching coins, character reading, Lenormand cards, tea leaves and the rest are a light-hearted demonstration of Eastern and Western folk customs. Cards, blocks, slips and hexagrams, and the shapes of the leaves in the cup, are drawn at random by the program, and the character readings are written in advance from the shape of each character; nothing here can predict anything.
 > - It is for fun only, and is not medical, legal, financial or any other kind of life advice.
-> - The shrine, the study, the fortune-slip poems and the cards are original artwork and do not represent any religion, temple or deity. The hexagram names and images are excerpted from the Zhou Yi (I Ching), which is in the public domain.
+> - The shrine, the study, the tea room, the fortune-slip poems and the cards are original artwork and do not represent any religion, temple or deity. The hexagram names and images are excerpted from the Zhou Yi (I Ching), which is in the public domain.
 > - The page collects and sends no personal information.
 > - The 人生海海 (People Life, Ocean Wild) neon sign in the house is a fan's tribute to Mayday's album of that name. It is not affiliated with Mayday or their label, and all rights in it stay with their owners.
 > - Your path is yours to choose; keep a clear head and decide for yourself. If you are going through a hard time, please reach out to someone you trust or to a professional.
@@ -29,7 +29,10 @@ A pop-up book of fortune-telling rooms, in the browser. Step through a door floa
   - **Page 3 · The Scholar's Desk** (I Ching coins and character reading): a scholar's study with a moon gate and a small garden, rice paper laid out on the desk.
     - 六爻 (I Ching coins): toss three coins six times; each line is drawn on the paper from the bottom up, old yin and old yang change, and you get the hexagram and the one it turns into. Each of the sixty-four hexagrams has a gentle reading written for this book, with no verdicts of good or bad luck.
     - 测字 (character reading): pick a character from the board or write your own. Over 140 characters people often carry on their minds have readings of their own; any other common character is read from its radical's imagery and its stroke count.
-  - **Pages 4–6** (the Victorian Tea Table, the Moonlit Window, the Nordic Hearth): still being bound. Each has a small preview to try: a Lenormand card, a pendulum and a rune stone.
+  - **Page 4 · The Victorian Tea Table** (Lenormand cards and tea leaves): a Victorian tea room on a night street corner, the table laid with lace and the tea already poured.
+    - Lenormand: 36 cards drawn as silhouettes, read as a single card, a line of three or a square of nine. In a line of three the middle card is the heart of the matter; the square reads the heart and its road behind, road ahead, what is on your mind and what lies under your feet.
+    - Tea leaves: drink the cup, swirl it three times, turn it over on its saucer, then turn it back and see what the leaves look like; near the rim, at the bottom and by the handle each mean something.
+  - **Pages 5–6** (the Moonlit Window, the Nordic Hearth): still being bound. Each has a small preview to try: a pendulum and a rune stone.
 - Works on phones in portrait.
 
 ## Run it locally
@@ -48,13 +51,13 @@ Then open <http://localhost:8000/>. Add `?dev` to the address for a frame counte
 | Path | What's there |
 |---|---|
 | `public/` | Everything that gets deployed: `index.html`, the deck gallery `cat-tarot-deck.html`, `404.html`, Cloudflare's `_headers`, the site icons (`favicon.*`, `apple-touch-icon.png`, `icon-*.png`, `site.webmanifest`) and the link-preview images (`og-image.jpg` 1200×630, `share-square.jpg` 600×600) |
-| `public/tent/`, `public/shrine/`, `public/study/` | The three rooms baked in Blender for real-time 3D: glTF description, base64 geometry and two light atlases each |
+| `public/tent/`, `public/shrine/`, `public/study/`, `public/tea/` | The four rooms baked in Blender for real-time 3D: glTF description, base64 geometry and two light atlases each |
 | `public/deck/` | The 22 card faces and the card back |
 | `public/vendor/` | three.js r169 and the web-font subsets, hosted with the site (with their licenses) |
 | `src/` | Page source: shell and styles, procedurally painted textures and cards, scenes and interaction |
 | `build.py` | Stitches `src/` into `public/index.html`, with the page's script in `public/js/app.<hash>.js` |
 | `tools/` | Scripts that fetch three.js (`fetch_three.py`) and the web-font subsets (`fetch_fonts.py`) again; checks for font coverage (`check_fonts.mjs`) and for the reading texts (`check_content.mjs`); `cezi_table.py`, which builds the radical and stroke table for 测字 from Unihan |
-| `blender/` | Modelling, texture-painting and baking scripts for the tent, the shrine and the study, with their textures and open font subsets |
+| `blender/` | Modelling, texture-painting and baking scripts for the tent, the shrine, the study and the tea room, with their textures and open font subsets |
 | `docs/` | The README hero and the social preview image |
 
 ## Build
@@ -66,19 +69,20 @@ python3 build.py --check      # also writes src/.check.mjs for: node --check src
 
 The web fonts hold only the characters the pages use. If `build.py` reports characters missing from the subsets after you change the text, run `python3 tools/fetch_fonts.py` to regenerate `public/vendor/fonts/`, then build again; `node tools/check_fonts.mjs` reads the glyphs actually in the font files and lists any character that would still fall back to a system font.
 
-The tarot, fortune-slip, I Ching and 测字 texts live in one place each, in `src/`. After changing them, `node tools/check_content.mjs` checks their form, repeats and wording; with `--json` it also prints every text, for making a proofreading table.
+The tarot, fortune-slip, I Ching, 测字, Lenormand and tea-leaf texts live in one place each, in `src/`. After changing them, `node tools/check_content.mjs` checks their form, repeats and wording; with `--json` it also prints every text, for making a proofreading table.
 
 ## 3D scenes (optional)
 
-All three rooms are modelled from scratch by Blender 5.2 Python scripts and baked in Cycles into two light atlases:
+All four rooms are modelled from scratch by Blender 5.2 Python scripts and baked in Cycles into two light atlases:
 
 ```bash
 blender/pipeline_tent_web.sh     # the Starry Tent
 blender/pipeline_shrine.sh       # the Eastern Shrine (textures painted first by blender/shrine_tex.py with Pillow)
 blender/pipeline_study.sh        # the Scholar's Desk (textures painted first by blender/study_tex.py with Pillow)
+blender/pipeline_tea.sh          # the Victorian Tea Table (textures painted first by blender/tea_tex.py with Pillow)
 ```
 
-Each run gives its output a new time-stamped name, so browsers never show a stale cached scene. It then updates the names in `src/_rooms.js` or `src/_study.js` and rebuilds the page. Exported JPEGs are stripped of metadata.
+Each run gives its output a new time-stamped name, so browsers never show a stale cached scene. It then updates the names in `src/_rooms.js`, `src/_study.js` or `src/_tea.js` and rebuilds the page. Lettering on the textures uses the open fonts hosted with the site (`blender/webfont.py`). Exported JPEGs are stripped of metadata.
 
 ## Deploy
 
@@ -96,6 +100,7 @@ Each run gives its output a new time-stamped name, so browsers never show a stal
 - The shrine's plaque, couplets, slip numbers and scroll titles are set in the open fonts Noto Serif TC and LXGW WenKai TC. The subsets and their licenses are in `blender/fonts/`.
 - The tarot compositions and symbols follow the 1909 deck drawn by Pamela Colman Smith (public domain). The images are newly drawn.
 - The hexagram names and images are excerpted from the Zhou Yi (I Ching), which is in the public domain; the reading for each hexagram is newly written.
+- The Lenormand cards keep the order and the playing-card insets of the old decks, from the Game of Hope of about 1799 onwards (public domain); the faces are newly drawn silhouettes and the meanings newly written.
 - The radical and stroke table for 测字 is generated from Unicode's [Unihan database](https://www.unicode.org/reports/tr38/) (© Unicode, Inc., Unicode License v3; see [LICENSE-UNICODE.txt](LICENSE-UNICODE.txt)).
 - Every texture, card and scene in the page is painted by code or built by Blender scripts. No outside image assets are used.
 
@@ -112,5 +117,5 @@ Each run gives its output a new time-stamped name, so browsers never show a stal
 
 ## Versions
 
-- **v1.1.0** (2026-10-28): page 3, the Scholar's Desk (I Ching coins and character reading), is fully playable; every tarot card gains a keyword and every fortune slip a one-line gist, with revised card meanings, poems and readings; the web fonts now hold every character the pages use and any 测字 might write; the three rooms open on matching views.
+- **v1.1.0** (2026-10-29): page 3, the Scholar's Desk (I Ching coins and character reading), and page 4, the Victorian Tea Table (Lenormand cards and tea leaves), are fully playable; every tarot card gains a keyword and every fortune slip a one-line gist, with revised card meanings, poems and readings; the web fonts now hold every character the pages use and any 测字 might write; the rooms open on matching views.
 - **v1.0.0** (2026-10): first release. The Magic House, all six spreads of the book, the Starry Tent (tarot) and the Eastern Shrine (moon blocks and fortune slips) are fully playable; the other four pages have previews.

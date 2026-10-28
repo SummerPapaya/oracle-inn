@@ -1,12 +1,12 @@
 <!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="description" content="魔法小屋里的一本立体占卜书：推开悬在夜空里的门，翻开立体书，走进星幕帐篷与东方神龛。东西方民俗文化的趣味科普演示，仅供娱乐。"><meta name="color-scheme" content="dark"><meta name="theme-color" content="#120c14"><link rel="icon" href="favicon.ico" sizes="48x48"><link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="apple-touch-icon.png"><link rel="manifest" href="site.webmanifest"><link rel="canonical" href="https://oracle-inn.summercommences.com/"><meta property="og:type" content="website"><meta property="og:site_name" content="借问众神明 · Oracle Inn"><meta property="og:locale" content="zh_CN"><meta property="og:title" content="借问众神明 · Oracle Inn"><meta property="og:description" content="魔法小屋里的一本立体占卜书：推开悬在夜空里的门，翻开立体书，走进星幕帐篷与东方神龛。东西方民俗文化的趣味科普演示，仅供娱乐。"><meta property="og:url" content="https://oracle-inn.summercommences.com/"><meta property="og:image" content="https://oracle-inn.summercommences.com/og-image.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="借问众神明 · Oracle Inn：拱形金框窗里是一本摊开的立体书，书页上立着紫色的星幕帐篷"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="借问众神明 · Oracle Inn"><meta name="twitter:description" content="魔法小屋里的一本立体占卜书：推开悬在夜空里的门，翻开立体书，走进星幕帐篷与东方神龛。东西方民俗文化的趣味科普演示，仅供娱乐。"><meta name="twitter:image" content="https://oracle-inn.summercommences.com/og-image.jpg"><meta name="twitter:image:alt" content="借问众神明 · Oracle Inn：拱形金框窗里是一本摊开的立体书，书页上立着紫色的星幕帐篷"><meta itemprop="name" content="借问众神明 · Oracle Inn"><meta itemprop="description" content="魔法小屋里的一本立体占卜书：推开悬在夜空里的门，翻开立体书，走进星幕帐篷与东方神龛。东西方民俗文化的趣味科普演示，仅供娱乐。"><meta itemprop="image" content="https://oracle-inn.summercommences.com/share-square.jpg"><title>借问众神明 · Oracle Inn</title>
-<link rel="stylesheet" href="vendor/fonts/fonts.css?v=cdafa110">
+<link rel="stylesheet" href="vendor/fonts/fonts.css?v=7ac1561b">
 <script type="importmap">
 { "imports": {
   "three": "./vendor/three/0.169.0/build/three.module.js",
   "three/addons/": "./vendor/three/0.169.0/examples/jsm/"
 } }
 </script>
-<link rel="modulepreload" href="vendor/three/0.169.0/build/three.module.js"><link rel="modulepreload" href="js/app.6b630c1400.js">
+<link rel="modulepreload" href="vendor/three/0.169.0/build/three.module.js"><link rel="modulepreload" href="js/app.7b88d6102e.js">
 <style>
 /* Layout: the 3D hall fills the screen; a thin title bar on top, a row of room buttons at the
    bottom, and each room opens full-screen over the hall. One warm candlelit look on purpose. */
@@ -203,6 +203,9 @@ body.hot #stage canvas, button, .chip, .slip { cursor: var(--wand-hot, pointer) 
 .panel .spread-list li b { color: var(--gold-light); letter-spacing: .08em; }
 .panel .spread-list li i { font-family: var(--latin); color: var(--gold); }
 .panel .spread-list li span { display: block; font-family: var(--hand); font-size: 17px; color: rgba(251, 241, 218, .88); }
+.panel .spread-list li span.tea-where { font-family: inherit; font-size: 12.5px; color: rgba(251, 241, 218, .6); }
+.panel .ln-sentence { font-family: var(--hand); font-size: clamp(17px, 2.9vmin, 20px); line-height: 1.55; border-left: 2px solid var(--gold); padding-left: .7em; }
+.panel .ln-sentence i { font-family: var(--latin); color: var(--gold); }
 /* 测字: the box to type in, the 字盘 of suggestions, the character itself in the reading */
 .panel .cezi-form { margin: .5em 0 .3em; text-align: center; }
 .panel .cezi-in { width: 4.6em; padding: .1em .3em; font-family: var(--hand); font-size: 36px; text-align: center; color: #2a1a12; background: #f6ecd6; border: 2px solid rgba(217, 178, 94, .85); border-radius: 10px; outline: none; }
@@ -292,9 +295,9 @@ body.hot #stage canvas, button, .chip, .slip { cursor: var(--wand-hot, pointer) 
   <div class="intro-text">
     <p>魔法屋悬空的前门，今天停在第 Ⅲ 层。<br>门缝里透出一点星光，好像有人在等你。</p>
     <button class="btn gold" id="enter" type="button">推门进入</button>
-    <p class="notice"><b>温馨提示</b>这里的占卜是东西方民俗文化的趣味科普演示，抽牌、掷筊、求签、起卦的结果均由程序随机生成，测字只按字形取象，仅供休闲娱乐，不是预言，也不构成任何建议。命运掌握在自己手中，请保持理性，自主抉择。<span class="wish">愿你在海海人生里，找到自己的方向。</span></p>
+    <p class="notice"><b>温馨提示</b>这里的占卜是东西方民俗文化的趣味科普演示，抽牌、掷筊、求签、起卦的结果和杯里茶叶的形状均由程序随机生成，测字只按字形取象，仅供休闲娱乐，不是预言，也不构成任何建议。命运掌握在自己手中，请保持理性，自主抉择。<span class="wish">愿你在海海人生里，找到自己的方向。</span></p>
   </div>
 </div>
 <div class="loading" id="loading">正在点亮蜡烛……</div>
 
-<script type="module" src="js/app.6b630c1400.js"></script>
+<script type="module" src="js/app.7b88d6102e.js"></script>
