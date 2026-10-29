@@ -17,7 +17,7 @@ const ROOMS = {
   shrine: { name: '东方神龛',     methods: '掷筊 · 灵签', kind: 'jiaobei', ready: true },
   study:  { name: '文房书案',     methods: '测字 · 六爻', kind: 'study',   ready: true },
   tea:    { name: '维多利亚茶桌', methods: '雷诺曼 · 茶叶占卜', kind: 'tea', ready: true },
-  window: { name: '月下窗台',     methods: '灵摆' },
+  window: { name: '月下窗台',     methods: '灵摆问答 · 灵摆盘', kind: 'window', ready: true },
   hearth: { name: '北欧炉边',     methods: '卢恩符文' },
 };
 const ORDER = Object.keys(ROOMS);   // spread k (1…6) is ORDER[k - 1]
@@ -728,7 +728,7 @@ function updateRig(dt) {
 /* ---------- a taste of the pages still being bound: one small thing to try on each ---------- */
 /*
  * Tapping the little house on an unfinished page (or its button) plays a short preview on the page itself and
- * says what it showed: a pendulum's answer, a rune stone.
+ * says what it showed: a rune stone.
  * What lands is what the panel reports.
  */
 let teaser = null;
@@ -741,7 +741,7 @@ const RUNES = [['Fehu', '丰盛', '付出会有回报，丰收在路上。', [[3
   ['Berkano', '新生', '新的开始正在萌芽。', [[3, 1, 3, 15], [3, 1, 8, 4, 3, 8, 8, 12, 3, 15]]], ['Ehwaz', '同行', '有人和你一起走，会更稳。', [[2, 15, 2, 1, 5, 5, 8, 1, 8, 15]]],
   ['Mannaz', '自我', '好好认识自己，答案在里面。', [[2, 15, 2, 1, 8, 8], [8, 15, 8, 1, 2, 8]]], ['Laguz', '直觉', '顺着水流，相信直觉。', [[3, 1, 3, 15], [3, 1, 8, 5]]],
   ['Ingwaz', '孕育', '安静地酝酿，时候到了自会开花。', [[5, 3, 8, 8, 5, 13, 2, 8, 5, 3]]], ['Dagaz', '破晓', '天快亮了，转机就在眼前。', [[2, 2, 2, 14, 8, 2, 8, 14, 2, 2]]]];
-const TEASE_BTN = { window: '垂下灵摆', hearth: '摸一颗符文石' };
+const TEASE_BTN = { hearth: '摸一颗符文石' };
 const TEASE_NOTE = '<div class="note">这一间还在装订中，下次翻开时就能完整地玩 · 仅供娱乐</div>';
 function teaserStart(id) {
   const P = spreads[cur]?.P;
@@ -760,28 +760,6 @@ function updateTeaser(dt, t) {
 }
 const teaseAgain = (id) => [['再来一次', () => teaserStart(id), true], ['收起', hidePanel]];
 const TEASE = {
-  window: {
-    make(T) {
-      T.ans = ['yes', 'no', 'wait'][Math.floor(Math.random() * 3)];
-      T.pivot = T.at.clone().add(V(0, 0.58, -0.02));
-      const brass = new THREE.MeshStandardMaterial({ color: 0xd8b060, metalness: 0.9, roughness: 0.3 });
-      T.chain = new THREE.Mesh(new THREE.CylinderGeometry(0.0025, 0.0025, 1, 6).translate(0, -0.5, 0), brass); T.chain.position.copy(T.pivot); T.g.add(T.chain);
-      T.gem = new THREE.Mesh(new THREE.OctahedronGeometry(0.03, 0), new THREE.MeshStandardMaterial({ color: 0xc8b0ff, emissive: 0x6a40c0, emissiveIntensity: 0.8, roughness: 0.15, metalness: 0.2 })); T.gem.scale.set(1, 1.6, 1); T.g.add(T.gem);
-      T.dur = 3.4; sfx('soft');
-    },
-    tick(T, dt, t) {
-      const L = 0.4, w = 3.2, s = Math.min(1, T.t / 0.6) * (T.t > 3.0 ? Math.max(0.35, 1 - (T.t - 3.0)) : 1);
-      const off = T.ans === 'yes' ? V(Math.cos(T.t * w) * 0.09, 0, Math.sin(T.t * w) * 0.09) : T.ans === 'no' ? V(Math.sin(T.t * w) * 0.11, 0, 0) : V(Math.sin(T.t * 2.1) * 0.025 + Math.sin(T.t * 5.3) * 0.01, 0, Math.cos(T.t * 1.7) * 0.015);
-      off.multiplyScalar(s); const end = T.pivot.clone().add(off).add(V(0, -Math.sqrt(Math.max(0.01, L * L - off.lengthSq())), 0));
-      T.gem.position.copy(end).add(V(0, -0.04, 0)); T.gem.rotation.y += dt * 2;
-      const d = end.clone().sub(T.pivot); T.chain.scale.set(1, d.length(), 1); T.chain.quaternion.setFromUnitVectors(V(0, -1, 0), d.normalize());
-      if (Math.random() < dt * 24) sparks.emit(T.gem.getWorldPosition(tmpV), tmpW.set(0, 0.02, 0), { life: 0.7, size: 0.012, color: LILAC });
-    },
-    reveal(T) {
-      const [h, line] = { yes: ['是', '灵摆轻轻画起了圈：这件事，也许是可以的。'], no: ['否', '灵摆前后摆动：这件事，先放一放。'], wait: ['再想想', '灵摆只是微微晃了晃：心里还没定，过些时候再问。'] }[T.ans];
-      showPanel(`<span class="seal">摆</span><small>预告 · 灵摆 · 在心里问一个是或否的问题</small><h3>${h}</h3><p>${line}</p>${TEASE_NOTE}`, teaseAgain('window'));
-    },
-  },
   hearth: {
     make(T) {
       T.rune = RUNES[Math.floor(Math.random() * RUNES.length)];

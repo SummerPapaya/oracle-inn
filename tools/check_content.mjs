@@ -1,6 +1,6 @@
 // Checks the texts of the readings: the tent's tarot (src/_cards.txt, src/_cards_major.txt), the shrine's slips
 // (src/_lingqian.txt), the study's 六爻 (src/_liuyao.txt) and 测字 (src/_cezi.txt, src/_cezi_table.txt), and the tea table's
-// 雷诺曼 and 茶叶占卜 (src/_lenormand.txt). Those files are the one source the page is built from, and a proofreading table
+// 雷诺曼 and 茶叶占卜 (src/_lenormand.txt), and the moonlit window's 灵摆 and 月相 (src/_pendulum.txt). Those files are the one source the page is built from, and a proofreading table
 // should be made from them too, never copied by hand.
 // Usage: node tools/check_content.mjs           -> the checks; exits 1 if one fails
 //        node tools/check_content.mjs --json    -> also prints every text as JSON, for making a proofreading table
@@ -12,6 +12,7 @@ const C = new Function(`${src('_liuyao.txt')}\n${src('_cezi_table.txt')}\n${src(
 const array = (file, name) => { const t = src(file), a = t.indexOf(`const ${name} = [`); return new Function(`return ${t.slice(t.indexOf('[', a), t.indexOf('];', a) + 1)}`)(); };
 const MAJOR = array('_cards.txt', 'MAJOR'), MAJOR_REV = array('_cards_major.txt', 'MAJOR_REV'), ROMAN = array('_cards.txt', 'ROMAN');
 const { LINGQIAN } = new Function(`${src('_lingqian.txt')}\nreturn { LINGQIAN };`)();
+const PD = new Function(`${src('_pendulum.txt')}\nreturn { PENDULUM_UI, PENDULUM_ANSWERS, PENDULUM_BOARD, MOON_PHASES };`)();
 const LN = new Function(`${src('_lenormand.txt')}\nreturn { LENORMAND, LN_SPREADS, LN_SIDES, TEA_SYMBOLS, TEA_ZONES, TEA_SIDES };`)();
 let failed = 0;
 const fail = (msg) => { failed++; console.log('  ✗ ' + msg); };
@@ -72,6 +73,29 @@ for (const k of [0, 1, 2]) for (const d of dupes(TEA_SYMBOLS.map((t) => t[k]))) 
 for (const [k, [name, line]] of Object.entries({ ...TEA_ZONES, ...TEA_SIDES })) if (!name || (k !== 'side' && !line)) fail(`place ${k} unnamed`);
 console.log(`  ${TEA_SYMBOLS.length} shapes the leaves can make`);
 
+console.log('灵摆');
+const { PENDULUM_UI, PENDULUM_ANSWERS, PENDULUM_BOARD, MOON_PHASES } = PD;
+const pdLines = [];
+for (const [k, [name, key, lines]] of Object.entries(PENDULUM_ANSWERS)) {
+  if (!name || !key || lines.length < 3) fail(`answer ${k}: a name, a keyword and at least three readings`);
+  for (const l of lines) { if (!ends(l)) fail(`answer ${k}: unfinished 「${l}」`); if (BANNED.test(l)) fail(`answer ${k}: a verdict or a promise 「${l}」`); pdLines.push(l); }
+}
+if (PENDULUM_BOARD.length !== 4) fail(`the board has ${PENDULUM_BOARD.length} quarters, not 4`);
+const words = PENDULUM_BOARD.flatMap(([dir, season, theme, line, cells]) => {
+  if (!dir || !season || [...theme].length !== 2 || !ends(line) || cells.length !== 3) fail(`quarter ${dir}${season}: name, theme, line or three words missing`);
+  for (const [w, l] of cells) { if ([...w].length !== 2 || !ends(l)) fail(`board word ${w}: two characters and a finished line`); if (BANNED.test(l)) fail(`board word ${w}: a verdict or a promise`); pdLines.push(l); }
+  return cells.map((c) => c[0]);
+});
+for (const d of dupes(words)) fail(`the board has ${d} twice`);
+if (MOON_PHASES.length !== 8) fail(`${MOON_PHASES.length} moon phases, not 8`);
+for (const [name, days, sky, folk, line] of MOON_PHASES) {
+  if (!name || !days || !ends(sky) || !ends(folk) || !ends(line)) fail(`moon phase ${name}: a part missing or unfinished`);
+  if (BANNED.test(line)) fail(`moon phase ${name}: a verdict or a promise`); pdLines.push(line);
+}
+for (const d of dupes(pdLines)) fail(`a line is used twice: ${d}`);
+for (const [k, t] of Object.entries(PENDULUM_UI)) if (typeof t === 'string' && !t) fail(`prompt ${k} is empty`);
+console.log(`  ${Object.values(PENDULUM_ANSWERS).reduce((n, a) => n + a[2].length, 0)} answers, ${words.length} board words, ${MOON_PHASES.length} moon phases`);
+
 console.log('六爻');
 const { GUA, TRIGRAM } = C;
 if (GUA.length !== 64) fail(`${GUA.length} hexagrams, not 64`);
@@ -130,6 +154,9 @@ if (process.argv.includes('--json')) {
     lenormand: LENORMAND.map(([name, en, inset, key, line, phrase], i) => ({ no: i + 1, name, en, inset, key, line, phrase })),
     lnSpreads: LN_SPREADS, lnSides: LN_SIDES,
     tea: TEA_SYMBOLS.map(([name, shape, line]) => ({ name, shape, line })), teaZones: TEA_ZONES, teaSides: TEA_SIDES,
+    pendulumUi: PENDULUM_UI, pendulumAnswers: PENDULUM_ANSWERS,
+    board: PENDULUM_BOARD.map(([dir, season, theme, line, cells]) => ({ dir, season, theme, line, cells: cells.map(([word, l]) => ({ word, line: l })) })),
+    moon: MOON_PHASES.map(([name, days, sky, folk, line]) => ({ name, days, sky, folk, line })),
     gua: GUA.map(([no, name, up, lo, image, key, line, note]) => ({ no, name, full: C.guaFullName(GUA[no - 1]), up, low: lo, image, key, line, note: note || '' })),
     cezi: chars.map((ch) => ({ ch, parts: CEZI[ch][0], line: CEZI[ch][1], pick: picks.includes(ch), heavy: CEZI_HEAVY.includes(ch) })),
     picks: CEZI_PICKS,

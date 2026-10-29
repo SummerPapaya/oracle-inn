@@ -3025,7 +3025,7 @@ const ROOMS = {
   shrine: { name: '东方神龛',     methods: '掷筊 · 灵签', kind: 'jiaobei', ready: true },
   study:  { name: '文房书案',     methods: '测字 · 六爻', kind: 'study',   ready: true },
   tea:    { name: '维多利亚茶桌', methods: '雷诺曼 · 茶叶占卜', kind: 'tea', ready: true },
-  window: { name: '月下窗台',     methods: '灵摆' },
+  window: { name: '月下窗台',     methods: '灵摆问答 · 灵摆盘', kind: 'window', ready: true },
   hearth: { name: '北欧炉边',     methods: '卢恩符文' },
 };
 const ORDER = Object.keys(ROOMS);   // spread k (1…6) is ORDER[k - 1]
@@ -3736,7 +3736,7 @@ function updateRig(dt) {
 /* ---------- a taste of the pages still being bound: one small thing to try on each ---------- */
 /*
  * Tapping the little house on an unfinished page (or its button) plays a short preview on the page itself and
- * says what it showed: a pendulum's answer, a rune stone.
+ * says what it showed: a rune stone.
  * What lands is what the panel reports.
  */
 let teaser = null;
@@ -3749,7 +3749,7 @@ const RUNES = [['Fehu', '丰盛', '付出会有回报，丰收在路上。', [[3
   ['Berkano', '新生', '新的开始正在萌芽。', [[3, 1, 3, 15], [3, 1, 8, 4, 3, 8, 8, 12, 3, 15]]], ['Ehwaz', '同行', '有人和你一起走，会更稳。', [[2, 15, 2, 1, 5, 5, 8, 1, 8, 15]]],
   ['Mannaz', '自我', '好好认识自己，答案在里面。', [[2, 15, 2, 1, 8, 8], [8, 15, 8, 1, 2, 8]]], ['Laguz', '直觉', '顺着水流，相信直觉。', [[3, 1, 3, 15], [3, 1, 8, 5]]],
   ['Ingwaz', '孕育', '安静地酝酿，时候到了自会开花。', [[5, 3, 8, 8, 5, 13, 2, 8, 5, 3]]], ['Dagaz', '破晓', '天快亮了，转机就在眼前。', [[2, 2, 2, 14, 8, 2, 8, 14, 2, 2]]]];
-const TEASE_BTN = { window: '垂下灵摆', hearth: '摸一颗符文石' };
+const TEASE_BTN = { hearth: '摸一颗符文石' };
 const TEASE_NOTE = '<div class="note">这一间还在装订中，下次翻开时就能完整地玩 · 仅供娱乐</div>';
 function teaserStart(id) {
   const P = spreads[cur]?.P;
@@ -3768,28 +3768,6 @@ function updateTeaser(dt, t) {
 }
 const teaseAgain = (id) => [['再来一次', () => teaserStart(id), true], ['收起', hidePanel]];
 const TEASE = {
-  window: {
-    make(T) {
-      T.ans = ['yes', 'no', 'wait'][Math.floor(Math.random() * 3)];
-      T.pivot = T.at.clone().add(V(0, 0.58, -0.02));
-      const brass = new THREE.MeshStandardMaterial({ color: 0xd8b060, metalness: 0.9, roughness: 0.3 });
-      T.chain = new THREE.Mesh(new THREE.CylinderGeometry(0.0025, 0.0025, 1, 6).translate(0, -0.5, 0), brass); T.chain.position.copy(T.pivot); T.g.add(T.chain);
-      T.gem = new THREE.Mesh(new THREE.OctahedronGeometry(0.03, 0), new THREE.MeshStandardMaterial({ color: 0xc8b0ff, emissive: 0x6a40c0, emissiveIntensity: 0.8, roughness: 0.15, metalness: 0.2 })); T.gem.scale.set(1, 1.6, 1); T.g.add(T.gem);
-      T.dur = 3.4; sfx('soft');
-    },
-    tick(T, dt, t) {
-      const L = 0.4, w = 3.2, s = Math.min(1, T.t / 0.6) * (T.t > 3.0 ? Math.max(0.35, 1 - (T.t - 3.0)) : 1);
-      const off = T.ans === 'yes' ? V(Math.cos(T.t * w) * 0.09, 0, Math.sin(T.t * w) * 0.09) : T.ans === 'no' ? V(Math.sin(T.t * w) * 0.11, 0, 0) : V(Math.sin(T.t * 2.1) * 0.025 + Math.sin(T.t * 5.3) * 0.01, 0, Math.cos(T.t * 1.7) * 0.015);
-      off.multiplyScalar(s); const end = T.pivot.clone().add(off).add(V(0, -Math.sqrt(Math.max(0.01, L * L - off.lengthSq())), 0));
-      T.gem.position.copy(end).add(V(0, -0.04, 0)); T.gem.rotation.y += dt * 2;
-      const d = end.clone().sub(T.pivot); T.chain.scale.set(1, d.length(), 1); T.chain.quaternion.setFromUnitVectors(V(0, -1, 0), d.normalize());
-      if (Math.random() < dt * 24) sparks.emit(T.gem.getWorldPosition(tmpV), tmpW.set(0, 0.02, 0), { life: 0.7, size: 0.012, color: LILAC });
-    },
-    reveal(T) {
-      const [h, line] = { yes: ['是', '灵摆轻轻画起了圈：这件事，也许是可以的。'], no: ['否', '灵摆前后摆动：这件事，先放一放。'], wait: ['再想想', '灵摆只是微微晃了晃：心里还没定，过些时候再问。'] }[T.ans];
-      showPanel(`<span class="seal">摆</span><small>预告 · 灵摆 · 在心里问一个是或否的问题</small><h3>${h}</h3><p>${line}</p>${TEASE_NOTE}`, teaseAgain('window'));
-    },
-  },
   hearth: {
     make(T) {
       T.rune = RUNES[Math.floor(Math.random() * RUNES.length)];
@@ -5340,7 +5318,7 @@ async function loadBakedGLB(base, pre) {
   return new Promise((res, rej) => new GLTFLoader().parse(buf, base, res, rej));
 }
 /** the rooms that come baked from Blender, how to look at them, and how to build them */
-const BAKED = { tent: { view: () => TENT_VIEW, build: () => buildBakedTentRoom() }, shrine: { view: () => SHRINE_VIEW, build: () => buildBakedShrineRoom() }, study: { view: () => STUDY_VIEW, build: () => buildBakedStudyRoom() }, tea: { view: () => TEA_VIEW, build: () => buildBakedTeaRoom() } };
+const BAKED = { tent: { view: () => TENT_VIEW, build: () => buildBakedTentRoom() }, shrine: { view: () => SHRINE_VIEW, build: () => buildBakedShrineRoom() }, study: { view: () => STUDY_VIEW, build: () => buildBakedStudyRoom() }, tea: { view: () => TEA_VIEW, build: () => buildBakedTeaRoom() }, window: { view: () => WINDOW_VIEW, build: () => buildBakedWindowRoom() } };
 const bakedP = {};
 function preloadBaked(id) { return (bakedP[id] ??= BAKED[id].build().catch((e) => { console.warn(`baked ${id} unavailable, using the paper one`, e); return null; })); }
 function preloadBakedTent() { return preloadBaked('tent'); }
@@ -5605,12 +5583,12 @@ async function roomSit() {
   busy = true; hidePanel(); setUI('moving'); sfx('soft');
   await flyRoom(BAKED[roomId].view().inside, 1500);
   roomInside = true; busy = false; setUI('room');
-  toast({ tent: '点一下桌上的牌堆，开始占卜', shrine: '默念你的问题，点签筒求签，或点木筊掷筊', study: '宣纸已经铺好，三枚铜钱就在手边', tea: '茶刚斟好，牌就放在杯子旁边' }[roomId]);
+  toast({ tent: '点一下桌上的牌堆，开始占卜', shrine: '默念你的问题，点签筒求签，或点木筊掷筊', study: '宣纸已经铺好，三枚铜钱就在手边', tea: '茶刚斟好，牌就放在杯子旁边', window: '灵摆就挂在桌上，窗外是今晚的月亮' }[roomId]);
 }
 /** stand up and step back out to the cut-away view */
 async function roomStand() {
   if (busy || roomFly || !roomInside || throwing) return;
-  busy = true; clearCards(); resetLots(); resetLiuyao(); resetTea(); hidePanel(); setUI('moving');
+  busy = true; clearCards(); resetLots(); resetLiuyao(); resetTea(); resetWindow(); hidePanel(); setUI('moving');
   await flyRoom(BAKED[roomId].view().orbit, 1300);
   roomInside = false; busy = false; setUI('room');
 }
@@ -5683,7 +5661,7 @@ function showRoom(id) {
 }
 async function leaveRoom() {
   if (busy || mode !== 'room') return;
-  busy = true; clearCards(); resetLots(); resetLiuyao(); resetTea(); hidePanel(); throwing = null; roomFly = null; roomInside = false;
+  busy = true; clearCards(); resetLots(); resetLiuyao(); resetTea(); resetWindow(true); hidePanel(); throwing = null; roomFly = null; roomInside = false;
   for (const id in BAKED) if (rooms[id]?.baked) ROOM_VIEW[id] = BAKED[id].view().orbit;
   $('flash').classList.add('on');
   await wait(450);
@@ -6228,9 +6206,11 @@ function roomTap(ndc) {
   if (roomId === 'shrine') { const R = rooms.shrine; R.bei.forEach((b) => objs.push(...b.children)); if (R.cup) objs.push(...R.cup.children.filter((o) => o.isMesh)); if (R.cue?.visible) objs.push(...R.cue.children); if (R.table) objs.push(R.table); }
   if (roomId === 'study') objs.push(...rooms.study.hits);
   if (roomId === 'tea') objs.push(...lnCards.flatMap((c) => c.group.children), ...rooms.tea.hits);
+  if (roomId === 'window') objs.push(...rooms.window.hits);
   const hit = ray.intersectObjects(objs, false)[0];
   if (!hit) return;
   if (roomId === 'tea') { teaTap(hit); return; }
+  if (roomId === 'window') { windowTap(hit); return; }
   if (hit.object.userData.card !== undefined) { const i = hit.object.userData.card; if (cards[i]?.spread) flipSpreadCard(i); else flipCard(i); }
   else if (roomId === 'shrine') { if (rooms.shrine.baked && !roomInside) roomSit(); else if (hit.object.userData.cup) startLots(); else throwBei(); }
   else if (roomId === 'study') { if (!roomInside) roomSit(); else if (hit.object.userData.coins || rooms.study.coinMeshes.includes(hit.object.parent)) { if (liuyao?.phase === 'ready') tossLiuyao(); else if (!liuyao || liuyao.phase === 'done') { liuyao = null; startLiuyao(); } } }
@@ -6655,7 +6635,7 @@ function studyRanges() {
 /** the study's sky: the night sky over the ink ranges, the moon high on the right */
 function studySky(s) { return nightSky(s, studyRanges(), V(9, 13, -42), 4.5); }
 /** stars all round that twinkle, the moon with its halo, and a painted backdrop low on the horizon behind (the tea room uses it too) */
-function nightSky(s, back, moonAt, backY) {
+function nightSky(s, back, moonAt, backY, moonMap) {
   const N = 900, pos = [], seed = [], mag = [], rng = mulberry(4417);
   for (let i = 0; i < N; i++) {
     const z = rng() * 1.1 - 0.1, a = rng() * TAU, rr = Math.sqrt(Math.max(0, 1 - z * z));
@@ -6669,7 +6649,7 @@ function nightSky(s, back, moonAt, backY) {
         gl_PointSize = (1.2 + mag * 3.2) * px * (.8 + .2 * tw); vA = (.25 + .75 * mag) * (.35 + .65 * tw); }`,
     fragmentShader: `varying float vA; void main(){ vec2 d = gl_PointCoord - .5; float r = dot(d, d); if (r > .25) discard; gl_FragColor = vec4(vec3(.86, .9, 1.) * vA * smoothstep(.25, .0, r), 1.); }` });
   const stars = new THREE.Points(geo, mat); stars.renderOrder = -2; stars.frustumCulled = false; s.add(stars);
-  const moonTex = (() => {
+  const moonTex = moonMap ?? (() => {
     const c = canvas(512, 512), g = c.getContext('2d');
     const halo = g.createRadialGradient(256, 256, 60, 256, 256, 256); halo.addColorStop(0, 'rgba(255,240,205,.34)'); halo.addColorStop(0.3, 'rgba(200,215,255,.07)'); halo.addColorStop(1, 'rgba(160,180,255,0)');
     g.fillStyle = halo; g.fillRect(0, 0, 512, 512); g.fillStyle = '#f2e8cc'; g.beginPath(); g.arc(256, 256, 96, 0, TAU); g.fill(); return tex(c);
@@ -8018,6 +7998,439 @@ function teaTap(hit) {
   if (u.deck) { if (!lnCards.length && (!teaLeaves || teaLeaves.phase === 'done')) { teaLeaves = null; showLnChooser(); } return; }
   if (u.cup || rooms.tea.cup.hits.includes(hit.object)) { if (teaLeaves && teaLeaves.phase !== 'done') teaStep(); else if (!lnCards.length) { teaLeaves = null; startTeaLeaves(); } }
 }
+
+/* ---------- 灵摆 and 月相: the texts of the moonlit window ---------- */
+/*
+ * A yes-or-no question asked of a pendulum, calibrated first the traditional way (it shows its "yes" and its "no"
+ * before the question); a round pendulum board in the four seasons and four quarters of the Chinese tradition, three
+ * words of what this moment needs in each; and tonight's moon phase in the window, worked out from the date and time.
+ * Everything here is written for this book; the pendulum's swing is random, and a reading speaks to the reader's own
+ * leaning, never a verdict.
+ */
+const PENDULUM_UI = {
+  ask: '在心里问一个只能回答「是」或「否」的问题。重要的事，比如健康、钱和法律上的事，请别只听灵摆的。',
+  calibrate: '先请灵摆示范一下：默念「请给我看看『是』」，看它怎么摆；再默念「请给我看看『否』」。',
+  calibrated: '记住了。现在默念你的问题，再让灵摆自己慢慢摆起来。',
+  swing: { forward: '前后摆动', side: '左右摆动' },
+  shows: '这是「X」：Y',
+  board: '默念「这件事里，我此刻最需要什么」，让灵摆在盘上慢慢转，停在哪一格，就读哪一格。',
+  note: '灵摆的摆动由程序随机生成；真实的灵摆，摆动来自你自己察觉不到的细微动作。这是自我观照，不是预测，也不构成医疗、法律或投资建议。',
+};
+/** the four results: the answer, a keyword, and a few readings so the same one does not come back word for word */
+const PENDULUM_ANSWERS = {
+  yes: ['是', '确认', [
+    '灵摆朝「是」的方向荡了过去。也许你心里早就偏向这一边，只是在等一个确认。',
+    '是。这股倾向来自你自己：顺着它走一小步，看看感觉对不对。',
+    '灵摆干脆利落地摆向「是」。这一次，它没有半点犹豫。',
+    '「是」那边的意思很清楚。把理由写下来，看看它们站不站得住。',
+    '灵摆轻快地荡向「是」。看到这个答案时，心里动了一下吗？那一下是真的。',
+    '「是」。如果这个答案让你松了一口气，那份轻松本身就是线索。',
+  ]],
+  no: ['否', '收手', [
+    '灵摆往「否」那边荡了过去。也许这件事，现在还不是时候。',
+    '否。不是说永远不行，只是此刻，你更想往后退一步。',
+    '灵摆说「否」。先停一停，看看是什么让你迟疑。',
+    '灵摆摆得很坚决：否。这一回，它说得很明白。',
+    '灵摆摇向「否」。有点失落吗？也许你比自己以为的更想要它。',
+    '否。这个回答不是判决，过一阵子再看。',
+  ]],
+  circle: ['未定', '再看看', [
+    '灵摆画起了圈，没有偏向哪一边。心里还没定，过些时候再问。',
+    '它在打转：也许两边都有道理，也许问题本身还不够清楚。',
+    '画圈的时候，不妨换个问法：把「该不该」换成「我想不想」。',
+    '灵摆转着圈，像在说「再看看」。不必今天就给出答案。',
+  ]],
+  still: ['未答', '缓一缓', [
+    '灵摆几乎没有动。也许问题太大了，试着拆成一个小一点的问题。',
+    '它静静地垂着。先深呼吸三次，把手放松，再问一次。',
+    '灵摆没有回答。也许你此刻并不需要答案，只需要歇一歇。',
+  ]],
+};
+/** the pendulum board: the four quarters as the Chinese tradition pairs them with the seasons, three words in each */
+const PENDULUM_BOARD = [
+  ['东', '春', '萌发', '东方配春天，草木刚刚冒芽，是开始的方向。', [
+    ['尝试', '先试一小步，不必一下子做好。'],
+    ['行动', '想了很久的事，可以动起来了。'],
+    ['表达', '把心里的话说出来，别人才知道。'],
+  ]],
+  ['南', '夏', '繁盛', '南方配夏天，万物最盛，人也最热络。', [
+    ['分享', '把好消息说给在乎的人听，高兴会多出一份。'],
+    ['尽兴', '难得的好时光，玩就玩个痛快。'],
+    ['珍惜', '眼前这些好，值得停下来好好看一看。'],
+  ]],
+  ['西', '秋', '收敛', '西方配秋天，是收获，也是收拢的时候。', [
+    ['整理', '把手边的事理一理，心也会跟着清爽。'],
+    ['放下', '有些东西拿着太重，可以放下了。'],
+    ['倾听', '把话收一收，先听听别人，也听听自己。'],
+  ]],
+  ['北', '冬', '蛰藏', '北方配冬天，万物收藏，悄悄蓄着力气。', [
+    ['休息', '你需要的，也许只是好好睡一觉。'],
+    ['等待', '时候还没到，耐心本身就是一种力气。'],
+    ['独处', '给自己留一段安静的时间。'],
+  ]],
+];
+/*
+ * The eight phases of the moon, from a new moon to the next: name, the days of the Chinese lunar month it falls on
+ * (roughly), how it looks and when it is up, what people have said about it, and a line to take away. The page works
+ * the phase out from the date and time: the moon's angle from the sun, from the short series in Meeus's Astronomical
+ * Algorithms (to within a few hours), cut into eight equal parts.
+ */
+const MOON_PHASES = [
+  ['新月', '朔 · 约农历廿九至初二', '月亮走到太阳和地球之间，朝着我们的一面照不到阳光，几乎看不见。它和太阳差不多同时升起、同时落下。', '古人把这一天叫作「朔」，定为每个农历月的初一。', '看不见月亮的夜晚，适合把心事清空，重新开始。'],
+  ['蛾眉月', '约农历初三至初六', '一弯细细的月亮，傍晚出现在西边天空，太阳下山后不久也跟着落下。亮的一面朝着西边的太阳。', '「蛾眉」本指蚕蛾细长弯曲的触须，《诗经》里用「螓首蛾眉」形容美人的眉毛；这时的月亮，就像那一弯。', '小小的一弯，也是光。慢慢来。'],
+  ['上弦月', '约农历初七至初十', '月亮亮了半边，亮的一面朝西。中午前后升起，傍晚高挂在南边天空，半夜落下。', '汉代的《释名》说，半个月亮「一旁曲，一旁直」，像一张上了弦的弓，所以叫「弦」。', '一半亮，一半暗，今晚的月亮刚好站在中间。'],
+  ['盈凸月', '约农历十一至十三', '比半个圆更胖，一天比一天圆。下午升起，后半夜才落下。', '英语叫它 waxing gibbous，「gibbous」就是鼓起来的意思。', '快满了。别急，留一点余地也很好。'],
+  ['满月', '望 · 约农历十四至十七', '地球走到太阳和月亮之间，月亮朝着我们的一面全被照亮。太阳落山时它从东边升起，整夜都在天上。', '古人叫它「望」，第二天叫「既望」，《前赤壁赋》开头的「七月既望」就是七月十六。中秋赏月、元宵看灯，都在满月的夜晚。', '月亮圆满的时候，也记得看看身边的人。'],
+  ['亏凸月', '约农历十八至廿一', '圆月开始缺一点，晚上升起得一天比一天迟。', '「亏」就是缺。《史记》里有一句「日中则移，月满则亏」，说的就是圆满之后的这一段。', '圆满过后，光一夜一夜地退回去。'],
+  ['下弦月', '约农历廿二至廿四', '又是半个月亮，这回亮的一面朝东。半夜才升起，到了早晨还挂在南边天空。', '上半月的半个月亮叫上弦，下半月的叫下弦。', '夜深了才出现的月亮，提醒你给自己一点安静。'],
+  ['残月', '约农历廿五至廿八', '只剩一弯细细的亮边，凌晨从东边升起，天亮之后就看不清了。', '柳永《雨霖铃》里有一句「杨柳岸，晓风残月」。', '快要看不见了，新的一轮也快要开始。'],
+];
+
+/* ---------- the moonlit window baked in Blender (blender/build_window.py): a cottage and a tower on a grassy island ---------- */
+/*
+ * Page 5's cottage in the round: white walls under a pyramid of navy tiles, a stone tower with a gold star on its hat, a
+ * stream under a tree full of fireflies, a fence, a lantern and an owl on its stump. Inside, a low table under a round
+ * window open to the night, the pendulum hanging from a brass stand over its board. Two ways of asking: 灵摆问答, a
+ * yes-or-no question once the pendulum has shown its yes and its no, and 灵摆盘, the four seasons and quarters, for what
+ * this moment needs. In the window, tonight's moon in its phase, worked out from the date and time: tap it to read about it.
+ */
+const WINDOW_ASSETS = 'window/', WINDOW_PRE = 'window_10292323';
+const WINDOW_VIEW = {
+  orbit: { at: V(0.2, 4.2, 0), narrowAt: V(0.2, 5.4, 0), orbit: { yaw: 0, pitch: 0.32, dist: 30.5, narrow: 1.2 }, yaw: 0.8, pitch: 0.2, fov: [44, 28] },
+  inside: { eye: V(0, 2.05, 1.65), at: V(0, 1.35, -0.85), yaw: 0.7, pitch: 0.42, fov: [70, 54] },
+};
+/** how far round the moon is from the sun, 0 (new) to 1 (new again), from the mean elongation and the larger periodic
+ * terms (Meeus, Astronomical Algorithms, ch. 47-48): within a fraction of a degree, an hour or so of the moon's month */
+const SYNODIC = 29.530589;
+function moonTurn(d = new Date()) {
+  const T = (d / 864e5 - 10957.5) / 36525, r = DEG;                    // Julian centuries from J2000.0
+  const D = 297.8501921 + 445267.1114034 * T, M = 357.5291092 + 35999.0502909 * T, Mp = 134.9633964 + 477198.8675055 * T;
+  const e = D + 6.289 * Math.sin(Mp * r) - 2.1 * Math.sin(M * r) + 1.274 * Math.sin((2 * D - Mp) * r) + 0.658 * Math.sin(2 * D * r) + 0.214 * Math.sin(2 * Mp * r) + 0.11 * Math.sin(D * r);
+  return (((e % 360) + 360) % 360) / 360;
+}
+const moonAge = (d) => moonTurn(d) * SYNODIC;
+/** which of MOON_PHASES the moon is in: eight equal parts of its month, each centred on its phase */
+function moonPhase(age) { return Math.floor((age / SYNODIC) * 8 + 0.5) % 8; }
+/** tonight's moon: lit on the right while it waxes, as seen from the north, the dark part faint with earthshine */
+function moonFace(age) {
+  const c = canvas(512, 512), g = c.getContext('2d'), k = age / SYNODIC, lit = (1 - Math.cos(k * TAU)) / 2, R = 96, s = k < 0.5 ? 1 : -1, f = Math.cos(k * TAU);
+  const halo = g.createRadialGradient(256, 256, 60, 256, 256, 256);
+  halo.addColorStop(0, `rgba(255,240,205,${0.1 + 0.26 * lit})`); halo.addColorStop(0.3, `rgba(200,215,255,${0.02 + 0.06 * lit})`); halo.addColorStop(1, 'rgba(160,180,255,0)');
+  g.fillStyle = halo; g.fillRect(0, 0, 512, 512);
+  g.fillStyle = 'rgba(120,135,185,.26)'; g.beginPath(); g.arc(256, 256, R, 0, TAU); g.fill();
+  // the lit part: the limb on the lit side, then back along the terminator, half an ellipse cos(phase) of the radius wide
+  g.save(); g.beginPath();
+  for (let i = 0; i <= 64; i++) { const a = -Math.PI / 2 + (Math.PI * i) / 64; g.lineTo(256 + s * R * Math.cos(a), 256 + R * Math.sin(a)); }
+  for (let i = 64; i >= 0; i--) { const a = -Math.PI / 2 + (Math.PI * i) / 64; g.lineTo(256 + s * f * R * Math.cos(a), 256 + R * Math.sin(a)); }
+  g.closePath(); g.fillStyle = '#f2e8cc'; g.fill(); g.clip();
+  // the dark seas roughly where they lie on the near side, soft-edged, then a little darkening toward the rim
+  [[-0.3, -0.4, 0.3, 0.24, 0.42], [0.18, -0.36, 0.17, 0.15, 0.4], [0.3, -0.04, 0.2, 0.17, 0.38], [0.66, -0.28, 0.11, 0.09, 0.4], [-0.56, 0.04, 0.24, 0.42, 0.34],
+    [-0.12, 0.3, 0.18, 0.13, 0.3], [0.5, 0.2, 0.12, 0.17, 0.32], [-0.04, -0.7, 0.34, 0.07, 0.24]].forEach(([x, y, rx, ry, a]) => {
+    g.save(); g.translate(256 + x * R, 256 + y * R); g.scale(rx, ry);
+    const m = g.createRadialGradient(0, 0, 0, 0, 0, R); m.addColorStop(0, `rgba(150,146,138,${a})`); m.addColorStop(0.6, `rgba(150,146,138,${a * 0.75})`); m.addColorStop(1, 'rgba(150,146,138,0)');
+    g.fillStyle = m; g.beginPath(); g.arc(0, 0, R, 0, TAU); g.fill(); g.restore();
+  });
+  const rim = g.createRadialGradient(256, 256, R * 0.55, 256, 256, R); rim.addColorStop(0, 'rgba(120,100,70,0)'); rim.addColorStop(1, 'rgba(120,100,70,.2)');
+  g.fillStyle = rim; g.fillRect(256 - R, 256 - R, 2 * R, 2 * R);
+  g.fillStyle = 'rgba(255,252,240,.7)'; g.beginPath(); g.arc(256 - 0.12 * R, 256 + 0.68 * R, 2.5, 0, TAU); g.fill();   // Tycho, the bright crater low down
+  g.restore();
+  return tex(c);
+}
+/** the night beyond the island: low hills, round trees along their crests, one lit window far off; fading out at its foot */
+function windowHills() {
+  const c = canvas(2048, 512), g = c.getContext('2d');
+  const hills = (base, amp, color, seed, trees) => {
+    const rr = mulberry(seed), ph = [rr() * TAU, rr() * TAU, rr() * TAU], top = [];
+    g.fillStyle = color; g.beginPath(); g.moveTo(0, 512);
+    for (let x = 0; x <= 2048; x += 16) { const y = base - amp * (0.5 * Math.sin(x / 260 + ph[0]) + 0.3 * Math.sin(x / 120 + ph[1]) + 0.2 * Math.sin(x / 60 + ph[2])); g.lineTo(x, y); top.push([x, y]); }
+    g.lineTo(2048, 512); g.closePath(); g.fill();
+    for (let k = 0; k < trees; k++) { const [x, y] = top[Math.floor(rr() * top.length)], s = 7 + rr() * 12; g.beginPath(); g.arc(x, y - s * 0.9, s, 0, TAU); g.fill(); g.fillRect(x - 2, y - s, 4, s + 4); }
+    return top;
+  };
+  hills(300, 44, '#1e2650', 31, 16);
+  const near = hills(350, 30, '#161c3c', 32, 10), [hx, hy] = near[Math.floor(near.length * 0.62)];
+  g.fillStyle = '#161c3c'; g.fillRect(hx - 16, hy - 22, 32, 26); g.beginPath(); g.moveTo(hx - 20, hy - 20); g.lineTo(hx, hy - 36); g.lineTo(hx + 20, hy - 20); g.fill();
+  g.fillStyle = 'rgba(255,214,140,.9)'; g.fillRect(hx - 4, hy - 14, 7, 8);
+  g.globalCompositeOperation = 'destination-out';
+  const fade = g.createLinearGradient(0, 330, 0, 500); fade.addColorStop(0, 'rgba(0,0,0,0)'); fade.addColorStop(1, 'rgba(0,0,0,1)'); g.fillStyle = fade; g.fillRect(0, 330, 2048, 182);
+  g.globalCompositeOperation = 'source-over';
+  return tex(c);
+}
+async function buildBakedWindowRoom() {
+  const gltf = await loadBakedGLB(WINDOW_ASSETS, WINDOW_PRE);
+  const s = bakedScene(gltf, 0x0c1030);
+  s.add(new THREE.HemisphereLight(0xe8e4ff, 0x4a4060, 1.5));               // only the live pendulum is lit by it
+  const fx = [], warm = tentGlow('rgba(255,236,190,1)', 'rgba(255,170,80,.45)'), cool = tentGlow('rgba(235,225,255,1)', 'rgba(170,140,255,.4)'), flame = tentFlame();
+  const sprite = (map, pos, size, color, kind, list = fx) => {
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map, color, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true }));
+    sp.position.copy(pos); sp.scale.setScalar(size); s.add(sp); const f = { sp, size, base: color.clone(), kind, seed: Math.random() * 100, at: pos.clone() }; list.push(f); return f;
+  };
+  let pivot = null, board = null, table = null, moonWin = null, owl = null, cat = null; const chimneys = [], flies = [];
+  gltf.scene.traverse((o) => {
+    if (!o.name.startsWith('FX_')) return;
+    const p = o.getWorldPosition(new THREE.Vector3()), n = o.name;
+    if (n.startsWith('FX_candle')) { sprite(flame, p.clone().add(V(0, 0.004, 0)), 0.045, new THREE.Color(2.2, 1.7, 1.2), 'flame'); sprite(warm, p, 0.3, new THREE.Color(0.8, 0.5, 0.25), 'glow'); }
+    else if (n.startsWith('FX_lantern_LanternLightTower')) sprite(warm, p, n.endsWith('Door') ? 0.7 : 1.0, new THREE.Color(0.7, 0.45, 0.2), n.endsWith('Door') ? 'glow' : 'breath');
+    else if (n.startsWith('FX_lantern_LanternLightPost')) sprite(warm, p, 1.3, new THREE.Color(0.85, 0.55, 0.25), 'glow');
+    else if (n.startsWith('FX_lantern')) sprite(warm, p, n.endsWith('Hang') ? 0.9 : 0.6, new THREE.Color(0.75, 0.5, 0.25), 'glow');
+    else if (n.startsWith('FX_firefly')) flies.push(sprite(warm, p, 0.1, new THREE.Color(0.75, 1.0, 0.45), 'fly', []));
+    else if (n.startsWith('FX_shroom')) sprite(cool, p.clone().add(V(0, 0.04, 0)), 0.3, new THREE.Color(0.45, 0.35, 0.8), 'breath');
+    else if (n === 'FX_star') sprite(warm, p, 1.6, new THREE.Color(0.9, 0.7, 0.3), 'breath');
+    else if (n === 'FX_orb') sprite(cool, p, 0.55, new THREE.Color(0.5, 0.4, 0.9), 'breath');
+    else if (n.startsWith('FX_smoke')) chimneys.push(p.clone());
+    else if (n === 'FX_pendulum') pivot = p.clone();
+    else if (n === 'FX_board') board = p.clone();
+    else if (n === 'FX_table') table = p.clone();
+    else if (n === 'FX_moonwin') moonWin = p.clone();
+    else if (n === 'FX_owl') owl = p.clone();
+    else if (n === 'FX_cat') cat = p.clone();
+  });
+  // tonight's moon, set so it shows in the upper left of the round window as you sit at the table
+  const win = moonWin ?? V(0, 1.75, -1.7), eye = WINDOW_VIEW.inside.eye;
+  const sky = nightSky(s, windowHills(), eye.clone().addScaledVector(win.clone().add(V(-0.26, 0.24, 0)).sub(eye).normalize(), 34), 0, moonFace(moonAge()));
+  // what you can touch: the table to sit at, the board, the pendulum, the window and its moon, the owl and the cat
+  const hidden = new THREE.MeshBasicMaterial({ visible: false }), t0 = table ?? V(0, 0.8, -0.42);
+  const hit = (geo, at, key) => { const m = new THREE.Mesh(geo, hidden); m.position.copy(at); m.userData[key] = true; s.add(m); return m; };
+  const tableHit = hit(new THREE.CylinderGeometry(0.62, 0.62, 0.55, 16), t0.clone().add(V(0, -0.25, 0)), 'table');
+  const winHit = hit(new THREE.CircleGeometry(0.78, 32), win, 'moon');
+  const owlHit = hit(new THREE.SphereGeometry(0.4, 8, 6), (owl ?? V(5.25, 0.86, 2.4)).clone().add(V(0, -0.2, 0)), 'owl');
+  const catHit = hit(new THREE.SphereGeometry(0.22, 8, 6), cat ?? V(-0.42, 0.9, -1.4), 'cat');
+  const B = windowBoard(s, board ?? V(0, 0.825, -0.42)), P = windowPendulum(s, pivot ?? V(0, 1.416, -0.42));
+  // two closer looks, each for a wide screen and an upright one: at the pendulum over its board for a question, and down
+  // at the board for 灵摆盘. On a wide screen the look slides right so the board sits left of the panel at the side; on a
+  // phone it stands further back, the board high in the frame, clear of the panel that rises below it
+  const look = (eye, at, fov, dx = 0) => ({ eye: B.at.clone().add(eye).setX(B.at.x + dx), at: B.at.clone().add(at).setX(B.at.x + dx), yaw: 0.3, pitch: 0.25, fov: [fov, fov] });
+  const views = { ask: [look(V(0, 0.66, 0.9), V(0, 0.17, -0.02), 44, 0.11), look(V(0, 0.92, 1.3), V(0, 0.1, 0.12), 60)],
+    board: [look(V(0, 0.93, 0.6), V(0, 0, -0.01), 42, 0.17), look(V(0, 1.25, 0.78), V(0, 0, 0.36), 62)] };
+  let smokeT = 0;
+  const update = (dt, t) => {
+    fxPulse(fx, t); sky(t); updatePendulum(P, dt, t);
+    for (const f of flies) {
+      const k = Math.max(0, Math.sin(t * 1.3 + f.seed)) ** 3;
+      f.sp.position.set(f.at.x + 0.3 * Math.sin(t * 0.37 + f.seed), f.at.y + 0.18 * Math.sin(t * 0.53 + f.seed * 1.7), f.at.z + 0.3 * Math.cos(t * 0.31 + f.seed * 0.6));
+      f.sp.material.color.copy(f.base).multiplyScalar(0.15 + 0.85 * k);
+    }
+    if ((smokeT -= dt) < 0) { smokeT = 0.24; for (const p of chimneys) smoke.emit(tmpV.copy(p).add(V(rnd(-0.03, 0.03), 0, rnd(-0.03, 0.03))), tmpW.set(rnd(0.02, 0.06), rnd(0.18, 0.28), rnd(-0.02, 0.02)), { life: rnd(3, 4.5), size: 0.2, drag: 0.15, color: new THREE.Color(0.24, 0.24, 0.34) }); }
+    if (Math.random() < dt * 2.5) sparks.emit(tmpV.copy(P.bob.position), tmpW.set(0, 0.015, 0), { life: 0.9, size: 0.008, color: LILAC, drag: 0.4 });
+  };
+  return { scene: s, table: tableHit, hits: [tableHit, winHit, owlHit, catHit, B.mesh, P.hit], warm: { intensity: 0 }, warmBase: 0, mobiles: [], flames: [], glow: [], baked: true, update, board: B, pend: P, views };
+}
+
+/* ---------- 灵摆盘: the board of the four seasons and quarters, painted live so the pendulum's cell can light up ---------- */
+/*
+ * Laid out the old way, as if facing south: 南 at the far side, 北 near you, 东 on the left and 西 on the right, so the
+ * seasons go round clockwise, spring to winter. Each quarter holds three words of what this moment needs.
+ */
+const BOARD_AT = { 东: 180, 南: 90, 西: 0, 北: 270 }, BOARD_R = 0.372, BOARD_WORD_R = 300 / 500;
+const BOARD_CELLS = PENDULUM_BOARD.flatMap(([dir, season, theme, line, words], q) => words.map(([word, wordLine], j) => ({ q, dir, season, theme, line, word, wordLine, a: (BOARD_AT[dir] + 30 - 30 * j) * DEG })));
+function windowBoard(s, at) {
+  const c = canvas(1024, 1024), map = tex(c), mesh = new THREE.Mesh(new THREE.CircleGeometry(BOARD_R, 96), new THREE.MeshBasicMaterial({ map, color: 0xe4dcec }));
+  mesh.rotation.x = -Math.PI / 2; mesh.position.copy(at).add(V(0, 0.0015, 0)); mesh.userData.board = true; s.add(mesh);
+  const C = { c, g: c.getContext('2d'), map, mesh, at: at.clone(), hi: -1 };
+  paintBoard(C);
+  document.fonts.load('900 54px "Noto Serif SC"', PENDULUM_BOARD.flat(2).join('')).then(() => paintBoard(C, C.hi)).catch(() => {});
+  return C;
+}
+function paintBoard(C, hi = -1) {
+  const g = C.g, c = 512, P = (a, r) => [c + Math.cos(a) * r, c - Math.sin(a) * r];
+  const wedge = (a0, a1, r0, r1) => { g.beginPath(); g.arc(c, c, r1, -a1, -a0); g.arc(c, c, r0, -a0, -a1, true); g.closePath(); };
+  C.hi = hi; g.clearRect(0, 0, 1024, 1024);
+  g.fillStyle = '#232857'; g.beginPath(); g.arc(c, c, 500, 0, TAU); g.fill();
+  const tint = { 东: 'rgba(70,150,128,.42)', 南: 'rgba(176,84,116,.38)', 西: 'rgba(196,146,72,.36)', 北: 'rgba(84,116,196,.42)' };
+  for (const [dir] of PENDULUM_BOARD) { const a = BOARD_AT[dir] * DEG; g.fillStyle = tint[dir]; wedge(a - Math.PI / 4, a + Math.PI / 4, 150, 420); g.fill(); }
+  if (hi >= 0) {
+    const a = BOARD_CELLS[hi].a, [x, y] = P(a, 290), glow = g.createRadialGradient(x, y, 10, x, y, 170);
+    glow.addColorStop(0, 'rgba(255,226,150,.85)'); glow.addColorStop(1, 'rgba(255,200,110,.18)');
+    g.fillStyle = glow; wedge(a - Math.PI / 12, a + Math.PI / 12, 150, 420); g.fill();
+    g.strokeStyle = '#ffe6a8'; g.lineWidth = 6; wedge(a - Math.PI / 12, a + Math.PI / 12, 150, 420); g.stroke();
+  }
+  // rings, the band round the rim, the spokes between the cells (the ones between quarters heavier)
+  g.fillStyle = 'rgba(14,16,44,.55)'; g.beginPath(); g.arc(c, c, 488, 0, TAU); g.arc(c, c, 420, 0, TAU, true); g.fill();
+  g.strokeStyle = '#d8b46a';
+  [[500, 8], [486, 2], [420, 4], [150, 4], [138, 1.5]].forEach(([r, w]) => { g.lineWidth = w; g.beginPath(); g.arc(c, c, r, 0, TAU); g.stroke(); });
+  for (let k = 0; k < 12; k++) {
+    const a = (15 + 30 * k) * DEG, major = k % 3 === 1, [x0, y0] = P(a, 150), [x1, y1] = P(a, major ? 486 : 420);
+    g.lineWidth = major ? 4 : 1.6; g.globalAlpha = major ? 1 : 0.7; g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke();
+  }
+  g.globalAlpha = 1; g.textAlign = 'center'; g.textBaseline = 'middle';
+  for (const [dir, season, theme] of PENDULUM_BOARD) {
+    const a = BOARD_AT[dir] * DEG, [x, y] = P(a, 453), upright = dir === '东' || dir === '西';
+    g.fillStyle = '#ecc97e'; g.font = '900 40px "Noto Serif SC", serif';
+    if (upright) { g.fillText(dir, x, y - 24); g.fillText(season, x, y + 24); } else g.fillText(`${dir} · ${season}`, x, y);
+    const [tx, ty] = P(a, 196); g.fillStyle = '#cbbcf2'; g.font = '700 30px "Noto Serif SC", serif'; g.fillText(theme, tx, ty);
+  }
+  BOARD_CELLS.forEach((cell, i) => {
+    const [x, y] = P(cell.a, 300);
+    g.save(); if (i === hi) { g.shadowColor = '#ffd27a'; g.shadowBlur = 24; }
+    g.fillStyle = i === hi ? '#3a2410' : '#f4ead2'; g.font = '900 54px "Noto Serif SC", serif'; g.fillText(cell.word, x, y); g.restore();
+  });
+  // the middle: a crescent and a star, under the pendulum's point
+  g.fillStyle = '#d8b46a'; g.beginPath(); moonPath(g, c - 18, c, 62, 0.42, 0.82); g.fill();
+  g.beginPath(); for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + (k * Math.PI) / 5, r = k % 2 ? 10 : 24; g.lineTo(c + 40 + Math.cos(a) * r, c - 4 + Math.sin(a) * r); } g.closePath(); g.fill();
+  C.map.needsUpdate = true;
+}
+function cellAt(C, i) { const a = BOARD_CELLS[i].a, r = BOARD_R * BOARD_WORD_R; return C.at.clone().add(V(Math.cos(a) * r, 0.01, -Math.sin(a) * r)); }
+
+/* ---------- 灵摆: the pendulum on its chain, swinging the way a reading needs ---------- */
+/*
+ * Not a free simulation: the swing has an axis on the board's angles (0 to the right, a quarter turn to the far side), a
+ * reach, an offset along the axis and a roundness (0 a line, 1 a circle), and each of them eases towards what the
+ * reading asks for, at the pace a 50 cm pendulum swings.
+ */
+const PEND_L = 0.5, PEND_W = Math.sqrt(9.8 / PEND_L), DOWN = V(0, -1, 0);
+const SWING = { forward: { ax: Math.PI / 2, amp: 0.085, ecc: 0.05, c: 0 }, side: { ax: 0, amp: 0.085, ecc: 0.05, c: 0 }, circle: { amp: 0.07, ecc: 1, c: 0 }, still: { amp: 0.005, ecc: 0.4, c: 0 }, rest: { amp: 0.003, ecc: 0.5, c: 0 } };
+function windowPendulum(s, pivot) {
+  const brass = new THREE.MeshStandardMaterial({ color: 0xd8b060, metalness: 0.9, roughness: 0.3 });
+  const chain = new THREE.Mesh(new THREE.CylinderGeometry(0.0014, 0.0014, 1, 5).translate(0, -0.5, 0), brass);
+  const bob = new THREE.Group(), gem = new THREE.Mesh(new THREE.LatheGeometry([[0, -0.058], [0.011, -0.04], [0.014, -0.022], [0.01, -0.009], [0.003, 0]].map(([x, y]) => new THREE.Vector2(x, y)), 8),
+    new THREE.MeshStandardMaterial({ color: 0xb89cf0, emissive: 0x5a34b0, emissiveIntensity: 0.55, roughness: 0.15, metalness: 0.1, flatShading: true }));
+  bob.add(gem, new THREE.Mesh(new THREE.SphereGeometry(0.0045, 10, 8), brass)); s.add(chain, bob);
+  const hit = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), new THREE.MeshBasicMaterial({ visible: false })); hit.userData.pendulum = true; s.add(hit);
+  return { pivot: pivot.clone(), chain, bob, gem, hit, ph: 0, rate: 1.2, ...SWING.rest, ax: 0, to: { ...SWING.rest, ax: 0 } };
+}
+function swingTo(P, kind, extra = {}) { Object.assign(P.to, SWING[kind], extra); }
+function updatePendulum(P, dt, t) {
+  const k = 1 - Math.exp(-dt * P.rate), T = P.to, d = Math.atan2(Math.sin(T.ax - P.ax), Math.cos(T.ax - P.ax));
+  P.amp += (T.amp - P.amp) * k; P.ecc += (T.ecc - P.ecc) * k; P.c += (T.c - P.c) * k; P.ax += d * k; P.ph += PEND_W * dt;
+  const u = P.c + P.amp * Math.cos(P.ph), v = P.amp * P.ecc * Math.sin(P.ph) + 0.0015 * (Math.sin(t * 1.3) + Math.sin(t * 2.9 + 1));
+  const ca = Math.cos(P.ax), sa = Math.sin(P.ax), x = u * ca - v * sa, z = -(u * sa + v * ca), y = -Math.sqrt(PEND_L * PEND_L - Math.min(x * x + z * z, 0.8 * PEND_L * PEND_L));
+  P.bob.position.set(P.pivot.x + x, P.pivot.y + y, P.pivot.z + z); P.hit.position.copy(P.bob.position);
+  const dir = tmpW.copy(P.bob.position).sub(P.pivot), len = dir.length();
+  P.chain.position.copy(P.pivot); P.chain.scale.set(1, len, 1); P.chain.quaternion.setFromUnitVectors(DOWN, dir.divideScalar(len)); P.bob.quaternion.copy(P.chain.quaternion);
+  P.gem.rotation.y += dt * 0.5;
+}
+
+/* ---------- the readings: calibrate, ask, or swing it over the board ---------- */
+let pend = null, pendYes = null;            // the reading under way; which way the pendulum showed its "yes" this visit
+const otherSwing = (k) => (k === 'forward' ? 'side' : 'forward');
+const PEND_LAST = {};
+function pendLine(k) { const lines = PENDULUM_ANSWERS[k][2]; let i; do i = Math.floor(Math.random() * lines.length); while (lines.length > 1 && i === PEND_LAST[k]); PEND_LAST[k] = i; return lines[i]; }
+/** the pendulum casting about before it settles: a small swing, wandering */
+async function pendSearch(P, my, ms) {
+  for (let k = 0; k < 3; k++) { Object.assign(P.to, { amp: rnd(0.015, 0.035), ecc: rnd(0.3, 0.8), ax: rnd(0, TAU), c: 0 }); await wait(ms / 3); if (pend !== my) return; }
+}
+function backToWindow() { return roomId === 'window' && roomInside && ROOM_VIEW.window !== WINDOW_VIEW.inside && !roomFly ? flyRoom(WINDOW_VIEW.inside, 900) : Promise.resolve(); }
+/** glide to one of the room's closer looks, the one for where the panel opens (and hold still meanwhile) */
+async function flyWindow(kind) {
+  const v = rooms.window.views[kind][matchMedia('(max-aspect-ratio: 1/1), (max-width: 760px)').matches ? 1 : 0];
+  if (ROOM_VIEW.window === v || roomFly) return;
+  busy = true; setUI('moving'); await flyRoom(v, 1000); busy = false;
+}
+function pendIntro() {
+  if (roomId !== 'window' || busy || (pend && pend.phase !== 'done')) return;
+  if (!roomInside) { roomSit(); return; }
+  endPend(false);
+  const cal = !!pendYes;
+  showPanel(`<span class="seal">摆</span><small>灵摆问答 · Pendulum</small><h3>${cal ? '问一个是或否的问题' : '先校准，再提问'}</h3><p>${PENDULUM_UI.ask}</p><p>${cal ? `刚才校准过：「是」${PENDULUM_UI.swing[pendYes]}，「否」${PENDULUM_UI.swing[otherSwing(pendYes)]}。` : PENDULUM_UI.calibrate}</p>`,
+    cal ? [['让灵摆摆起来', pendAsk, true], ['重新校准', pendCalibrate], ['收起', hidePanel]] : [['先校准', pendCalibrate, true], ['收起', hidePanel]]);
+}
+async function pendCalibrate() {
+  if (roomId !== 'window' || !roomInside || busy) return;
+  const yes = Math.random() < 0.5 ? 'forward' : 'side';             // and 「否」 is always the other way
+  hidePanel(); await flyWindow('ask');
+  const P = rooms.window.pend, my = (pend = { mode: 'calib', phase: 'yes', yes });
+  pendYes = null; swingTo(P, 'rest'); P.rate = 1.2; setUI('room'); sfx('soft');
+  await wait(900); if (pend !== my) return;
+  await pendSearch(P, my, 1200); if (pend !== my) return;
+  swingTo(P, yes); await wait(3000); if (pend !== my) return;
+  my.phase = 'yesShown'; sfx('pop'); setUI('room');
+}
+async function pendShowNo() {
+  const my = pend; if (!my || my.phase !== 'yesShown') return;
+  const P = rooms.window.pend, no = otherSwing(my.yes);
+  my.phase = 'no'; swingTo(P, 'rest'); setUI('room');
+  await wait(1300); if (pend !== my) return;
+  await pendSearch(P, my, 1000); if (pend !== my) return;
+  swingTo(P, no); await wait(3000); if (pend !== my) return;
+  pendYes = my.yes; my.phase = 'ready'; sfx('pop');
+  toast(PENDULUM_UI.shows.replace('X', '否').replace('Y', PENDULUM_UI.swing[no]));
+  P.rate = 0.6; swingTo(P, 'rest'); setUI('room');
+}
+let pendForce = null;                       // tests can fix the next answer
+async function pendAsk() {
+  if (roomId !== 'window' || !roomInside || busy || !pendYes) return;
+  hidePanel(); await flyWindow('ask');
+  const P = rooms.window.pend, r = Math.random(), out = pendForce ?? (r < 0.38 ? 'yes' : r < 0.76 ? 'no' : r < 0.92 ? 'circle' : 'still'), my = (pend = { mode: 'ask', phase: 'swing', out });
+  pendForce = null; P.rate = 1.2; swingTo(P, 'rest'); setUI('room'); sfx('soft');
+  await wait(800); if (pend !== my) return;
+  await pendSearch(P, my, 1800); if (pend !== my) return;
+  const kind = out === 'yes' ? pendYes : out === 'no' ? otherSwing(pendYes) : out;
+  swingTo(P, kind); await wait(3400); if (pend !== my) return;
+  my.phase = 'done'; showPendAnswer(out, kind); setUI('room');
+}
+function showPendAnswer(out, kind) {
+  const how = { ...PENDULUM_UI.swing, circle: '画圈', still: '几乎不动' }[kind], [label, key] = PENDULUM_ANSWERS[out], sw = PENDULUM_UI.swing;
+  sfx('chime');
+  showPanel(`<span class="seal">摆</span><small>灵摆问答 · ${how}</small><h3>${label}</h3><p class="gua-image">关键词 · ${key}</p><p>${pendLine(out)}</p>`
+    + `<div class="note">校准时，「是」${sw[pendYes]}，「否」${sw[otherSwing(pendYes)]}。<br>${PENDULUM_UI.note}</div>`,
+    [['再问一个', () => { hidePanel(); const P = rooms.window.pend; P.rate = 0.8; swingTo(P, 'rest'); pend = { mode: 'ask', phase: 'ready', again: true }; setUI('room'); }, true], ['收起', () => endPend()]]);
+}
+async function boardIntro() {
+  if (roomId !== 'window' || busy || (pend && pend.phase !== 'done')) return;
+  if (!roomInside) { roomSit(); return; }
+  endPend(false); const my = (pend = { mode: 'board', phase: 'boardReady' });
+  await flyWindow('board'); if (pend !== my) return;
+  showPanel(`<span class="seal">盘</span><small>灵摆盘 · 四时四方</small><h3>此刻需要什么</h3><p>${PENDULUM_UI.board}</p>`, [['让灵摆转起来', pendSpin, true], ['收起', () => endPend()]]);
+  setUI('room');
+}
+async function pendSpin() {
+  if (!pend || pend.mode !== 'board' || pend.phase === 'spin') return;
+  hidePanel();
+  const R = rooms.window, P = R.pend, cell = Math.floor(Math.random() * BOARD_CELLS.length), my = (pend = { mode: 'board', phase: 'spin', cell });
+  paintBoard(R.board, -1); setUI('room'); sfx('soft');
+  // round and round, slower and flatter, until the swing lies along one cell's line, leaning out towards it
+  P.rate = 0.9; Object.assign(P.to, { amp: 0.12, ecc: 1, c: 0 }); P.ax = P.to.ax = BOARD_CELLS[cell].a;
+  await wait(2600); if (pend !== my) return;
+  Object.assign(P.to, { amp: 0.1, ecc: 0.5 }); await wait(1300); if (pend !== my) return;
+  P.rate = 0.8; Object.assign(P.to, { amp: 0.105, ecc: 0.04, c: 0.085 }); await wait(2900); if (pend !== my) return;
+  paintBoard(R.board, cell); sfx('pop'); burstAt(sparks, cellAt(R.board, cell), 18, { speed: 0.05, up: 0.1, size: 0.008, life: 0.8 });
+  await wait(900); if (pend !== my) return;
+  my.phase = 'done'; showBoardReading(BOARD_CELLS[cell]); setUI('room');
+}
+function showBoardReading(C) {
+  sfx('chime');
+  showPanel(`<span class="seal">盘</span><small>灵摆盘 · ${C.dir}方 · ${C.season} · ${C.theme}</small><h3>${C.word}</h3><p class="ln-sentence">${C.wordLine}</p><p class="gua-image">${C.line}</p><div class="note">${PENDULUM_UI.note}</div>`,
+    [['再转一次', () => { const R = rooms.window; paintBoard(R.board, -1); R.pend.rate = 0.8; swingTo(R.pend, 'rest'); pend = { mode: 'board', phase: 'boardReady' }; hidePanel(); setUI('room'); }, true], ['收起', () => endPend()]]);
+}
+/** the pendulum let go: it slows to rest, the board goes dark again, and you sit back */
+function endPend(fly = true) {
+  pend = null; hidePanel();
+  const R = rooms.window; if (!R?.pend) return;
+  R.pend.rate = 0.7; swingTo(R.pend, 'rest'); if (R.board.hi >= 0) paintBoard(R.board, -1);
+  if (fly) backToWindow().then(() => setUI('room')); setUI('room');
+}
+function resetWindow(all = false) {
+  endPend(false); if (all) pendYes = null;
+  const P = rooms.window?.pend; if (P) { Object.assign(P, SWING.rest); P.to = { ...SWING.rest, ax: 0 }; }
+}
+function showMoon() {
+  const age = moonAge(), [name, days, sky, folk, line] = MOON_PHASES[moonPhase(age)];
+  sfx('chime');
+  showPanel(`<span class="seal">月</span><small>今晚的月亮 · 月龄约 ${age.toFixed(1)} 天</small><h3>${name}</h3><p class="gua-image">${days}</p><p>${sky}</p><p>${folk}</p><p class="ln-sentence">${line}</p><div class="note">月相按此刻的日期和时间推算，和天文台的数据相差不过几个小时；农历日子只是大约的对应。</div>`, [['知道了', hidePanel, true]]);
+  $('panel').classList.add('long');
+}
+/** the buttons along the bottom while the pendulum is busy; true when they take the place of the room's own */
+function windowButtons(act, hint) {
+  const p = pend; if (!p) return false;
+  const yesNo = (k) => PENDULUM_UI.shows.replace('X', k === p.yes ? '是' : '否').replace('Y', PENDULUM_UI.swing[k]);
+  if (p.phase === 'yes' || p.phase === 'no') { hint.textContent = `默念「请给我看看『${p.phase === 'yes' ? '是' : '否'}』」……`; act.append(button('放下灵摆', () => endPend())); return true; }
+  if (p.phase === 'yesShown') { hint.textContent = yesNo(p.yes); act.append(button('再看「否」', pendShowNo, true), button('放下灵摆', () => endPend())); return true; }
+  if (p.phase === 'ready') { hint.textContent = p.again ? '默念你的下一个问题，再让灵摆慢慢摆起来' : PENDULUM_UI.calibrated; act.append(button('让灵摆摆起来', pendAsk, true), button('重新校准', pendCalibrate), button('放下灵摆', () => endPend())); return true; }
+  if (p.phase === 'swing') { hint.textContent = '灵摆慢慢摆起来了……'; return true; }
+  if (p.phase === 'boardReady') { hint.textContent = '默念：这件事里，我此刻最需要什么'; act.append(button('让灵摆转起来', pendSpin, true), button('放下灵摆', () => endPend())); return true; }
+  if (p.phase === 'spin') { hint.textContent = '灵摆在盘上慢慢转着……'; return true; }
+  return false;
+}
+/** a tap in the cottage: the owl, the cat, the moon in the window, the pendulum, the board, or the table to sit at */
+function windowTap(hit) {
+  const u = hit.object.userData;
+  if (u.owl) { sfx('hoot'); toast('猫头鹰轻轻叫了两声：咕——咕咕'); return; }
+  if (u.cat) { sfx('purr'); toast('小黑猫在梦里打了个呼噜'); return; }
+  if (u.moon) { if (!pend || pend.phase === 'done') showMoon(); return; }
+  if (!roomInside) { roomSit(); return; }
+  if (pend && pend.phase !== 'done') { if (pend.phase === 'yesShown') pendShowNo(); else if (pend.phase === 'ready') pendAsk(); else if (pend.phase === 'boardReady') pendSpin(); return; }
+  if (u.board) boardIntro(); else pendIntro();
+}
 /** ?dev in the address: the frame counter and the window.__book test hooks */
 const DEV = /[?&]dev\b/.test(location.search);
 /* ================= running it ================= */
@@ -8235,6 +8648,11 @@ function sfx(kind) {
       g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.07, t + 0.15); g.gain.linearRampToValueAtTime(0, t + 0.85); s.connect(f).connect(g).connect(out); s.start(t);
     } else if (kind === 'chirp') {                                   // the canary
       [0, 0.16, 0.3].forEach((d, i) => { const o = tone(2600 + i * 300, t + d, 0.12, 0.03); o.frequency.setValueAtTime(2600 + i * 300, t + d); o.frequency.exponentialRampToValueAtTime(4200, t + d + 0.08); });
+    } else if (kind === 'hoot') {                                    // the owl: hoo — hoo-hoo, soft and low
+      [[0, 0.55, 0.06], [0.72, 0.2, 0.045], [0.96, 0.6, 0.055]].forEach(([d, dur, vol]) => {
+        const o = actx.createOscillator(), g = actx.createGain(); o.frequency.setValueAtTime(420, t + d); o.frequency.linearRampToValueAtTime(360, t + d + dur);
+        g.gain.setValueAtTime(0, t + d); g.gain.linearRampToValueAtTime(vol, t + d + 0.08); g.gain.linearRampToValueAtTime(0, t + d + dur); o.connect(g).connect(out); o.start(t + d); o.stop(t + d + dur + 0.05);
+      });
     } else if (kind === 'coin') {
       [2093, 2637, 3136].forEach((f, i) => tone(f, t + i * 0.05, 0.5, 0.035));
     } else if (kind === 'purr') {
@@ -8370,7 +8788,7 @@ const LORE = {
   shrine: ['掷筊', 'Jiaobei', `<p>掷筊（也叫掷杯、跋杯）是<b>闽南、台湾和潮汕一带</b>庙宇里很常见的问事方式。</p><p>筊杯通常用木头或竹根削成，<b>一对两只</b>，像两弯新月：一面平，一面凸。在心里默念问题，再把它们轻轻掷到地上：</p><p><b>一平一凸</b>是「圣筊」，表示应允；<b>两面皆平</b>是「笑筊」，像是神明笑而不答；<b>两面皆凸</b>是「阴筊」，表示不妥，或时机未到。</p><p>很多人会连掷三次圣筊才算真正确认。至于<b>灵签</b>，是双手捧起签筒轻轻摇动，直到一支竹签落下；再掷筊请示，得圣筊才算是给自己的签，然后按签号取签诗来读。</p><p>这里的六十首签诗是为这本书新写的小诗，<b>不托名任何神明</b>，也不照搬哪座庙的签谱，只是陪你停下来想一想。</p>`],
   study: ['测字 · 六爻', 'Character & Coins', `<p><b>测字</b>又叫拆字，是把一个汉字拆开、加减笔画，或从字形字义去联想，来解读心里的事。宋代的谢石就以测字出名。</p><p><b>六爻</b>源自《周易》。传统的做法是把<b>三枚铜钱</b>连着掷六次，每次得到一爻，六爻合成一卦，再看卦象和变化的爻来推想事情的走向。</p>`],
   tea: ['雷诺曼 · 茶叶', 'Lenormand & Tea Leaves', `<p>雷诺曼卡以 19 世纪法国很有名的占卜师<b>玛丽·安娜·雷诺曼</b>命名，不过这副 <b>36 张</b>的牌其实源自 1799 年前后德国纽伦堡的一款桌游《希望之游戏》，由约翰·卡斯帕·赫希特尔（Johann Kaspar Hechtel）设计。没有证据表明雷诺曼本人用过这副牌，是她去世后，出版商借她的名气给它命了名。当年的牌面上就印着一张小小的扑克牌，可以兼作纸牌来玩，后来的雷诺曼牌把它留了下来。</p><p>每张牌都是一个日常的意象：骑士、幸运草、船、房子、树……读牌时把几张牌连在一起，像读一句话那样理解，风格直接又生活化。三张一行时，中间那张是这件事的中心；九张摆成方阵时，中间那张是核心，四周的行和列各说一个方向。</p><p><b>茶叶占卜</b>（tasseography）在茶叶传入欧洲以后慢慢流行起来。维多利亚时代的英国人喝完下午茶，会把杯子转三圈、倒扣在碟子上，再看杯里剩下的茶叶像什么：靠近杯口的说眼前，沉在杯底的说远处，挨着杯柄的和自己有关。</p>`],
-  window: ['灵摆', 'Pendulum', `<p>灵摆通常是一根细链吊着一枚<b>水晶或金属坠子</b>。手持链子保持不动，心里问一个只能回答「是」或「否」的问题，再看坠子是前后摆、左右摆，还是画圈。</p><p>科学上认为，这种摆动来自我们自己察觉不到的细微肌肉动作，叫作<b>意念动作效应</b>。所以它更像一面小镜子，帮你听一听自己的直觉。</p>`],
+  window: ['灵摆', 'Pendulum', `<p>灵摆通常是一根细链吊着一枚<b>水晶或金属坠子</b>。手稳稳地提着链子，心里问一个只能回答「是」或「否」的问题，再看坠子怎么摆。按传统做法，提问之前要先请它「示范」一下是和否，这一步叫作<b>校准</b>；画圈常被读作「还没定」；几乎不动，则是这一次不作答，可以换个问法再试。</p><p><b>它从哪里来？</b>用吊着的小东西「问事」，在欧洲和美洲的民间流传已久，比如把戒指或针用线吊在孕妇的肚子上方，看它怎么转，来猜孩子是男是女——这当然只是旧时的说法，没有任何依据。和灵摆最近的亲戚是<b>寻水术</b>（dowsing）：拿着分叉的树枝走过田野，据说能找到水源和矿脉。1556 年阿格里科拉（Georgius Agricola）的矿冶名著《论矿冶》里，就画着矿工拿探矿杖找矿的样子，不过他本人对这种做法并不太相信。</p><p>20 世纪 30 年代前后，法国神父布利（Alexis Bouly）给用灵摆和探测杖「感知」事物的做法起了个名字，叫 radiesthésie，后来传遍欧洲，灵摆也渐渐成了一种独立的占卜工具。常有人说它源自古埃及或古代中国，但目前找不到可靠的史料。中文里的「灵摆」，是这股风潮近几十年传入时的译名。</p><p><b>它为什么会摆？</b>法国化学家<b>谢弗勒尔</b>（Michel Eugène Chevreul）在 1833 年发表的实验里发现：手臂被撑住、或者闭上眼睛的时候，灵摆几乎就不动了。他的结论是，摆动来自我们自己察觉不到的细微肌肉动作。1852 年，英国生理学家卡彭特（William Carpenter）把这类现象叫作<b>意念动作效应</b>。所以灵摆更像一面小镜子，帮你听一听自己心里的倾向。</p><p><b>灵摆盘</b>是在纸上画一个圆盘，或者只画半圈刻度，分好格子，灵摆停在哪一格就读哪一格。这里的盘按中国传统的四时四方来分：东方配春，南方配夏，西方配秋，北方配冬，每个方位各有三个「此刻需要」的词。窗外的月亮，则是按今天的日期算出的今晚的月相。</p>`],
   hearth: ['卢恩符文', 'Runes', `<p>卢恩符文是古代日耳曼人使用的字母。最古老的「<b>古弗萨克</b>」共 24 个字母，大约从公元 2 世纪开始使用，后来在北欧演变成 16 个字母的「新弗萨克」。</p><p>每个符文既是一个音，也有自己的名字和意象，比如 <b>ᚠ Fehu</b> 代表财富，<b>ᚱ Raidho</b> 代表旅途。</p><p>把符文刻在小石块或木片上、抽出来占卜的做法，主要是在 20 世纪流行起来的。</p>`],
 };
 function showLore(id) {
@@ -8381,7 +8799,7 @@ function showLore(id) {
 /** before a reading: a breath, and the question held quietly in mind */
 function askQuestion(id) {
   return new Promise(async (done) => {
-    const tarot = ROOMS[id].kind === 'tarot', how = tarot ? '想好了，就从桌上的牌堆里抽牌' : ROOMS[id].kind === 'study' ? '想好了，就到书案前掷铜钱起一卦，或写下一个字' : ROOMS[id].kind === 'tea' ? '想好了，就到茶桌前翻几张雷诺曼，或喝完一杯茶看看杯底' : '想好了，就把木筊轻轻掷出';
+    const tarot = ROOMS[id].kind === 'tarot', how = tarot ? '想好了，就从桌上的牌堆里抽牌' : ROOMS[id].kind === 'study' ? '想好了，就到书案前掷铜钱起一卦，或写下一个字' : ROOMS[id].kind === 'tea' ? '想好了，就到茶桌前翻几张雷诺曼，或喝完一杯茶看看杯底' : ROOMS[id].kind === 'window' ? '想好了，就坐到窗下的矮桌前，请灵摆回答，或在灵摆盘上看看此刻需要什么' : '想好了，就把木筊轻轻掷出';
     const box = el('div', 'ask', `<div class="inner"><div class="ring"></div><div class="breath">吸 气 · 呼 气</div><h3>默念你的问题</h3><p>闭上眼，慢慢呼吸三次<br>在心里，把想问的事轻轻说一遍</p></div>`);
     const inner = box.querySelector('.inner');
     let q = null;
@@ -8522,7 +8940,7 @@ function setUI(state) {
   }
   if (state === 'room') {
     const r = ROOMS[roomId], baked = !!rooms[roomId]?.baked, tent = roomId === 'tent';
-    hint.textContent = baked ? (tent ? (roomInside ? '点桌上的牌堆开始占卜 · 拖动可以环顾帐篷' : '左右拖动看看帐篷 · 点桌子，坐到桌前') : roomId === 'study' ? (roomInside ? '掷铜钱起一卦，或写一个字测一测 · 拖动可以环顾书斋' : '左右拖动看看书斋 · 点书案，走到桌前') : roomId === 'tea' ? (roomInside ? '翻雷诺曼，或喝茶看杯底 · 拖动环顾茶室' : '拖动看看茶室 · 点茶桌坐下') : (roomInside ? '点签筒求签，或点木筊掷筊 · 拖动可以环顾殿内' : '左右拖动看看神龛 · 点供桌，走到桌前')) : r.kind === 'jiaobei' ? '默念你的问题，再掷一次木筊' : '点桌上的牌，抽一张';
+    hint.textContent = baked ? (tent ? (roomInside ? '点桌上的牌堆开始占卜 · 拖动可以环顾帐篷' : '左右拖动看看帐篷 · 点桌子，坐到桌前') : roomId === 'study' ? (roomInside ? '掷铜钱起一卦，或写一个字测一测 · 拖动可以环顾书斋' : '左右拖动看看书斋 · 点书案，走到桌前') : roomId === 'tea' ? (roomInside ? '翻雷诺曼，或喝茶看杯底 · 拖动环顾茶室' : '拖动看看茶室 · 点茶桌坐下') : roomId === 'window' ? (roomInside ? '灵摆问答或灵摆盘 · 点窗外的月亮看月相' : '拖动看看小屋 · 点矮桌坐下') : (roomInside ? '点签筒求签，或点木筊掷筊 · 拖动可以环顾殿内' : '左右拖动看看神龛 · 点供桌，走到桌前')) : r.kind === 'jiaobei' ? '默念你的问题，再掷一次木筊' : '点桌上的牌，抽一张';
     if (roomId === 'shrine' && lots && lots.phase !== 'ask' && lots.phase !== 'again' && lots.phase !== 'slip') {
       hint.textContent = { shake: '左右滑动摇签筒，或连点「摇签」· 心里想着你的问题', drop: '一支签落了下来……', confirm: '掷筊请示：这一签可是给我的？', granted: '圣筊！去签诗柜取签诗', drawer: '签诗柜里，你的那一格抽屉打开了' }[lots.phase] ?? '';
       if (lots.phase === 'shake') act.append(button('摇签', () => lotsShake(420), true), button('取消', () => { resetLots(); setUI('room'); }));
@@ -8543,6 +8961,10 @@ function setUI(state) {
       if (teaButtons(act, hint)) return;
       act.append(button('翻雷诺曼', showLnChooser, true), button('读茶叶', () => { teaLeaves = null; startTeaLeaves(); }));
     }
+    if (roomId === 'window' && roomInside) {
+      if (windowButtons(act, hint)) return;
+      act.append(button('灵摆问答', pendIntro, true), button('灵摆盘', boardIntro));
+    }
     if (r.kind === 'jiaobei' && baked && roomInside) act.append(button('求签', startLots, true), button('掷筊', throwBei));
     else if (r.kind === 'jiaobei' && !baked) act.append(button('掷筊', throwBei, true));
     if (roomId === 'tent' && ritual && ritual.phase !== 'done') {
@@ -8553,7 +8975,7 @@ function setUI(state) {
     }
     if (baked && tent) act.append(roomInside ? button('开始占卜', showSpreadChooser, true) : button('坐到桌前', roomSit, true));
     if (tent && cards.length) cardButtons(act);
-    if (baked && !tent && !roomInside) act.append(button(roomId === 'study' ? '走到书案前' : roomId === 'tea' ? '坐到茶桌前' : '走到供桌前', roomSit, true));
+    if (baked && !tent && !roomInside) act.append(button(roomId === 'study' ? '走到书案前' : roomId === 'tea' ? '坐到茶桌前' : roomId === 'window' ? '坐到窗台边' : '走到供桌前', roomSit, true));
     if (baked && roomInside) act.append(button('起身看看', roomStand));
     act.append(button(`ⓘ ${LORE[roomId][0]}小知识`, () => showLore(roomId)), button('回到书里', leaveRoom));
   }
@@ -8561,9 +8983,9 @@ function setUI(state) {
 $('sound').addEventListener('click', () => { soundOn = !soundOn; $('sound').textContent = soundOn ? '声音 · 开' : '声音 · 关'; });
 /** the gentle reminder behind the corner button; the short version stands under the front door */
 const NOTICE = [
-  '这里的塔罗、掷筊、灵签、六爻、测字、雷诺曼、茶叶占卜等，是东西方民俗文化的趣味科普演示。抽牌、掷筊、求签、起卦的结果和杯里茶叶的形状由程序随机生成，测字的解读按字形预先写好，都不具备预测功能。',
+  '这里的塔罗、掷筊、灵签、六爻、测字、雷诺曼、茶叶占卜、灵摆等，是东西方民俗文化的趣味科普演示。抽牌、掷筊、求签、起卦的结果、杯里茶叶的形状和灵摆的摆动由程序随机生成，测字的解读按字形预先写好，都不具备预测功能。',
   '内容仅供休闲娱乐，不构成医疗、法律、投资或任何人生决策建议。',
-  '神龛、书斋、茶室、签诗与牌面均为原创艺术创作，不代表任何宗教、庙宇或神明；六爻的卦名与象辞节录自《周易》（公有领域）。',
+  '神龛、书斋、茶室、窗台小屋、签诗与牌面均为原创艺术创作，不代表任何宗教、庙宇或神明；六爻的卦名与象辞节录自《周易》（公有领域）。',
   '页面不收集、不上传任何个人信息。',
   '小屋里的「人生海海」霓虹灯牌，是向五月天《人生海海》致敬的粉丝设计，与五月天及其唱片公司无关，相关权利归原权利人所有。',
   '命运掌握在自己手中，请保持理性，自主抉择。如果你正经历困扰，请向信任的人或专业人士寻求帮助。',
@@ -8777,7 +9199,7 @@ async function boot() {
   if (m || location.hash === '#book' || location.hash === '#hut') $('intro').hidden = true;
   setUI(mode === 'hut' ? 'hut' : cur === 0 ? 'closed' : 'open');
   if (mode === 'hut' && !$('intro').hidden) $('actions').innerHTML = '';
-  if (DEV) window.__book = { goTo, openBook, backToHut, enterRoom, leaveRoom, tentSit, tentStand, roomSit, roomStand, preloadBakedTent, preloadBaked, get inside() { return roomInside; }, startLots, lotsShake, lotsConfirm: (force) => { if (force) forceBei = 'holy'; lotsAsk(); }, get lots() { return lots; }, get look() { return look; }, startRitual, ritualSwipe, chooseCut, showSpreadChooser, pickSpread, flipSpreadCard, get cards() { return cards; }, get ritual() { return ritual; }, setSample: (fn) => { samplePromise = Promise.resolve(fn); }, setQuestion: (q) => { userQuestion = q; }, showRoom: (id) => { showRoom(id); busy = false; setUI('room'); }, drawCards, flipCard, throwBei, readGua: (values) => showGua(castGua(values)), ensureSpread, spreads, user, rig, tweenRig, props: PROPS, tex3: () => Object.fromEntries(['wall', 'velvet', 'skirt', 'clothTop', 'roundRug', 'sunHanging', 'moonHanging', 'moonFace', 'sign', 'mat', 'valance', 'runner'].map((k) => [k, T3[k]().toDataURL('image/png')]).concat([['cardBack', catTarotBack(300).toDataURL('image/png')], ['card0', catTarot(0, 300).toDataURL('image/png')], ['card2', catTarot(2, 300).toDataURL('image/png')], ['card17', catTarot(17, 300).toDataURL('image/png')]])), catCard: (k, w = 300) => catTarot(k, w).toDataURL('image/png'), cardSamples: () => [catTarot(0, 600), catTarot(2, 600), catTarot(17, 600), catTarotBack(600)].map((c) => c.toDataURL('image/png')), get camera() { return camera; }, get rooms() { return rooms; }, get scenes() { return [scene, ...Object.values(rooms).map((r) => r.scene)]; }, get state() { return { cur, mode, busy, turning: !!turn, roomId }; } };
+  if (DEV) window.__book = { goTo, openBook, backToHut, enterRoom, leaveRoom, tentSit, tentStand, roomSit, roomStand, preloadBakedTent, preloadBaked, get inside() { return roomInside; }, startLots, lotsShake, lotsConfirm: (force) => { if (force) forceBei = 'holy'; lotsAsk(); }, get lots() { return lots; }, get look() { return look; }, startRitual, ritualSwipe, chooseCut, showSpreadChooser, pickSpread, flipSpreadCard, get cards() { return cards; }, get ritual() { return ritual; }, setSample: (fn) => { samplePromise = Promise.resolve(fn); }, setQuestion: (q) => { userQuestion = q; }, showRoom: (id) => { showRoom(id); busy = false; setUI('room'); }, drawCards, flipCard, throwBei, readGua: (values) => showGua(castGua(values)), ensureSpread, spreads, user, rig, tweenRig, props: PROPS, tex3: () => Object.fromEntries(['wall', 'velvet', 'skirt', 'clothTop', 'roundRug', 'sunHanging', 'moonHanging', 'moonFace', 'sign', 'mat', 'valance', 'runner'].map((k) => [k, T3[k]().toDataURL('image/png')]).concat([['cardBack', catTarotBack(300).toDataURL('image/png')], ['card0', catTarot(0, 300).toDataURL('image/png')], ['card2', catTarot(2, 300).toDataURL('image/png')], ['card17', catTarot(17, 300).toDataURL('image/png')]])), catCard: (k, w = 300) => catTarot(k, w).toDataURL('image/png'), cardSamples: () => [catTarot(0, 600), catTarot(2, 600), catTarot(17, 600), catTarotBack(600)].map((c) => c.toDataURL('image/png')), get camera() { return camera; }, pendIntro, pendCalibrate, pendShowNo, pendAsk, boardIntro, pendSpin, showMoon, endPend, get pend() { return pend; }, forcePend: (k) => { pendForce = k; }, moonAge, moonPhase, get rooms() { return rooms; }, get scenes() { return [scene, ...Object.values(rooms).map((r) => r.scene)]; }, get state() { return { cur, mode, busy, turning: !!turn, roomId }; } };
   // before the door opens, a little at a time: compile every material, send every texture to the GPU, then draw the room
   // once from where the walk in starts and once from where it ends, so it shows without a stall
   for (const o of [...scene.children]) { renderer.compile(o, camera, scene); await slice(); }

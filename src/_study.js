@@ -32,7 +32,7 @@ function studyRanges() {
 /** the study's sky: the night sky over the ink ranges, the moon high on the right */
 function studySky(s) { return nightSky(s, studyRanges(), V(9, 13, -42), 4.5); }
 /** stars all round that twinkle, the moon with its halo, and a painted backdrop low on the horizon behind (the tea room uses it too) */
-function nightSky(s, back, moonAt, backY) {
+function nightSky(s, back, moonAt, backY, moonMap) {
   const N = 900, pos = [], seed = [], mag = [], rng = mulberry(4417);
   for (let i = 0; i < N; i++) {
     const z = rng() * 1.1 - 0.1, a = rng() * TAU, rr = Math.sqrt(Math.max(0, 1 - z * z));
@@ -46,7 +46,7 @@ function nightSky(s, back, moonAt, backY) {
         gl_PointSize = (1.2 + mag * 3.2) * px * (.8 + .2 * tw); vA = (.25 + .75 * mag) * (.35 + .65 * tw); }`,
     fragmentShader: `varying float vA; void main(){ vec2 d = gl_PointCoord - .5; float r = dot(d, d); if (r > .25) discard; gl_FragColor = vec4(vec3(.86, .9, 1.) * vA * smoothstep(.25, .0, r), 1.); }` });
   const stars = new THREE.Points(geo, mat); stars.renderOrder = -2; stars.frustumCulled = false; s.add(stars);
-  const moonTex = (() => {
+  const moonTex = moonMap ?? (() => {
     const c = canvas(512, 512), g = c.getContext('2d');
     const halo = g.createRadialGradient(256, 256, 60, 256, 256, 256); halo.addColorStop(0, 'rgba(255,240,205,.34)'); halo.addColorStop(0.3, 'rgba(200,215,255,.07)'); halo.addColorStop(1, 'rgba(160,180,255,0)');
     g.fillStyle = halo; g.fillRect(0, 0, 512, 512); g.fillStyle = '#f2e8cc'; g.beginPath(); g.arc(256, 256, 96, 0, TAU); g.fill(); return tex(c);

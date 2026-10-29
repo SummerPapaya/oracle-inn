@@ -215,6 +215,11 @@ function sfx(kind) {
       g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.07, t + 0.15); g.gain.linearRampToValueAtTime(0, t + 0.85); s.connect(f).connect(g).connect(out); s.start(t);
     } else if (kind === 'chirp') {                                   // the canary
       [0, 0.16, 0.3].forEach((d, i) => { const o = tone(2600 + i * 300, t + d, 0.12, 0.03); o.frequency.setValueAtTime(2600 + i * 300, t + d); o.frequency.exponentialRampToValueAtTime(4200, t + d + 0.08); });
+    } else if (kind === 'hoot') {                                    // the owl: hoo — hoo-hoo, soft and low
+      [[0, 0.55, 0.06], [0.72, 0.2, 0.045], [0.96, 0.6, 0.055]].forEach(([d, dur, vol]) => {
+        const o = actx.createOscillator(), g = actx.createGain(); o.frequency.setValueAtTime(420, t + d); o.frequency.linearRampToValueAtTime(360, t + d + dur);
+        g.gain.setValueAtTime(0, t + d); g.gain.linearRampToValueAtTime(vol, t + d + 0.08); g.gain.linearRampToValueAtTime(0, t + d + dur); o.connect(g).connect(out); o.start(t + d); o.stop(t + d + dur + 0.05);
+      });
     } else if (kind === 'coin') {
       [2093, 2637, 3136].forEach((f, i) => tone(f, t + i * 0.05, 0.5, 0.035));
     } else if (kind === 'purr') {
@@ -350,7 +355,7 @@ const LORE = {
   shrine: ['掷筊', 'Jiaobei', `<p>掷筊（也叫掷杯、跋杯）是<b>闽南、台湾和潮汕一带</b>庙宇里很常见的问事方式。</p><p>筊杯通常用木头或竹根削成，<b>一对两只</b>，像两弯新月：一面平，一面凸。在心里默念问题，再把它们轻轻掷到地上：</p><p><b>一平一凸</b>是「圣筊」，表示应允；<b>两面皆平</b>是「笑筊」，像是神明笑而不答；<b>两面皆凸</b>是「阴筊」，表示不妥，或时机未到。</p><p>很多人会连掷三次圣筊才算真正确认。至于<b>灵签</b>，是双手捧起签筒轻轻摇动，直到一支竹签落下；再掷筊请示，得圣筊才算是给自己的签，然后按签号取签诗来读。</p><p>这里的六十首签诗是为这本书新写的小诗，<b>不托名任何神明</b>，也不照搬哪座庙的签谱，只是陪你停下来想一想。</p>`],
   study: ['测字 · 六爻', 'Character & Coins', `<p><b>测字</b>又叫拆字，是把一个汉字拆开、加减笔画，或从字形字义去联想，来解读心里的事。宋代的谢石就以测字出名。</p><p><b>六爻</b>源自《周易》。传统的做法是把<b>三枚铜钱</b>连着掷六次，每次得到一爻，六爻合成一卦，再看卦象和变化的爻来推想事情的走向。</p>`],
   tea: ['雷诺曼 · 茶叶', 'Lenormand & Tea Leaves', `<p>雷诺曼卡以 19 世纪法国很有名的占卜师<b>玛丽·安娜·雷诺曼</b>命名，不过这副 <b>36 张</b>的牌其实源自 1799 年前后德国纽伦堡的一款桌游《希望之游戏》，由约翰·卡斯帕·赫希特尔（Johann Kaspar Hechtel）设计。没有证据表明雷诺曼本人用过这副牌，是她去世后，出版商借她的名气给它命了名。当年的牌面上就印着一张小小的扑克牌，可以兼作纸牌来玩，后来的雷诺曼牌把它留了下来。</p><p>每张牌都是一个日常的意象：骑士、幸运草、船、房子、树……读牌时把几张牌连在一起，像读一句话那样理解，风格直接又生活化。三张一行时，中间那张是这件事的中心；九张摆成方阵时，中间那张是核心，四周的行和列各说一个方向。</p><p><b>茶叶占卜</b>（tasseography）在茶叶传入欧洲以后慢慢流行起来。维多利亚时代的英国人喝完下午茶，会把杯子转三圈、倒扣在碟子上，再看杯里剩下的茶叶像什么：靠近杯口的说眼前，沉在杯底的说远处，挨着杯柄的和自己有关。</p>`],
-  window: ['灵摆', 'Pendulum', `<p>灵摆通常是一根细链吊着一枚<b>水晶或金属坠子</b>。手持链子保持不动，心里问一个只能回答「是」或「否」的问题，再看坠子是前后摆、左右摆，还是画圈。</p><p>科学上认为，这种摆动来自我们自己察觉不到的细微肌肉动作，叫作<b>意念动作效应</b>。所以它更像一面小镜子，帮你听一听自己的直觉。</p>`],
+  window: ['灵摆', 'Pendulum', `<p>灵摆通常是一根细链吊着一枚<b>水晶或金属坠子</b>。手稳稳地提着链子，心里问一个只能回答「是」或「否」的问题，再看坠子怎么摆。按传统做法，提问之前要先请它「示范」一下是和否，这一步叫作<b>校准</b>；画圈常被读作「还没定」；几乎不动，则是这一次不作答，可以换个问法再试。</p><p><b>它从哪里来？</b>用吊着的小东西「问事」，在欧洲和美洲的民间流传已久，比如把戒指或针用线吊在孕妇的肚子上方，看它怎么转，来猜孩子是男是女——这当然只是旧时的说法，没有任何依据。和灵摆最近的亲戚是<b>寻水术</b>（dowsing）：拿着分叉的树枝走过田野，据说能找到水源和矿脉。1556 年阿格里科拉（Georgius Agricola）的矿冶名著《论矿冶》里，就画着矿工拿探矿杖找矿的样子，不过他本人对这种做法并不太相信。</p><p>20 世纪 30 年代前后，法国神父布利（Alexis Bouly）给用灵摆和探测杖「感知」事物的做法起了个名字，叫 radiesthésie，后来传遍欧洲，灵摆也渐渐成了一种独立的占卜工具。常有人说它源自古埃及或古代中国，但目前找不到可靠的史料。中文里的「灵摆」，是这股风潮近几十年传入时的译名。</p><p><b>它为什么会摆？</b>法国化学家<b>谢弗勒尔</b>（Michel Eugène Chevreul）在 1833 年发表的实验里发现：手臂被撑住、或者闭上眼睛的时候，灵摆几乎就不动了。他的结论是，摆动来自我们自己察觉不到的细微肌肉动作。1852 年，英国生理学家卡彭特（William Carpenter）把这类现象叫作<b>意念动作效应</b>。所以灵摆更像一面小镜子，帮你听一听自己心里的倾向。</p><p><b>灵摆盘</b>是在纸上画一个圆盘，或者只画半圈刻度，分好格子，灵摆停在哪一格就读哪一格。这里的盘按中国传统的四时四方来分：东方配春，南方配夏，西方配秋，北方配冬，每个方位各有三个「此刻需要」的词。窗外的月亮，则是按今天的日期算出的今晚的月相。</p>`],
   hearth: ['卢恩符文', 'Runes', `<p>卢恩符文是古代日耳曼人使用的字母。最古老的「<b>古弗萨克</b>」共 24 个字母，大约从公元 2 世纪开始使用，后来在北欧演变成 16 个字母的「新弗萨克」。</p><p>每个符文既是一个音，也有自己的名字和意象，比如 <b>ᚠ Fehu</b> 代表财富，<b>ᚱ Raidho</b> 代表旅途。</p><p>把符文刻在小石块或木片上、抽出来占卜的做法，主要是在 20 世纪流行起来的。</p>`],
 };
 function showLore(id) {
@@ -361,7 +366,7 @@ function showLore(id) {
 /** before a reading: a breath, and the question held quietly in mind */
 function askQuestion(id) {
   return new Promise(async (done) => {
-    const tarot = ROOMS[id].kind === 'tarot', how = tarot ? '想好了，就从桌上的牌堆里抽牌' : ROOMS[id].kind === 'study' ? '想好了，就到书案前掷铜钱起一卦，或写下一个字' : ROOMS[id].kind === 'tea' ? '想好了，就到茶桌前翻几张雷诺曼，或喝完一杯茶看看杯底' : '想好了，就把木筊轻轻掷出';
+    const tarot = ROOMS[id].kind === 'tarot', how = tarot ? '想好了，就从桌上的牌堆里抽牌' : ROOMS[id].kind === 'study' ? '想好了，就到书案前掷铜钱起一卦，或写下一个字' : ROOMS[id].kind === 'tea' ? '想好了，就到茶桌前翻几张雷诺曼，或喝完一杯茶看看杯底' : ROOMS[id].kind === 'window' ? '想好了，就坐到窗下的矮桌前，请灵摆回答，或在灵摆盘上看看此刻需要什么' : '想好了，就把木筊轻轻掷出';
     const box = el('div', 'ask', `<div class="inner"><div class="ring"></div><div class="breath">吸 气 · 呼 气</div><h3>默念你的问题</h3><p>闭上眼，慢慢呼吸三次<br>在心里，把想问的事轻轻说一遍</p></div>`);
     const inner = box.querySelector('.inner');
     let q = null;
@@ -502,7 +507,7 @@ function setUI(state) {
   }
   if (state === 'room') {
     const r = ROOMS[roomId], baked = !!rooms[roomId]?.baked, tent = roomId === 'tent';
-    hint.textContent = baked ? (tent ? (roomInside ? '点桌上的牌堆开始占卜 · 拖动可以环顾帐篷' : '左右拖动看看帐篷 · 点桌子，坐到桌前') : roomId === 'study' ? (roomInside ? '掷铜钱起一卦，或写一个字测一测 · 拖动可以环顾书斋' : '左右拖动看看书斋 · 点书案，走到桌前') : roomId === 'tea' ? (roomInside ? '翻雷诺曼，或喝茶看杯底 · 拖动环顾茶室' : '拖动看看茶室 · 点茶桌坐下') : (roomInside ? '点签筒求签，或点木筊掷筊 · 拖动可以环顾殿内' : '左右拖动看看神龛 · 点供桌，走到桌前')) : r.kind === 'jiaobei' ? '默念你的问题，再掷一次木筊' : '点桌上的牌，抽一张';
+    hint.textContent = baked ? (tent ? (roomInside ? '点桌上的牌堆开始占卜 · 拖动可以环顾帐篷' : '左右拖动看看帐篷 · 点桌子，坐到桌前') : roomId === 'study' ? (roomInside ? '掷铜钱起一卦，或写一个字测一测 · 拖动可以环顾书斋' : '左右拖动看看书斋 · 点书案，走到桌前') : roomId === 'tea' ? (roomInside ? '翻雷诺曼，或喝茶看杯底 · 拖动环顾茶室' : '拖动看看茶室 · 点茶桌坐下') : roomId === 'window' ? (roomInside ? '灵摆问答或灵摆盘 · 点窗外的月亮看月相' : '拖动看看小屋 · 点矮桌坐下') : (roomInside ? '点签筒求签，或点木筊掷筊 · 拖动可以环顾殿内' : '左右拖动看看神龛 · 点供桌，走到桌前')) : r.kind === 'jiaobei' ? '默念你的问题，再掷一次木筊' : '点桌上的牌，抽一张';
     if (roomId === 'shrine' && lots && lots.phase !== 'ask' && lots.phase !== 'again' && lots.phase !== 'slip') {
       hint.textContent = { shake: '左右滑动摇签筒，或连点「摇签」· 心里想着你的问题', drop: '一支签落了下来……', confirm: '掷筊请示：这一签可是给我的？', granted: '圣筊！去签诗柜取签诗', drawer: '签诗柜里，你的那一格抽屉打开了' }[lots.phase] ?? '';
       if (lots.phase === 'shake') act.append(button('摇签', () => lotsShake(420), true), button('取消', () => { resetLots(); setUI('room'); }));
@@ -523,6 +528,10 @@ function setUI(state) {
       if (teaButtons(act, hint)) return;
       act.append(button('翻雷诺曼', showLnChooser, true), button('读茶叶', () => { teaLeaves = null; startTeaLeaves(); }));
     }
+    if (roomId === 'window' && roomInside) {
+      if (windowButtons(act, hint)) return;
+      act.append(button('灵摆问答', pendIntro, true), button('灵摆盘', boardIntro));
+    }
     if (r.kind === 'jiaobei' && baked && roomInside) act.append(button('求签', startLots, true), button('掷筊', throwBei));
     else if (r.kind === 'jiaobei' && !baked) act.append(button('掷筊', throwBei, true));
     if (roomId === 'tent' && ritual && ritual.phase !== 'done') {
@@ -533,7 +542,7 @@ function setUI(state) {
     }
     if (baked && tent) act.append(roomInside ? button('开始占卜', showSpreadChooser, true) : button('坐到桌前', roomSit, true));
     if (tent && cards.length) cardButtons(act);
-    if (baked && !tent && !roomInside) act.append(button(roomId === 'study' ? '走到书案前' : roomId === 'tea' ? '坐到茶桌前' : '走到供桌前', roomSit, true));
+    if (baked && !tent && !roomInside) act.append(button(roomId === 'study' ? '走到书案前' : roomId === 'tea' ? '坐到茶桌前' : roomId === 'window' ? '坐到窗台边' : '走到供桌前', roomSit, true));
     if (baked && roomInside) act.append(button('起身看看', roomStand));
     act.append(button(`ⓘ ${LORE[roomId][0]}小知识`, () => showLore(roomId)), button('回到书里', leaveRoom));
   }
@@ -541,9 +550,9 @@ function setUI(state) {
 $('sound').addEventListener('click', () => { soundOn = !soundOn; $('sound').textContent = soundOn ? '声音 · 开' : '声音 · 关'; });
 /** the gentle reminder behind the corner button; the short version stands under the front door */
 const NOTICE = [
-  '这里的塔罗、掷筊、灵签、六爻、测字、雷诺曼、茶叶占卜等，是东西方民俗文化的趣味科普演示。抽牌、掷筊、求签、起卦的结果和杯里茶叶的形状由程序随机生成，测字的解读按字形预先写好，都不具备预测功能。',
+  '这里的塔罗、掷筊、灵签、六爻、测字、雷诺曼、茶叶占卜、灵摆等，是东西方民俗文化的趣味科普演示。抽牌、掷筊、求签、起卦的结果、杯里茶叶的形状和灵摆的摆动由程序随机生成，测字的解读按字形预先写好，都不具备预测功能。',
   '内容仅供休闲娱乐，不构成医疗、法律、投资或任何人生决策建议。',
-  '神龛、书斋、茶室、签诗与牌面均为原创艺术创作，不代表任何宗教、庙宇或神明；六爻的卦名与象辞节录自《周易》（公有领域）。',
+  '神龛、书斋、茶室、窗台小屋、签诗与牌面均为原创艺术创作，不代表任何宗教、庙宇或神明；六爻的卦名与象辞节录自《周易》（公有领域）。',
   '页面不收集、不上传任何个人信息。',
   '小屋里的「人生海海」霓虹灯牌，是向五月天《人生海海》致敬的粉丝设计，与五月天及其唱片公司无关，相关权利归原权利人所有。',
   '命运掌握在自己手中，请保持理性，自主抉择。如果你正经历困扰，请向信任的人或专业人士寻求帮助。',
@@ -757,7 +766,7 @@ async function boot() {
   if (m || location.hash === '#book' || location.hash === '#hut') $('intro').hidden = true;
   setUI(mode === 'hut' ? 'hut' : cur === 0 ? 'closed' : 'open');
   if (mode === 'hut' && !$('intro').hidden) $('actions').innerHTML = '';
-  if (DEV) window.__book = { goTo, openBook, backToHut, enterRoom, leaveRoom, tentSit, tentStand, roomSit, roomStand, preloadBakedTent, preloadBaked, get inside() { return roomInside; }, startLots, lotsShake, lotsConfirm: (force) => { if (force) forceBei = 'holy'; lotsAsk(); }, get lots() { return lots; }, get look() { return look; }, startRitual, ritualSwipe, chooseCut, showSpreadChooser, pickSpread, flipSpreadCard, get cards() { return cards; }, get ritual() { return ritual; }, setSample: (fn) => { samplePromise = Promise.resolve(fn); }, setQuestion: (q) => { userQuestion = q; }, showRoom: (id) => { showRoom(id); busy = false; setUI('room'); }, drawCards, flipCard, throwBei, readGua: (values) => showGua(castGua(values)), ensureSpread, spreads, user, rig, tweenRig, props: PROPS, tex3: () => Object.fromEntries(['wall', 'velvet', 'skirt', 'clothTop', 'roundRug', 'sunHanging', 'moonHanging', 'moonFace', 'sign', 'mat', 'valance', 'runner'].map((k) => [k, T3[k]().toDataURL('image/png')]).concat([['cardBack', catTarotBack(300).toDataURL('image/png')], ['card0', catTarot(0, 300).toDataURL('image/png')], ['card2', catTarot(2, 300).toDataURL('image/png')], ['card17', catTarot(17, 300).toDataURL('image/png')]])), catCard: (k, w = 300) => catTarot(k, w).toDataURL('image/png'), cardSamples: () => [catTarot(0, 600), catTarot(2, 600), catTarot(17, 600), catTarotBack(600)].map((c) => c.toDataURL('image/png')), get camera() { return camera; }, get rooms() { return rooms; }, get scenes() { return [scene, ...Object.values(rooms).map((r) => r.scene)]; }, get state() { return { cur, mode, busy, turning: !!turn, roomId }; } };
+  if (DEV) window.__book = { goTo, openBook, backToHut, enterRoom, leaveRoom, tentSit, tentStand, roomSit, roomStand, preloadBakedTent, preloadBaked, get inside() { return roomInside; }, startLots, lotsShake, lotsConfirm: (force) => { if (force) forceBei = 'holy'; lotsAsk(); }, get lots() { return lots; }, get look() { return look; }, startRitual, ritualSwipe, chooseCut, showSpreadChooser, pickSpread, flipSpreadCard, get cards() { return cards; }, get ritual() { return ritual; }, setSample: (fn) => { samplePromise = Promise.resolve(fn); }, setQuestion: (q) => { userQuestion = q; }, showRoom: (id) => { showRoom(id); busy = false; setUI('room'); }, drawCards, flipCard, throwBei, readGua: (values) => showGua(castGua(values)), ensureSpread, spreads, user, rig, tweenRig, props: PROPS, tex3: () => Object.fromEntries(['wall', 'velvet', 'skirt', 'clothTop', 'roundRug', 'sunHanging', 'moonHanging', 'moonFace', 'sign', 'mat', 'valance', 'runner'].map((k) => [k, T3[k]().toDataURL('image/png')]).concat([['cardBack', catTarotBack(300).toDataURL('image/png')], ['card0', catTarot(0, 300).toDataURL('image/png')], ['card2', catTarot(2, 300).toDataURL('image/png')], ['card17', catTarot(17, 300).toDataURL('image/png')]])), catCard: (k, w = 300) => catTarot(k, w).toDataURL('image/png'), cardSamples: () => [catTarot(0, 600), catTarot(2, 600), catTarot(17, 600), catTarotBack(600)].map((c) => c.toDataURL('image/png')), get camera() { return camera; }, pendIntro, pendCalibrate, pendShowNo, pendAsk, boardIntro, pendSpin, showMoon, endPend, get pend() { return pend; }, forcePend: (k) => { pendForce = k; }, moonAge, moonPhase, get rooms() { return rooms; }, get scenes() { return [scene, ...Object.values(rooms).map((r) => r.scene)]; }, get state() { return { cur, mode, busy, turning: !!turn, roomId }; } };
   // before the door opens, a little at a time: compile every material, send every texture to the GPU, then draw the room
   // once from where the walk in starts and once from where it ends, so it shows without a stall
   for (const o of [...scene.children]) { renderer.compile(o, camera, scene); await slice(); }

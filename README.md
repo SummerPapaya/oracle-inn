@@ -32,7 +32,11 @@
   - **第四页 · 维多利亚茶桌**（雷诺曼 · 茶叶占卜）：夜色里街角的一间维多利亚茶室，茶桌上铺着蕾丝桌布，茶已经斟好。
     - 雷诺曼：36 张剪影风格的牌，可选单张、三张连读或九宫格。三张连读时，中间那张是这件事的中心；九宫格读核心和它的来路、去向、心上、脚下。
     - 茶叶占卜：喝完杯里的茶，转三圈，倒扣在碟子上，再翻过来看杯里的茶叶像什么；靠近杯口、沉在杯底、挨着杯柄，各有说法。
-  - **第五至六页**（月下窗台、北欧炉边）：还在装订中，每页先放了一个预告小玩法，分别是灵摆和卢恩符文。
+  - **第五页 · 月下窗台**（灵摆问答 · 灵摆盘）：月光下小岛上的一间白墙小屋和一座石塔，窗下的矮桌上挂着一枚水晶灵摆。
+    - 灵摆问答：先请灵摆示范「是」和「否」怎么摆（校准），再默念一个只能回答是或否的问题。
+    - 灵摆盘：按中国传统的四时四方分成十二格，看灵摆停在哪一格，读「此刻需要」的一个词。
+    - 圆窗外是按此刻的日期和时间算出的今晚月相，点一下可以看这个月相的小知识。
+  - **第六页**（北欧炉边）：还在装订中，先放了一个预告小玩法：卢恩符文。
 - 支持手机竖屏。
 
 ## 本地运行
@@ -51,13 +55,13 @@ python3 -m http.server 8000
 | 路径 | 内容 |
 |---|---|
 | `public/` | 部署的全部内容：`index.html`、牌组展示页 `cat-tarot-deck.html`、`404.html`、Cloudflare 的 `_headers`，以及网站图标（`favicon.*`、`apple-touch-icon.png`、`icon-*.png`、`site.webmanifest`）和链接分享图（`og-image.jpg` 1200×630、`share-square.jpg` 600×600） |
-| `public/tent/`、`public/shrine/`、`public/study/`、`public/tea/` | 四间小屋在 Blender 里烘焙好的实时 3D 场景（glTF 描述、base64 几何、两张光照贴图） |
+| `public/tent/`、`public/shrine/`、`public/study/`、`public/tea/`、`public/window/` | 五间小屋在 Blender 里烘焙好的实时 3D 场景（glTF 描述、base64 几何、两张光照贴图） |
 | `public/deck/` | 二十二张牌面和牌背 |
 | `public/vendor/` | 随站点一起托管的 three.js r169 和网页字体子集（附各自的许可文本） |
 | `src/` | 页面源码：外壳与样式、程序化绘制的贴图与牌面、场景、交互 |
 | `build.py` | 把 `src/` 拼成 `public/index.html`，页面脚本单独写成 `public/js/app.<hash>.js` |
 | `tools/` | 重新下载 three.js（`fetch_three.py`）和网页字体子集（`fetch_fonts.py`）的脚本；检查字体覆盖（`check_fonts.mjs`）和占卜文本（`check_content.mjs`）的脚本；从 Unihan 生成测字部首笔画表的 `cezi_table.py` |
-| `blender/` | 帐篷、神龛、书斋与茶室的建模、贴图绘制、烘焙脚本，以及用到的贴图和开源字体子集 |
+| `blender/` | 帐篷、神龛、书斋、茶室与窗台小屋的建模、贴图绘制、烘焙脚本，以及用到的贴图和开源字体子集 |
 | `docs/` | README 头图与社交分享预览图 |
 
 ## 修改与构建
@@ -69,20 +73,21 @@ python3 build.py --check      # 另外生成 src/.check.mjs，可以再跑一次
 
 网页字体只保留了页面用到的字。改了文案以后，如果 `build.py` 提示有字不在字体子集里，运行一次 `python3 tools/fetch_fonts.py` 重新生成 `public/vendor/fonts/`，再构建；`node tools/check_fonts.mjs` 会按字体文件里实际有的字形，列出还会回退到系统字体的字。
 
-塔罗、灵签、六爻、测字、雷诺曼和茶叶占卜的文本都只在 `src/` 里写一份。改过以后可以运行 `node tools/check_content.mjs` 检查格式、重复和用词；加上 `--json` 会导出全部文本，方便做校对表。
+塔罗、灵签、六爻、测字、雷诺曼、茶叶占卜、灵摆和月相的文本都只在 `src/` 里写一份。改过以后可以运行 `node tools/check_content.mjs` 检查格式、重复和用词；加上 `--json` 会导出全部文本，方便做校对表。
 
 ## 3D 场景（可选）
 
-四间小屋用 Blender 5.2 的 Python 脚本从零建模，在 Cycles 里烘焙成两张光照贴图：
+五间小屋用 Blender 5.2 的 Python 脚本从零建模，在 Cycles 里烘焙成两张光照贴图：
 
 ```bash
 blender/pipeline_tent_web.sh     # 星幕帐篷
 blender/pipeline_shrine.sh       # 东方神龛（先用 blender/shrine_tex.py 和 Pillow 画好贴图）
 blender/pipeline_study.sh        # 文房书案（先用 blender/study_tex.py 和 Pillow 画好贴图）
 blender/pipeline_tea.sh          # 维多利亚茶桌（先用 blender/tea_tex.py 和 Pillow 画好贴图）
+blender/pipeline_window.sh       # 月下窗台（先用 blender/window_tex.py 和 Pillow 画好贴图）
 ```
 
-流水线会自动给输出文件换一个带时间戳的新名字（避免浏览器缓存旧场景），更新 `src/_rooms.js`、`src/_study.js` 或 `src/_tea.js` 里的文件名并重新构建页面。贴图上的文字用的是随站点托管的开源字体（`blender/webfont.py`）。导出的 JPEG 会去掉元数据。
+流水线会自动给输出文件换一个带时间戳的新名字（避免浏览器缓存旧场景），更新 `src/_rooms.js`、`src/_study.js`、`src/_tea.js` 或 `src/_window.js` 里的文件名并重新构建页面。贴图上的文字用的是随站点托管的开源字体（`blender/webfont.py`）。导出的 JPEG 会去掉元数据。
 
 ## 部署
 
@@ -117,5 +122,6 @@ blender/pipeline_tea.sh          # 维多利亚茶桌（先用 blender/tea_tex.p
 
 ## 版本
 
+- **v1.2.0**（2026-10-30）：第五页月下窗台（灵摆问答 · 灵摆盘）完整可玩，圆窗外是今晚的月相。
 - **v1.1.0**（2026-10-29）：第三页文房书案（六爻 · 测字）和第四页维多利亚茶桌（雷诺曼 · 茶叶占卜）完整可玩；塔罗每张牌加了关键词，灵签加了签意，并修订了牌义、签诗与解曰；网页字体补齐了所有用到的字和测字可能写到的字；各间小屋的进门视角统一。
 - **v1.0.0**（2026-10）：第一版。魔法小屋、立体书六页、星幕帐篷（塔罗）和东方神龛（掷筊 · 灵签）完整可玩，其余四页有预告。

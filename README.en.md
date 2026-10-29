@@ -32,7 +32,11 @@ A pop-up book of fortune-telling rooms, in the browser. Step through a door floa
   - **Page 4 · The Victorian Tea Table** (Lenormand cards and tea leaves): a Victorian tea room on a night street corner, the table laid with lace and the tea already poured.
     - Lenormand: 36 cards drawn as silhouettes, read as a single card, a line of three or a square of nine. In a line of three the middle card is the heart of the matter; the square reads the heart and its road behind, road ahead, what is on your mind and what lies under your feet.
     - Tea leaves: drink the cup, swirl it three times, turn it over on its saucer, then turn it back and see what the leaves look like; near the rim, at the bottom and by the handle each mean something.
-  - **Pages 5–6** (the Moonlit Window, the Nordic Hearth): still being bound. Each has a small preview to try: a pendulum and a rune stone.
+  - **Page 5 · The Moonlit Window** (pendulum and pendulum board): a white cottage and a stone tower on a moonlit island, with a crystal pendulum hanging over the low table under the round window.
+    - Pendulum: first ask it to show its "yes" and its "no" (calibrating), then hold a yes-or-no question in mind.
+    - Pendulum board: twelve cells laid out by the four seasons and four quarters of the Chinese tradition; wherever the pendulum settles, read the word for what this moment needs.
+    - The moon in the round window is tonight's phase, worked out from the date and time; tap it to learn about that phase.
+  - **Page 6** (the Nordic Hearth): still being bound, with a small preview to try: a rune stone.
 - Works on phones in portrait.
 
 ## Run it locally
@@ -51,13 +55,13 @@ Then open <http://localhost:8000/>. Add `?dev` to the address for a frame counte
 | Path | What's there |
 |---|---|
 | `public/` | Everything that gets deployed: `index.html`, the deck gallery `cat-tarot-deck.html`, `404.html`, Cloudflare's `_headers`, the site icons (`favicon.*`, `apple-touch-icon.png`, `icon-*.png`, `site.webmanifest`) and the link-preview images (`og-image.jpg` 1200×630, `share-square.jpg` 600×600) |
-| `public/tent/`, `public/shrine/`, `public/study/`, `public/tea/` | The four rooms baked in Blender for real-time 3D: glTF description, base64 geometry and two light atlases each |
+| `public/tent/`, `public/shrine/`, `public/study/`, `public/tea/`, `public/window/` | The five rooms baked in Blender for real-time 3D: glTF description, base64 geometry and two light atlases each |
 | `public/deck/` | The 22 card faces and the card back |
 | `public/vendor/` | three.js r169 and the web-font subsets, hosted with the site (with their licenses) |
 | `src/` | Page source: shell and styles, procedurally painted textures and cards, scenes and interaction |
 | `build.py` | Stitches `src/` into `public/index.html`, with the page's script in `public/js/app.<hash>.js` |
 | `tools/` | Scripts that fetch three.js (`fetch_three.py`) and the web-font subsets (`fetch_fonts.py`) again; checks for font coverage (`check_fonts.mjs`) and for the reading texts (`check_content.mjs`); `cezi_table.py`, which builds the radical and stroke table for 测字 from Unihan |
-| `blender/` | Modelling, texture-painting and baking scripts for the tent, the shrine, the study and the tea room, with their textures and open font subsets |
+| `blender/` | Modelling, texture-painting and baking scripts for the tent, the shrine, the study, the tea room and the window cottage, with their textures and open font subsets |
 | `docs/` | The README hero and the social preview image |
 
 ## Build
@@ -69,20 +73,21 @@ python3 build.py --check      # also writes src/.check.mjs for: node --check src
 
 The web fonts hold only the characters the pages use. If `build.py` reports characters missing from the subsets after you change the text, run `python3 tools/fetch_fonts.py` to regenerate `public/vendor/fonts/`, then build again; `node tools/check_fonts.mjs` reads the glyphs actually in the font files and lists any character that would still fall back to a system font.
 
-The tarot, fortune-slip, I Ching, 测字, Lenormand and tea-leaf texts live in one place each, in `src/`. After changing them, `node tools/check_content.mjs` checks their form, repeats and wording; with `--json` it also prints every text, for making a proofreading table.
+The tarot, fortune-slip, I Ching, 测字, Lenormand, tea-leaf, pendulum and moon-phase texts live in one place each, in `src/`. After changing them, `node tools/check_content.mjs` checks their form, repeats and wording; with `--json` it also prints every text, for making a proofreading table.
 
 ## 3D scenes (optional)
 
-All four rooms are modelled from scratch by Blender 5.2 Python scripts and baked in Cycles into two light atlases:
+All five rooms are modelled from scratch by Blender 5.2 Python scripts and baked in Cycles into two light atlases:
 
 ```bash
 blender/pipeline_tent_web.sh     # the Starry Tent
 blender/pipeline_shrine.sh       # the Eastern Shrine (textures painted first by blender/shrine_tex.py with Pillow)
 blender/pipeline_study.sh        # the Scholar's Desk (textures painted first by blender/study_tex.py with Pillow)
 blender/pipeline_tea.sh          # the Victorian Tea Table (textures painted first by blender/tea_tex.py with Pillow)
+blender/pipeline_window.sh       # the Moonlit Window (textures painted first by blender/window_tex.py with Pillow)
 ```
 
-Each run gives its output a new time-stamped name, so browsers never show a stale cached scene. It then updates the names in `src/_rooms.js`, `src/_study.js` or `src/_tea.js` and rebuilds the page. Lettering on the textures uses the open fonts hosted with the site (`blender/webfont.py`). Exported JPEGs are stripped of metadata.
+Each run gives its output a new time-stamped name, so browsers never show a stale cached scene. It then updates the names in `src/_rooms.js`, `src/_study.js`, `src/_tea.js` or `src/_window.js` and rebuilds the page. Lettering on the textures uses the open fonts hosted with the site (`blender/webfont.py`). Exported JPEGs are stripped of metadata.
 
 ## Deploy
 
@@ -117,5 +122,6 @@ Each run gives its output a new time-stamped name, so browsers never show a stal
 
 ## Versions
 
+- **v1.2.0** (2026-10-30): page 5, the Moonlit Window (pendulum and pendulum board), is fully playable, with tonight's moon phase in its window.
 - **v1.1.0** (2026-10-29): page 3, the Scholar's Desk (I Ching coins and character reading), and page 4, the Victorian Tea Table (Lenormand cards and tea leaves), are fully playable; every tarot card gains a keyword and every fortune slip a one-line gist, with revised card meanings, poems and readings; the web fonts now hold every character the pages use and any 测字 might write; the rooms open on matching views.
 - **v1.0.0** (2026-10): first release. The Magic House, all six spreads of the book, the Starry Tent (tarot) and the Eastern Shrine (moon blocks and fortune slips) are fully playable; the other four pages have previews.

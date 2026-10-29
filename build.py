@@ -11,7 +11,7 @@ a, b = css.index('/* ---------- a room'), css.index('.loading {')
 css = css[:a] + css[b:]
 out = r('_shell.html')
 for k, f in [('CSS', css), ('KIT', r('_kit.txt')), ('CARDS', r('_cards.txt') + '\n' + r('_cards_major.txt')), ('TEX', r('_tex.txt')), ('MAT', r('_mat.txt')),
-             ('ART', r('_art.js')), ('ART2', r('_art2.js')), ('ART3', r('_art3.js')), ('ART4', r('_art4.js')), ('ART5', r('_art5.js')), ('FX', r('_fx.js')), ('BOOK', r('_book.js')), ('HUT', r('_hut.js')), ('ROOMS', r('_lingqian.txt') + '\n' + r('_rooms.js') + '\n' + r('_liuyao.txt') + '\n' + r('_cezi_table.txt') + '\n' + r('_cezi.txt') + '\n' + r('_study.js') + '\n' + r('_lenormand.txt') + '\n' + r('_lenormand_art.js') + '\n' + r('_tea.js')), ('MAIN', r('_main.js'))]:
+             ('ART', r('_art.js')), ('ART2', r('_art2.js')), ('ART3', r('_art3.js')), ('ART4', r('_art4.js')), ('ART5', r('_art5.js')), ('FX', r('_fx.js')), ('BOOK', r('_book.js')), ('HUT', r('_hut.js')), ('ROOMS', r('_lingqian.txt') + '\n' + r('_rooms.js') + '\n' + r('_liuyao.txt') + '\n' + r('_cezi_table.txt') + '\n' + r('_cezi.txt') + '\n' + r('_study.js') + '\n' + r('_lenormand.txt') + '\n' + r('_lenormand_art.js') + '\n' + r('_tea.js') + '\n' + r('_pendulum.txt') + '\n' + r('_window.js')), ('MAIN', r('_main.js'))]:
     out = out.replace(f'@@{k}@@', f.rstrip('\n'))
 HEAD = ('<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">'
         '<meta name="description" content="魔法小屋里的一本立体占卜书：推开悬在夜空里的门，翻开立体书，走进星幕帐篷与东方神龛。东西方民俗文化的趣味科普演示，仅供娱乐。">'

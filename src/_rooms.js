@@ -277,7 +277,7 @@ async function loadBakedGLB(base, pre) {
   return new Promise((res, rej) => new GLTFLoader().parse(buf, base, res, rej));
 }
 /** the rooms that come baked from Blender, how to look at them, and how to build them */
-const BAKED = { tent: { view: () => TENT_VIEW, build: () => buildBakedTentRoom() }, shrine: { view: () => SHRINE_VIEW, build: () => buildBakedShrineRoom() }, study: { view: () => STUDY_VIEW, build: () => buildBakedStudyRoom() }, tea: { view: () => TEA_VIEW, build: () => buildBakedTeaRoom() } };
+const BAKED = { tent: { view: () => TENT_VIEW, build: () => buildBakedTentRoom() }, shrine: { view: () => SHRINE_VIEW, build: () => buildBakedShrineRoom() }, study: { view: () => STUDY_VIEW, build: () => buildBakedStudyRoom() }, tea: { view: () => TEA_VIEW, build: () => buildBakedTeaRoom() }, window: { view: () => WINDOW_VIEW, build: () => buildBakedWindowRoom() } };
 const bakedP = {};
 function preloadBaked(id) { return (bakedP[id] ??= BAKED[id].build().catch((e) => { console.warn(`baked ${id} unavailable, using the paper one`, e); return null; })); }
 function preloadBakedTent() { return preloadBaked('tent'); }
@@ -542,12 +542,12 @@ async function roomSit() {
   busy = true; hidePanel(); setUI('moving'); sfx('soft');
   await flyRoom(BAKED[roomId].view().inside, 1500);
   roomInside = true; busy = false; setUI('room');
-  toast({ tent: '点一下桌上的牌堆，开始占卜', shrine: '默念你的问题，点签筒求签，或点木筊掷筊', study: '宣纸已经铺好，三枚铜钱就在手边', tea: '茶刚斟好，牌就放在杯子旁边' }[roomId]);
+  toast({ tent: '点一下桌上的牌堆，开始占卜', shrine: '默念你的问题，点签筒求签，或点木筊掷筊', study: '宣纸已经铺好，三枚铜钱就在手边', tea: '茶刚斟好，牌就放在杯子旁边', window: '灵摆就挂在桌上，窗外是今晚的月亮' }[roomId]);
 }
 /** stand up and step back out to the cut-away view */
 async function roomStand() {
   if (busy || roomFly || !roomInside || throwing) return;
-  busy = true; clearCards(); resetLots(); resetLiuyao(); resetTea(); hidePanel(); setUI('moving');
+  busy = true; clearCards(); resetLots(); resetLiuyao(); resetTea(); resetWindow(); hidePanel(); setUI('moving');
   await flyRoom(BAKED[roomId].view().orbit, 1300);
   roomInside = false; busy = false; setUI('room');
 }
@@ -620,7 +620,7 @@ function showRoom(id) {
 }
 async function leaveRoom() {
   if (busy || mode !== 'room') return;
-  busy = true; clearCards(); resetLots(); resetLiuyao(); resetTea(); hidePanel(); throwing = null; roomFly = null; roomInside = false;
+  busy = true; clearCards(); resetLots(); resetLiuyao(); resetTea(); resetWindow(true); hidePanel(); throwing = null; roomFly = null; roomInside = false;
   for (const id in BAKED) if (rooms[id]?.baked) ROOM_VIEW[id] = BAKED[id].view().orbit;
   $('flash').classList.add('on');
   await wait(450);
@@ -1165,9 +1165,11 @@ function roomTap(ndc) {
   if (roomId === 'shrine') { const R = rooms.shrine; R.bei.forEach((b) => objs.push(...b.children)); if (R.cup) objs.push(...R.cup.children.filter((o) => o.isMesh)); if (R.cue?.visible) objs.push(...R.cue.children); if (R.table) objs.push(R.table); }
   if (roomId === 'study') objs.push(...rooms.study.hits);
   if (roomId === 'tea') objs.push(...lnCards.flatMap((c) => c.group.children), ...rooms.tea.hits);
+  if (roomId === 'window') objs.push(...rooms.window.hits);
   const hit = ray.intersectObjects(objs, false)[0];
   if (!hit) return;
   if (roomId === 'tea') { teaTap(hit); return; }
+  if (roomId === 'window') { windowTap(hit); return; }
   if (hit.object.userData.card !== undefined) { const i = hit.object.userData.card; if (cards[i]?.spread) flipSpreadCard(i); else flipCard(i); }
   else if (roomId === 'shrine') { if (rooms.shrine.baked && !roomInside) roomSit(); else if (hit.object.userData.cup) startLots(); else throwBei(); }
   else if (roomId === 'study') { if (!roomInside) roomSit(); else if (hit.object.userData.coins || rooms.study.coinMeshes.includes(hit.object.parent)) { if (liuyao?.phase === 'ready') tossLiuyao(); else if (!liuyao || liuyao.phase === 'done') { liuyao = null; startLiuyao(); } } }
