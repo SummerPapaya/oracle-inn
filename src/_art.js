@@ -674,7 +674,7 @@ const PAGE_TEXT = {
   study:  ['第三页', '文房书案', 'Characters · 测字 · 六爻', '写下一个字，看看它藏着什么心事。'],
   tea:    ['第四页', '维多利亚茶桌', 'Lenormand · 雷诺曼 · 茶叶占卜', '一杯茶的工夫，翻开一组小小的卡片。'],
   window: ['第五页', '月下窗台', 'Pendulum · 灵摆', '让水晶在月光里慢慢摆动。'],
-  hearth: ['第六页', '北欧炉边', 'Runes · 卢恩符文', '在炉火边，摸一颗刻着古老符号的石头。'],
+  hearth: ['第六页', '北欧炉边', 'Runes · 卢恩符文 · 新年浇锡', '在炉火边，摸一颗刻着古老符号的石头，或者浇一勺新年的锡。'],
 };
 const GROUND = {
   tent(q) {
@@ -824,12 +824,15 @@ function moonGate(seed) {
 }
 
 /* ---------- more pieces for the grander houses ---------- */
+/** the witch's tower, once round: as wide as the tower's girth and as tall as its wall (1024 × 608 for 0.74 m by 0.44 m),
+ *  so its stones and windows keep their shape; thirteen stones to a course, so the courses meet where the paper joins */
 function towerTex() {
-  return sheet(1024, 512, 561, (q) => {
-    q.wash(rectPx(-6, -6, 1036, 524), '#b9cde3', { alpha: 0.45, layers: 10, vary: 0.003, edge: 0 });
-    for (let y = 0; y < 512; y += 40) for (let x = ((y / 40) % 2) * 40; x < 1024; x += 80) q.ink(rectPx(x + 2, y + 2, 76, 36), { closed: true, color: '#7f93b0', w: 1.2, alpha: 0.45, passes: 1 });
-    [128, 640].forEach((x) => glowWindow(q, archPx(x - 50, 120, 100, 170), '#2f3f6e'));
-    [384, 896].forEach((x) => glowRound(q, x, 330, 44, '#2f3f6e'));
+  return sheet(1024, 608, 561, (q) => {
+    q.wash(rectPx(-6, -6, 1036, 620), '#b9cde3', { alpha: 0.45, layers: 10, vary: 0.003, edge: 0 });
+    const bw = 1024 / 13, bh = bw / 2;
+    for (let j = 0, y = 0; y < 608; j++, y += bh) for (let x = (j % 2) * (bw / 2) - bw; x < 1024; x += bw) q.ink(rectPx(x + 2, y + 2, bw - 4, bh - 4), { closed: true, color: '#7f93b0', w: 1.2, alpha: 0.45, passes: 1 });
+    [128, 640].forEach((x) => glowWindow(q, archPx(x - 46, 150, 92, 168), '#2f3f6e'));
+    [384, 896].forEach((x) => glowRound(q, x, 420, 42, '#2f3f6e'));
   });
 }
 function teaUpper() {

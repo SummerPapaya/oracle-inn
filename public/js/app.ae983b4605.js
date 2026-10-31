@@ -1541,7 +1541,7 @@ const PAGE_TEXT = {
   study:  ['第三页', '文房书案', 'Characters · 测字 · 六爻', '写下一个字，看看它藏着什么心事。'],
   tea:    ['第四页', '维多利亚茶桌', 'Lenormand · 雷诺曼 · 茶叶占卜', '一杯茶的工夫，翻开一组小小的卡片。'],
   window: ['第五页', '月下窗台', 'Pendulum · 灵摆', '让水晶在月光里慢慢摆动。'],
-  hearth: ['第六页', '北欧炉边', 'Runes · 卢恩符文', '在炉火边，摸一颗刻着古老符号的石头。'],
+  hearth: ['第六页', '北欧炉边', 'Runes · 卢恩符文 · 新年浇锡', '在炉火边，摸一颗刻着古老符号的石头，或者浇一勺新年的锡。'],
 };
 const GROUND = {
   tent(q) {
@@ -1691,12 +1691,15 @@ function moonGate(seed) {
 }
 
 /* ---------- more pieces for the grander houses ---------- */
+/** the witch's tower, once round: as wide as the tower's girth and as tall as its wall (1024 × 608 for 0.74 m by 0.44 m),
+ *  so its stones and windows keep their shape; thirteen stones to a course, so the courses meet where the paper joins */
 function towerTex() {
-  return sheet(1024, 512, 561, (q) => {
-    q.wash(rectPx(-6, -6, 1036, 524), '#b9cde3', { alpha: 0.45, layers: 10, vary: 0.003, edge: 0 });
-    for (let y = 0; y < 512; y += 40) for (let x = ((y / 40) % 2) * 40; x < 1024; x += 80) q.ink(rectPx(x + 2, y + 2, 76, 36), { closed: true, color: '#7f93b0', w: 1.2, alpha: 0.45, passes: 1 });
-    [128, 640].forEach((x) => glowWindow(q, archPx(x - 50, 120, 100, 170), '#2f3f6e'));
-    [384, 896].forEach((x) => glowRound(q, x, 330, 44, '#2f3f6e'));
+  return sheet(1024, 608, 561, (q) => {
+    q.wash(rectPx(-6, -6, 1036, 620), '#b9cde3', { alpha: 0.45, layers: 10, vary: 0.003, edge: 0 });
+    const bw = 1024 / 13, bh = bw / 2;
+    for (let j = 0, y = 0; y < 608; j++, y += bh) for (let x = (j % 2) * (bw / 2) - bw; x < 1024; x += bw) q.ink(rectPx(x + 2, y + 2, bw - 4, bh - 4), { closed: true, color: '#7f93b0', w: 1.2, alpha: 0.45, passes: 1 });
+    [128, 640].forEach((x) => glowWindow(q, archPx(x - 46, 150, 92, 168), '#2f3f6e'));
+    [384, 896].forEach((x) => glowRound(q, x, 420, 42, '#2f3f6e'));
   });
 }
 function teaUpper() {
@@ -2780,44 +2783,6 @@ function starGlobeCanvas() {
   g.strokeStyle = 'rgba(242,215,143,.3)'; for (let y = 64; y < h; y += 64) { g.beginPath(); g.moveTo(0, y); g.lineTo(w, y); g.stroke(); }
   return c;
 }
-/** ginger tabby fur, for a sphere turned on its side: stripes ring the body, strongest along the back, a pale belly */
-function catFurCanvas(seed = 5150) {
-  const c = canvas(512, 256), g = c.getContext('2d'), r = mulberry(seed);
-  g.fillStyle = '#e3a462'; g.fillRect(0, 0, 512, 256);
-  for (let i = 0; i < 2600; i++) { g.fillStyle = r() < 0.5 ? `rgba(255,222,176,${0.08 + r() * 0.1})` : `rgba(150,78,30,${0.06 + r() * 0.08})`; g.fillRect(r() * 512, r() * 256, 1 + r() * 2, 3 + r() * 6); }
-  const belly = g.createLinearGradient(0, 0, 512, 0);
-  belly.addColorStop(0, 'rgba(250,234,206,.9)'); belly.addColorStop(0.2, 'rgba(250,234,206,0)'); belly.addColorStop(0.8, 'rgba(250,234,206,0)'); belly.addColorStop(1, 'rgba(250,234,206,.9)');
-  g.fillStyle = belly; g.fillRect(0, 0, 512, 256);
-  for (let k = 0; k < 9; k++) {
-    const y0 = 26 + k * 25 + (r() - 0.5) * 6, half = 150 + r() * 40, ph = r() * 6;
-    g.beginPath();
-    for (let x = 256 - half; x <= 256 + half; x += 4) { const w = Math.cos(((x - 256) / half) * (Math.PI / 2)); g.lineTo(x, y0 + Math.sin(x * 0.045 + ph) * 4 - w * 6.5); }
-    for (let x = 256 + half; x >= 256 - half; x -= 4) { const w = Math.cos(((x - 256) / half) * (Math.PI / 2)); g.lineTo(x, y0 + Math.sin(x * 0.045 + ph) * 4 + w * 6.5); }
-    g.closePath(); g.fillStyle = 'rgba(166,84,32,.8)'; g.fill();
-  }
-  return c;
-}
-/** the head: a tabby M on the forehead, stripes on the cheeks, a pale chin */
-function catHeadCanvas() {
-  const c = canvas(512, 256), g = c.getContext('2d'), r = mulberry(5151);
-  g.fillStyle = '#e3a462'; g.fillRect(0, 0, 512, 256);
-  for (let i = 0; i < 1600; i++) { g.fillStyle = r() < 0.5 ? `rgba(255,222,176,${0.08 + r() * 0.1})` : `rgba(150,78,30,${0.06 + r() * 0.08})`; g.fillRect(r() * 512, r() * 256, 1 + r() * 2, 2 + r() * 4); }
-  const chin = g.createRadialGradient(256, 200, 0, 256, 200, 90); chin.addColorStop(0, 'rgba(250,236,210,.95)'); chin.addColorStop(1, 'rgba(250,236,210,0)'); g.fillStyle = chin; g.fillRect(150, 120, 212, 136);
-  g.strokeStyle = 'rgba(160,80,30,.85)'; g.lineCap = 'round';
-  [[240, 4], [256, 5], [272, 4]].forEach(([x, w]) => { g.lineWidth = w; g.beginPath(); g.moveTo(x, 28); g.lineTo(x + (x - 256) * 0.3, 92); g.stroke(); });
-  g.lineWidth = 4; [[-1], [1]].forEach(([s]) => { g.beginPath(); g.moveTo(256 + s * 30, 40); g.quadraticCurveTo(256 + s * 46, 70, 256 + s * 40, 96); g.stroke(); });
-  [[-1], [1]].forEach(([s]) => { for (let k = 0; k < 2; k++) { g.lineWidth = 3.5; g.beginPath(); g.moveTo(256 + s * (62 + k * 4), 118 + k * 16); g.lineTo(256 + s * (100 + k * 6), 112 + k * 18); g.stroke(); } });
-  for (let k = 0; k < 4; k++) { g.lineWidth = 7; g.beginPath(); g.moveTo(10 + k * 6, 40 + k * 26); g.lineTo(130, 46 + k * 26); g.stroke(); g.beginPath(); g.moveTo(502 - k * 6, 40 + k * 26); g.lineTo(382, 46 + k * 26); g.stroke(); }
-  return c;
-}
-/** a ringed tail, darker at the tip */
-function catTailCanvas() {
-  const c = canvas(256, 32), g = c.getContext('2d');
-  g.fillStyle = '#e3a462'; g.fillRect(0, 0, 256, 32);
-  for (let k = 0; k < 7; k++) { g.fillStyle = 'rgba(166,84,32,.8)'; g.fillRect(40 + k * 28, 0, 10 + k, 32); }
-  g.fillStyle = '#a65420'; g.fillRect(236, 0, 20, 32);
-  return c;
-}
 /** button-tufted velvet: one diamond of the lattice, buttons at the corners and the centre */
 function tuftCanvas(bump = false) {
   const c = canvas(256, 256), g = c.getContext('2d'), r = mulberry(5160);
@@ -3026,7 +2991,7 @@ const ROOMS = {
   study:  { name: '文房书案',     methods: '测字 · 六爻', kind: 'study',   ready: true },
   tea:    { name: '维多利亚茶桌', methods: '雷诺曼 · 茶叶占卜', kind: 'tea', ready: true },
   window: { name: '月下窗台',     methods: '灵摆问答 · 灵摆盘', kind: 'window', ready: true },
-  hearth: { name: '北欧炉边',     methods: '卢恩符文' },
+  hearth: { name: '北欧炉边',     methods: '卢恩符文 · 新年浇锡', kind: 'hearth', ready: true },
 };
 const ORDER = Object.keys(ROOMS);   // spread k (1…6) is ORDER[k - 1]
 const NS = ORDER.length;            // leaves: 0 is the front cover with half the pages, 1…5 are single boards
@@ -3084,6 +3049,11 @@ function popDepth(U, map) {
   m.customProgramCacheKey = () => 'popDepth';
   return m;
 }
+/** a cone with every face: three r169 drops half of each band but the tip's when the top radius is 0 (the witch's hat came out
+ *  latticed), so the tip is made a hair wide */
+function fullCone(r, h, radial, bands, open = false) { return new THREE.CylinderGeometry(1e-4, r, h, radial, bands, open); }
+/** a painted sheet laid over a solid ground, so nothing shows through where the paint is thin (roofs are never holed) */
+function solidSheet(c, ground) { const o = canvas(c.width, c.height), g = o.getContext('2d'); g.fillStyle = ground; g.fillRect(0, 0, o.width, o.height); g.drawImage(c, 0, 0); return o; }
 function popTex(c, rx = 1, ry = 1) {
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
@@ -3322,7 +3292,7 @@ function house(P, s) {
   }
   if (s.roof === 'pyramid') {
     const rx = w / 2 + s.over, rz = d / 2 + s.over;
-    P.piece(new THREE.ConeGeometry(Math.SQRT2 * rx, s.rise, 4, 1, true, Math.PI / 4), popTex(F.roof(), 4, 2), { ...o, flat: true, m: mat4(V(x, h + s.rise / 2, z), 0, 0, 0, 1, 1, rz / rx) });
+    P.piece(new THREE.ConeGeometry(Math.SQRT2 * rx, s.rise, 4, 1, true, Math.PI / 4), popTex(solidSheet(F.roof(), '#2f3f6e'), 4, 2), { ...o, flat: true, m: mat4(V(x, h + s.rise / 2, z), 0, 0, 0, 1, 1, rz / rx) });
     P.piece(new THREE.SphereGeometry(0.016, 10, 8), 0xd9a441, { ...o, m: mat4(V(x, h + s.rise + 0.012, z)) });
   }
   if (s.chimney) {
@@ -3354,10 +3324,10 @@ function teaHouse(P, x, z, delay = 0.24) {
 function witchTower(P, x, z, delay = 0.24) {
   const o = { delay, mode: 1, tag: 'window' };
   house(P, { id: 'window', x: x - 0.07, z, w: 0.34, h: 0.21, d: 0.26, roof: 'pyramid', rise: 0.18, over: 0.035, doorX: 0.25, glows: [[-0.2, 0.12, 0.16]], delay });
-  const tx = x + 0.18, tz = z + 0.07, navy = popTex(FRONTS.window.roof(), 6, 2);
-  P.piece(new THREE.CylinderGeometry(0.11, 0.125, 0.44, 12, 1, true), popTex(towerTex(), 2, 1), { ...o, m: mat4(V(tx, 0.22, tz)) });
+  const tx = x + 0.18, tz = z + 0.07, navy = popTex(solidSheet(HOUSE_TEX.tiles('#2f3f6e', '#5a6fa8', 546, false), '#2f3f6e'), 6, 2);   // no stars: on a cone they squeeze into slivers that look like holes
+  P.piece(new THREE.CylinderGeometry(0.11, 0.125, 0.44, 24, 1, true), popTex(towerTex()), { ...o, m: mat4(V(tx, 0.22, tz)) });
   P.piece(new THREE.CylinderGeometry(0.17, 0.17, 0.014, 16), 0x2f3f6e, { ...o, m: mat4(V(tx, 0.447, tz)) });
-  P.piece(new THREE.ConeGeometry(0.15, 0.36, 12, 4, true), navy, { ...o, m: mat4(V(tx + 0.02, 0.63, tz), 0, 0, -0.1) });
+  P.piece(fullCone(0.15, 0.36, 12, 4, true), navy, { ...o, m: mat4(V(tx + 0.02, 0.63, tz), 0, 0, -0.1) });
   P.piece(new THREE.PlaneGeometry(0.06, 0.06), popTex(starCard(590, false)), { ...o, m: mat4(V(tx + 0.04, 0.83, tz)) });
   P.glow(tx + 0.04, 0.83, tz + 0.005, 0.08);
   [[0, 0.36], [0.9, 0.3], [-0.9, 0.24]].forEach(([a, y]) => P.glow(tx + Math.sin(a) * 0.13, y, tz + Math.cos(a) * 0.13, 0.08));
@@ -3560,7 +3530,6 @@ function prefetch() {
 /** each frame: magic for whichever spread lies open */
 let starClock = 4;
 function updateSpreadMagic(dt, t) {
-  updateTeaser(dt, t);
   for (const k in spreads) {
     const P = spreads[k].P, open = P.group.visible ? THREE.MathUtils.smoothstep(P.U.uU.value, 0.9, 1) : 0;
     P.fade = open;
@@ -3701,9 +3670,11 @@ function fitDist(fov) {
 }
 function home() {
   if (mode === 'hut') {
-    const portrait = camera.aspect < 0.85;
-    // a phone held upright sees a narrow slice of the room: let it turn further (about 41° either way, 26° on wide screens)
-    return { tx: 0.3, ty: 3.0, tz: -2.5, dist: portrait ? 17 : 15, yaw: user.yaw * (portrait ? 0.96 : 0.6), pitch: THREE.MathUtils.clamp(0.1 + user.pitch * 0.5, -0.05, 0.5), fov: hutFov() };
+    const portrait = camera.aspect < 0.85, yaw = user.yaw * (portrait ? 0.96 : 0.6);
+    // a phone held upright sees a narrow slice of the room: let it turn further (about 60° either way, 26° on wide screens),
+    // coming in closer the further it turns so it stays inside the side walls (x = ±11) and sees past the desk
+    const dist = portrait ? Math.min(17, 10.2 / Math.max(0.01, Math.abs(Math.sin(yaw)))) : 15;
+    return { tx: 0.3, ty: 3.0, tz: -2.5, dist, yaw, pitch: THREE.MathUtils.clamp(0.1 + user.pitch * 0.5, -0.05, 0.5), fov: hutFov() };
   }
   const closed = cur === 0 ? (turn ? 1 - turn.phi / Math.PI : 1) : 0, portrait = camera.aspect < 0.85, fov = bookFov();
   return {
@@ -3732,63 +3703,6 @@ function updateRig(dt) {
   camera.lookAt(rig.tx, rig.ty, rig.tz);
   if (Math.abs(camera.fov - rig.fov) > 0.01) { camera.fov = rig.fov; camera.updateProjectionMatrix(); }
 }
-
-/* ---------- a taste of the pages still being bound: one small thing to try on each ---------- */
-/*
- * Tapping the little house on an unfinished page (or its button) plays a short preview on the page itself and
- * says what it showed: a rune stone.
- * What lands is what the panel reports.
- */
-let teaser = null;
-// runes drawn as strokes on a 10 × 16 grid; only ones without a modern history of misuse
-const RUNES = [['Fehu', '丰盛', '付出会有回报，丰收在路上。', [[3, 1, 3, 15], [3, 5, 8, 2], [3, 9, 8, 6]]], ['Uruz', '力量', '你身上有股韧劲，可以扛住。', [[2, 15, 2, 1, 8, 5, 8, 15]]],
-  ['Ansuz', '讯息', '留意别人的一句话，里面有答案。', [[3, 1, 3, 15], [3, 2, 8, 5], [3, 6, 8, 9]]], ['Raidho', '旅程', '出发吧，路会在脚下展开。', [[3, 1, 3, 15], [3, 1, 8, 4, 3, 8, 8, 15]]],
-  ['Kenaz', '灵感', '一点火光就够照亮下一步。', [[8, 1, 3, 8, 8, 15]]], ['Gebo', '馈赠', '给出去的善意，会以别的样子回来。', [[2, 2, 8, 14], [8, 2, 2, 14]]],
-  ['Wunjo', '喜悦', '允许自己开心一点。', [[3, 1, 3, 15], [3, 1, 8, 4, 3, 7]]], ['Nauthiz', '耐心', '需要的东西会来，再等一等。', [[5, 1, 5, 15], [2, 5, 8, 10]]],
-  ['Isa', '静止', '先停下来，冰化之前别急着走。', [[5, 1, 5, 15]]], ['Jera', '收获', '时候到了，自然有结果。', [[4, 1, 1, 5, 4, 9], [6, 7, 9, 11, 6, 15]]],
-  ['Berkano', '新生', '新的开始正在萌芽。', [[3, 1, 3, 15], [3, 1, 8, 4, 3, 8, 8, 12, 3, 15]]], ['Ehwaz', '同行', '有人和你一起走，会更稳。', [[2, 15, 2, 1, 5, 5, 8, 1, 8, 15]]],
-  ['Mannaz', '自我', '好好认识自己，答案在里面。', [[2, 15, 2, 1, 8, 8], [8, 15, 8, 1, 2, 8]]], ['Laguz', '直觉', '顺着水流，相信直觉。', [[3, 1, 3, 15], [3, 1, 8, 5]]],
-  ['Ingwaz', '孕育', '安静地酝酿，时候到了自会开花。', [[5, 3, 8, 8, 5, 13, 2, 8, 5, 3]]], ['Dagaz', '破晓', '天快亮了，转机就在眼前。', [[2, 2, 2, 14, 8, 2, 8, 14, 2, 2]]]];
-const TEASE_BTN = { hearth: '摸一颗符文石' };
-const TEASE_NOTE = '<div class="note">这一间还在装订中，下次翻开时就能完整地玩 · 仅供娱乐</div>';
-function teaserStart(id) {
-  const P = spreads[cur]?.P;
-  if (!P || P.id !== id || turn || busy || !TEASE[id]) return;
-  teaserClear(); hidePanel(); sfx('pop');
-  const g = new THREE.Group(); P.group.add(g);
-  teaser = { id, P, g, t: 0, done: false, at: P.door.clone().add(V(0, 0, 0.14)) };
-  TEASE[id].make(teaser);
-}
-function teaserClear() { if (!teaser) return; teaser.P.group.remove(teaser.g); teaser.g.traverse((o) => o.geometry?.dispose()); teaser = null; }
-function updateTeaser(dt, t) {
-  if (!teaser) return;
-  if (mode !== 'book' || turn || spreads[cur]?.P !== teaser.P) { teaserClear(); return; }
-  teaser.t += dt; TEASE[teaser.id].tick(teaser, dt, t);
-  if (!teaser.done && teaser.t > teaser.dur) { teaser.done = true; TEASE[teaser.id].reveal(teaser); }
-}
-const teaseAgain = (id) => [['再来一次', () => teaserStart(id), true], ['收起', hidePanel]];
-const TEASE = {
-  hearth: {
-    make(T) {
-      T.rune = RUNES[Math.floor(Math.random() * RUNES.length)];
-      const c = canvas(160, 224), g = c.getContext('2d'); g.strokeStyle = '#ffd27a'; g.lineWidth = 12; g.lineCap = 'round'; g.lineJoin = 'round'; g.shadowColor = '#ffb040'; g.shadowBlur = 14;
-      for (const st of T.rune[3]) { g.beginPath(); for (let i = 0; i < st.length; i += 2) { const x = 30 + st[i] * 10, y = 32 + st[i + 1] * 10; i ? g.lineTo(x, y) : g.moveTo(x, y); } g.stroke(); }
-      const stone = new THREE.Mesh(new RoundedBoxGeometry(0.1, 0.14, 0.035, 3, 0.012), new THREE.MeshStandardMaterial({ color: 0x8a96a2, roughness: 0.85 }));
-      const glyph = new THREE.Mesh(new THREE.PlaneGeometry(0.075, 0.105), new THREE.MeshBasicMaterial({ map: tex(c), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })); glyph.position.z = 0.0185; stone.add(glyph);
-      const g2 = new THREE.Group(); g2.add(stone); g2.position.copy(T.at); T.g.add(g2); T.stone = g2; T.glyph = glyph; T.dur = 1.6; sfx('soft');
-    },
-    tick(T, dt, t) {
-      const k = Math.min(1, T.t / 1.3), e = easeIO(k), g = T.stone;
-      g.position.copy(T.at).add(V(0, 0.08 + 0.18 * e, 0));
-      const face = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(camera.position, g.getWorldPosition(tmpV), camera.up));
-      const parentQ = T.g.getWorldQuaternion(new THREE.Quaternion()).invert();
-      g.quaternion.copy(parentQ.multiply(face)).multiply(new THREE.Quaternion().setFromAxisAngle(V(0, 1, 0), (1 - e) * Math.PI * 2));
-      T.glyph.material.opacity = 0.4 + 0.6 * e * (0.8 + 0.2 * Math.sin(t * 4));
-      if (Math.random() < dt * 18) sparks.emit(g.getWorldPosition(tmpV), tmpW.set(rnd(-0.04, 0.04), rnd(0.02, 0.07), rnd(-0.04, 0.04)), { life: 0.9, size: 0.012, color: GOLD });
-    },
-    reveal(T) { const [latin, name, line] = T.rune; showPanel(`<span class="seal">符</span><small>预告 · 卢恩符文 · ${latin}</small><h3>${name}</h3><p>${line}</p>${TEASE_NOTE}`, teaseAgain('hearth')); },
-  },
-};
 /* ================= the magic hut, in 3D ================= */
 /*
  * The room the book lives in: modelled, not painted. Rounded, slightly toy-like shapes in the
@@ -3967,7 +3881,7 @@ async function buildHut() {
   moonShafts(winW, winBot, winArch);
 
   await slice();
-  // the fireplace: brick, a mantel crowded with candles, a ball of magic fire, a cat asleep in the warmth
+  // the fireplace: brick, a mantel crowded with candles, a ball of magic fire, a little white cat curled in her bed by the bookcase
   const brick = std('brick', { map: tx(brickCanvas(), 2, 3), roughness: 0.85, bumpMap: tx(brickCanvas(), 2, 3, false), bumpScale: 2 });
   const fz = -3, fx = -W / 2;
   add(rbox(1.6, top - FLOOR - 6.6, 6.6, 0.1), brick, fx + 0.8, FLOOR + 6.6 + (top - FLOOR - 6.6) / 2, fz);
@@ -3980,8 +3894,10 @@ async function buildHut() {
   fireLight = new THREE.PointLight(0xff9a40, 36, 18, 1.4); fireLight.position.set(fx + 2.9, FLOOR + 2.0, fz); scene.add(fireLight);
   mantelpiece(FLOOR + 6.525, fz);
   candleLight = new THREE.PointLight(0xffb060, 9, 9, 1.5); candleLight.position.set(fx + 3.9, FLOOR + 8.4, fz + 1.2); scene.add(candleLight);
-  sleepyCat = catAsleep(fx + 2.9, FLOOR + 0.5, fz + 3.6, -Math.PI / 2, 0.72);
-  prop(sleepyCat.g, '橘猫 · 摸摸它', () => { catAnswer(); burstAt(sparks, sleepyCat.g.getWorldPosition(V(0, 0, 0)).add(V(0, 0.9, 0)), 18, { speed: 0.3, up: 0.5, size: 0.05, color: new THREE.Color(1.8, 0.9, 1.1) }); });
+  // in the nook between the fireplace and the bookcase, where it shows on a narrow screen too once you look that way
+  catBed(fx + 3.5, FLOOR, fz - 3.9);
+  sleepyCat = catAsleep(fx + 3.5, FLOOR + 0.3, fz - 3.9, 0.38, 0.66);                // curled with her face to the room, her head at the bookcase end
+  prop(sleepyCat.g, '小白猫 · 摸摸它', () => { catAnswer(); burstAt(sparks, sleepyCat.g.getWorldPosition(V(0, 0, 0)).add(V(0, 0.9, 0)), 18, { speed: 0.3, up: 0.5, size: 0.05, color: new THREE.Color(1.8, 0.9, 1.1) }); });
   garland(V(fx + 1.75, FLOOR + 12.6, fz - 3.2), V(fx + 1.75, FLOOR + 12.6, fz + 3.2), 1.2, 13);
 
   await slice();
@@ -4511,7 +4427,7 @@ function matryoshka(x, y, z, s, colors) {
   add(lathe([[0, 0], [0.2, 0], [0.24, 0.1], [0.22, 0.3], [0.14, 0.42], [0.16, 0.52], [0.13, 0.64], [0, 0.68]], 28), std('doll' + colors[0], { map: tx(C), roughness: 0.25 }), 0, 0, 0, g);
 }
 function starfish(x, y, z, ry) { const sh = starShape(0.16, 0.06); add(new THREE.ExtrudeGeometry(sh, { depth: 0.03, bevelEnabled: true, bevelSize: 0.02, bevelThickness: 0.02, bevelSegments: 2 }), std('starfish', { color: 0xe8905a, roughness: 0.8 }), x, y + 0.03, z, scene, [-Math.PI / 2, 0, ry]); }
-function conch(x, y, z, ry) { const g = group(x, y, z, ry); add(new THREE.ConeGeometry(0.12, 0.34, 16, 6).rotateZ(Math.PI / 2), std('conch', { color: 0xf2dcc4, roughness: 0.45 }), 0, 0.1, 0, g); add(new THREE.TorusGeometry(0.08, 0.04, 8, 16, Math.PI * 1.4), std('conchIn', { color: 0xf0b8a8, roughness: 0.4 }), 0.1, 0.1, 0, g, [0, Math.PI / 2, 0]); }
+function conch(x, y, z, ry) { const g = group(x, y, z, ry); add(fullCone(0.12, 0.34, 16, 6).rotateZ(Math.PI / 2), std('conch', { color: 0xf2dcc4, roughness: 0.45 }), 0, 0.1, 0, g); add(new THREE.TorusGeometry(0.08, 0.04, 8, 16, Math.PI * 1.4), std('conchIn', { color: 0xf0b8a8, roughness: 0.4 }), 0.1, 0.1, 0, g, [0, Math.PI / 2, 0]); }
 /** the mantelpiece, dressed: a sunburst mirror, a clock, candlesticks, a ginger jar, a bell jar with a moon in it, pampas, books, a little oil lamp, a swag of greenery */
 function mantelpiece(y0, fz) {
   const front = -8.1, mid = -8.75;
@@ -4563,40 +4479,256 @@ function mantelpiece(y0, fz) {
   const lg = new Sparks(lights.length); lights.forEach((p) => lg.emit(p, V(0, 0, 0), { life: 1e9, size: 0.3, color: new THREE.Color(1.7, 1.25, 0.6), drag: 0 })); lg.update(0); scene.add(lg.points);
 }
 /** a ginger tabby curled up asleep by the fire: back rounded, head resting on its paws, tail wrapped round the front */
+/** a round, fluffy bed for the cat: a fat plush rim, lumpy as fleece, round a soft cushion */
+function catBed(x, y, z) {
+  const g = group(x, y, z), c = canvas(256, 256), cg = c.getContext('2d'), rr = mulberry(5150);
+  cg.fillStyle = '#d6a4ac'; cg.fillRect(0, 0, 256, 256);
+  for (let i = 0; i < 2600; i++) {                                   // short soft strokes of fur in all directions
+    const px_ = rr() * 256, py = rr() * 256, a = rr() * Math.PI * 2, l = 3 + rr() * 6, v = 185 + rr() * 60;
+    cg.strokeStyle = `rgba(${v},${v - 58},${v - 48},.55)`; cg.lineWidth = 1.2; cg.beginPath(); cg.moveTo(px_, py); cg.lineTo(px_ + Math.cos(a) * l, py + Math.sin(a) * l); cg.stroke();
+  }
+  const fleece = new THREE.MeshPhysicalMaterial({ map: tx(c, 3, 1), bumpMap: tx(c, 3, 1, false), bumpScale: 4, roughness: 1, sheen: 1, sheenRoughness: 0.55, sheenColor: new THREE.Color(0xfff6ea) });
+  const gc = canvas(256, 256), gg = gc.getContext('2d');                       // pink-and-white gingham for the cushion
+  gg.fillStyle = '#fbf4f2'; gg.fillRect(0, 0, 256, 256); gg.fillStyle = 'rgba(226,160,170,.55)'; gg.fillRect(0, 0, 128, 256); gg.fillRect(0, 0, 256, 128); gg.fillStyle = 'rgba(214,138,150,.55)'; gg.fillRect(0, 0, 128, 128);
+  const plush = new THREE.MeshPhysicalMaterial({ map: tx(gc, 3, 3), bumpMap: tx(c, 2, 2, false), bumpScale: 1.5, roughness: 0.95, sheen: 0.6, sheenRoughness: 0.5, sheenColor: new THREE.Color(0xfff0f2) });
+  // the rim: a thick ring, pushed in and out a little all round so it looks stuffed rather than turned
+  const rim = new THREE.TorusGeometry(0.95, 0.4, 28, 72), rp = rim.attributes.position, n = new THREE.Vector3(), q = new THREE.Vector3();
+  for (let i = 0; i < rp.count; i++) {
+    q.fromBufferAttribute(rp, i); const a = Math.atan2(q.y, q.x), ring = V(Math.cos(a) * 0.95, Math.sin(a) * 0.95, 0); n.copy(q).sub(ring).normalize();
+    q.addScaledVector(n, 0.035 * Math.sin(a * 9) + 0.02 * Math.sin(a * 23 + q.z * 9) + 0.012 * (rr() - 0.5)); rp.setXYZ(i, q.x, q.y, q.z);
+  }
+  rim.computeVertexNormals(); rim.rotateX(Math.PI / 2).scale(1, 0.55, 1);
+  add(rim, fleece, 0, 0.26, 0, g);
+  add(new THREE.CylinderGeometry(0.98, 1.02, 0.16, 48), fleece, 0, 0.08, 0, g);            // the base under it all
+  const cush = new THREE.SphereGeometry(0.86, 40, 16).scale(1, 0.16, 1); add(cush, plush, 0, 0.2, 0, g);
+  return g;
+}
+/*
+ * A little white cat asleep, curled nose-to-tail in her bed like a porcelain figure: the long loaf of her body, the round
+ * haunch, the hind paws together in front, her chin on her forepaws, the tail wrapped round the front. Her head is narrow
+ * at the crown and full at the cheeks, two soft whisker pads under a small pink nose. Tapped, she lifts her head and opens
+ * her odd eyes, one blue and one amber, roundish pupils. Body and head are each one smooth surface (a distance field
+ * blended where the parts meet), so the joins flow like clay; eyes, nose and mouth are laid onto that surface.
+ * Local axes: +z toward the room, +x to her right, y up; the head's own +x is the way her face points.
+ */
+const smin = (a, b, k) => { const h = Math.max(k - Math.abs(a - b), 0) / k; return Math.min(a, b) - h * h * k * 0.25; };
+const sdEll = (x, y, z, c, r) => {                                                       // an ellipsoid, near enough
+  const px = (x - c[0]) / r[0], py = (y - c[1]) / r[1], pz = (z - c[2]) / r[2], k0 = Math.sqrt(px * px + py * py + pz * pz);
+  const qx = px / r[0], qy = py / r[1], qz = pz / r[2];
+  return (k0 * (k0 - 1)) / Math.max(1e-6, Math.sqrt(qx * qx + qy * qy + qz * qz));
+};
+const sdLimb = (x, y, z, a, b, ra, rb) => {                                              // a capsule tapering from ra at a to rb at b
+  const bx = b[0] - a[0], by = b[1] - a[1], bz = b[2] - a[2], px = x - a[0], py = y - a[1], pz = z - a[2];
+  const t = Math.min(1, Math.max(0, (px * bx + py * by + pz * bz) / (bx * bx + by * by + bz * bz)));
+  const dx = px - bx * t, dy = py - by * t, dz = pz - bz * t;
+  return Math.sqrt(dx * dx + dy * dy + dz * dz) - (ra + (rb - ra) * t);
+};
+/** the smooth closed surface where a distance field f crosses zero, sampled every h over the box lo..hi (naive surface nets) */
+function fieldMesh(f, lo, hi, h) {
+  const nx = Math.ceil((hi[0] - lo[0]) / h) + 1, ny = Math.ceil((hi[1] - lo[1]) / h) + 1, nz = Math.ceil((hi[2] - lo[2]) / h) + 1;
+  const val = new Float32Array(nx * ny * nz), at = (i, j, k) => i + nx * (j + ny * k);
+  for (let k = 0; k < nz; k++) for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) val[at(i, j, k)] = f(lo[0] + i * h, lo[1] + j * h, lo[2] + k * h);
+  // one vertex in every cell the surface passes through, at the mean of its edge crossings
+  const cx = nx - 1, cy = ny - 1, cell = new Int32Array(cx * cy * (nz - 1)).fill(-1), pos = [], idx = [], v = new Float32Array(8);
+  const C = [[0, 0, 0], [1, 0, 0], [0, 1, 0], [1, 1, 0], [0, 0, 1], [1, 0, 1], [0, 1, 1], [1, 1, 1]], E = [[0, 1], [2, 3], [4, 5], [6, 7], [0, 2], [1, 3], [4, 6], [5, 7], [0, 4], [1, 5], [2, 6], [3, 7]];
+  for (let k = 0; k < nz - 1; k++) for (let j = 0; j < cy; j++) for (let i = 0; i < cx; i++) {
+    let inside = 0;
+    for (let c = 0; c < 8; c++) { v[c] = val[at(i + C[c][0], j + C[c][1], k + C[c][2])]; if (v[c] < 0) inside++; }
+    if (inside === 0 || inside === 8) continue;
+    let sx = 0, sy = 0, sz = 0, n = 0;
+    for (const [a, b] of E) { if (v[a] < 0 === v[b] < 0) continue; const t = v[a] / (v[a] - v[b]); sx += C[a][0] + (C[b][0] - C[a][0]) * t; sy += C[a][1] + (C[b][1] - C[a][1]) * t; sz += C[a][2] + (C[b][2] - C[a][2]) * t; n++; }
+    cell[i + cx * (j + cy * k)] = pos.length / 3; pos.push(lo[0] + (i + sx / n) * h, lo[1] + (j + sy / n) * h, lo[2] + (k + sz / n) * h);
+  }
+  // a quad across every grid edge the surface cuts, joining the four cells round it
+  const ci = (i, j, k) => cell[i + cx * (j + cy * k)], quad = (a, b, c, d) => { if (a >= 0 && b >= 0 && c >= 0 && d >= 0) idx.push(a, b, c, a, c, d); };
+  const cut = (i, j, k, di, dj, dk) => val[at(i, j, k)] < 0 !== val[at(i + di, j + dj, k + dk)] < 0;
+  for (let k = 0; k < nz - 1; k++) for (let j = 0; j < cy; j++) for (let i = 0; i < cx; i++) {
+    if (j > 0 && k > 0 && cut(i, j, k, 1, 0, 0)) quad(ci(i, j, k), ci(i, j - 1, k), ci(i, j - 1, k - 1), ci(i, j, k - 1));
+    if (i > 0 && k > 0 && cut(i, j, k, 0, 1, 0)) quad(ci(i, j, k), ci(i - 1, j, k), ci(i - 1, j, k - 1), ci(i, j, k - 1));
+    if (i > 0 && j > 0 && cut(i, j, k, 0, 0, 1)) quad(ci(i, j, k), ci(i - 1, j, k), ci(i - 1, j - 1, k), ci(i, j - 1, k));
+  }
+  // settle each vertex onto the surface, take its normal from the field, and face every triangle outward
+  const nrm = new Float32Array(pos.length), e = h * 0.25;
+  for (let p = 0; p < pos.length; p += 3) {
+    const [x, y, z] = [pos[p], pos[p + 1], pos[p + 2]], gx = (f(x + e, y, z) - f(x - e, y, z)) / (2 * e), gy = (f(x, y + e, z) - f(x, y - e, z)) / (2 * e), gz = (f(x, y, z + e) - f(x, y, z - e)) / (2 * e);
+    const l2 = gx * gx + gy * gy + gz * gz || 1, d = f(x, y, z), l = Math.sqrt(l2);
+    pos[p] -= (d * gx) / l2; pos[p + 1] -= (d * gy) / l2; pos[p + 2] -= (d * gz) / l2; nrm[p] = gx / l; nrm[p + 1] = gy / l; nrm[p + 2] = gz / l;
+  }
+  for (let t = 0; t < idx.length; t += 3) {
+    const [a, b, c] = [idx[t] * 3, idx[t + 1] * 3, idx[t + 2] * 3], ux = pos[b] - pos[a], uy = pos[b + 1] - pos[a + 1], uz = pos[b + 2] - pos[a + 2], wx = pos[c] - pos[a], wy = pos[c + 1] - pos[a + 1], wz = pos[c + 2] - pos[a + 2];
+    if ((uy * wz - uz * wy) * nrm[a] + (uz * wx - ux * wz) * nrm[a + 1] + (ux * wy - uy * wx) * nrm[a + 2] < 0) { const s = idx[t + 1]; idx[t + 1] = idx[t + 2]; idx[t + 2] = s; }
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setAttribute('normal', new THREE.BufferAttribute(nrm, 3)); geo.setIndex(idx);
+  return geo;
+}
+/*
+ * Plush fur for the cat, needing no UVs on a field-built mesh: the coat's normal is ruffled by short strokes of 3D noise combed
+ * along x, and each layer > 0 is a shell pushed out along the normal where only scattered strand tips survive, thinner further out.
+ */
+const FUR_GLSL = `
+uniform float uLayer, uLen;
+varying vec3 vFurP;
+float furHash(vec3 c) { return fract(sin(dot(c, vec3(127.1, 311.7, 74.7))) * 43758.5453); }
+float furNoise(vec3 p) {
+  vec3 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(mix(furHash(i), furHash(i + vec3(1, 0, 0)), f.x), mix(furHash(i + vec3(0, 1, 0)), furHash(i + vec3(1, 1, 0)), f.x), f.y),
+             mix(mix(furHash(i + vec3(0, 0, 1)), furHash(i + vec3(1, 0, 1)), f.x), mix(furHash(i + vec3(0, 1, 1)), furHash(i + vec3(1, 1, 1)), f.x), f.y), f.z);
+}`;
+function furMaterial(layer, len, bare = []) {                                                      // bare: [x, y, z, r] spots kept clear (eyes, nose, mouth)
+  const m = new THREE.MeshPhysicalMaterial({ color: 0xd9dce3, roughness: 1, specularIntensity: 0.25, sheen: 1, sheenRoughness: 0.8, sheenColor: new THREE.Color(0xd8dce4), emissive: 0x23262d });   // a little cool light of her own, so she reads white by the fire
+  m.onBeforeCompile = (sh) => {
+    sh.uniforms.uLayer = { value: layer }; sh.uniforms.uLen = { value: len }; sh.uniforms.uBare = { value: bare.map((b) => new THREE.Vector4(...b)) };
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nuniform float uLayer, uLen;\nattribute float furLen;\nvarying vec3 vFurP;')
+      .replace('#include <begin_vertex>', 'vec3 transformed = position + objectNormal * uLen * uLayer * furLen; vFurP = position;');
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\n' + FUR_GLSL + (bare.length ? `\nuniform vec4 uBare[${bare.length}];` : ''))
+      .replace('#include <map_fragment>', `#include <map_fragment>
+  float keep = 1.0;${bare.length ? `
+  for (int i = 0; i < ${bare.length}; i++) keep *= smoothstep(0.55, 1.0, length(vFurP - uBare[i].xyz) / uBare[i].w);
+  diffuseColor.rgb *= mix(0.84, 1.0, keep);                // the bare skin round the eyes and nose a shade darker, as it is` : ''}
+  if (uLayer > 0.0) {                                       // a shell: only strands long enough to reach it, tapering as they go
+    float reach = furHash(floor(vFurP * 90.0)) * keep;${bare.length ? `
+    reach *= mix(0.5, 1.0, 1.0 - smoothstep(0.05, 0.13, vFurP.x));                  // short on the face, and none round the eyes, nose and mouth` : ''}
+    vec3 q = fract(vFurP * 90.0) - 0.5;
+    if (reach < uLayer || dot(q, q) > 0.22 * (1.0 - uLayer)) discard;
+  }
+  diffuseColor.rgb *= mix(0.88, 1.05, uLayer);              // a little darker at the roots`)
+      .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
+  vec3 fp = vFurP * 160.0;                                  // short strokes combed along x
+  float fh = furNoise(vec3(fp.x * 0.2, fp.y, fp.z)) * 0.65 + furNoise(vec3(fp.x * 0.4, fp.yz * 2.1)) * 0.35;
+  vec3 dpx = dFdx(-vViewPosition), dpy = dFdy(-vViewPosition), r1 = cross(dpy, normal), r2 = cross(normal, dpx);
+  float det = dot(dpx, r1);
+  normal = normalize(abs(det) * normal - sign(det) * 0.002 * (dFdx(fh) * r1 + dFdy(fh) * r2));`);
+  };
+  m.customProgramCacheKey = () => 'fur' + bare.length;
+  return m;
+}
 function catAsleep(x, y, z, ry, sc = 1) {
-  const g = group(x, y, z, ry);
-  g.scale.set(sc, sc, -sc); // mirrored so the curl faces the room
-  const fur = std('catFur', { map: tx(catFurCanvas()), roughness: 0.9 }), headFur = std('catHead', { map: tx(catHeadCanvas()), roughness: 0.9 });
-  const tailFur = std('catTail', { map: tx(catTailCanvas()), roughness: 0.9 }), plain = std('fur', { color: 0xe3a462, roughness: 0.9 });
-  const cream = std('furCream', { color: 0xf8e8cc, roughness: 0.85 }), pink = std('catPink', { color: 0xe89a9a, roughness: 0.6 }), dark = std('catDark', { color: 0x3a2418, roughness: 0.6 });
-  const blob = (r, px_, py, pz, sx, sy, sz, mat, ry_ = 0) => { const m = add(new THREE.SphereGeometry(r, 40, 24).rotateZ(Math.PI / 2), mat, px_, py, pz, g); m.scale.set(sx, sy, sz); m.rotation.y = ry_; return m; };
-  // the body bends round into a crescent: haunch at the back, shoulders turning toward the front
-  blob(0.6, -0.4, 0.43, -0.08, 1.12, 0.8, 1.08, fur, 0.25);
-  blob(0.5, 0.32, 0.4, 0.14, 1.12, 0.8, 1.0, fur, -0.55);
-  blob(0.36, -0.5, 0.4, 0.42, 1.15, 0.85, 0.75, fur, 0.4);
-  // tail round the front, ringed, darker at the tip
-  const t0 = V(-0.9, 0.28, -0.4), tailG = group(t0.x, t0.y, t0.z, 0, g);                    // on a pivot at its root, so it can flick
-  const tail = new THREE.CatmullRomCurve3([V(-0.9, 0.28, -0.4), V(-1.08, 0.2, 0.25), V(-0.68, 0.13, 0.8), V(0.0, 0.12, 1.0), V(0.5, 0.14, 0.92)].map((p) => p.sub(t0)));
-  add(new THREE.TubeGeometry(tail, 32, 0.13, 12), tailFur, 0, 0, 0, tailG);
-  add(new THREE.SphereGeometry(0.13, 14, 10), std('tailTip', { color: 0xa65420, roughness: 0.9 }), 0.5 - t0.x, 0.14 - t0.y, 0.92 - t0.z, tailG);
-  // front paws tucked under the chin, a hind paw peeping out
-  [[0.62, 0.11, 0.7], [0.36, 0.1, 0.8]].forEach(([a, b, c]) => add(new THREE.SphereGeometry(0.14, 16, 10), cream, a, b, c, g).scale.set(1.5, 0.65, 1));
-  add(new THREE.SphereGeometry(0.13, 16, 10), cream, -0.2, 0.1, 0.72, g).scale.set(1.6, 0.6, 1);
-  // the head, resting on its cheek, face turned toward the curl
-  const head = group(0.68, 0.48, 0.5, -1.25, g); head.rotation.z = -0.18; head.rotation.x = 0.22;
-  add(new THREE.SphereGeometry(0.38, 32, 22), headFur, 0, 0, 0, head).scale.set(0.95, 0.86, 1.12);
-  [-1, 1].forEach((s2) => add(new THREE.SphereGeometry(0.17, 16, 12), plain, 0.12, -0.12, s2 * 0.2, head).scale.set(1, 0.85, 1));
-  add(new THREE.SphereGeometry(0.16, 16, 12), cream, 0.28, -0.13, 0, head).scale.set(0.8, 0.68, 1.3);
-  add(new THREE.SphereGeometry(0.034, 10, 8), pink, 0.4, -0.07, 0, head).scale.set(0.8, 0.7, 1.2);
-  const ears = [];
-  [-1, 1].forEach((s2) => {
-    const ear = group(-0.04, 0.3, s2 * 0.2, 0, head); ears.push(ear);
-    add(new THREE.ConeGeometry(0.2, 0.38, 4), plain, 0, 0.04, 0, ear, [s2 * 0.34, Math.PI / 4, -0.12]).scale.set(1, 1, 0.5);
-    add(new THREE.ConeGeometry(0.12, 0.24, 4), pink, 0.05, 0.03, 0, ear, [s2 * 0.34, Math.PI / 4, -0.12]).scale.set(1, 1, 0.35);
-    add(new THREE.TorusGeometry(0.06, 0.012, 4, 12, Math.PI), dark, 0.335, 0.05, s2 * 0.14, head, [0, Math.PI / 2 - s2 * 0.3, Math.PI]).castShadow = false;
-    [-1, 0, 1].forEach((k) => (rod(head, V(0.36, -0.12 + k * 0.02, s2 * 0.1), V(0.46, -0.08 + k * 0.06, s2 * 0.46), 0.004, cream).castShadow = false));
+  const root = group(x, y, z, ry); root.scale.setScalar(sc);
+  const g = group(0, 0, 0, 0, root); g.scale.x = -1;                                                 // built head-left, then mirrored: the phone view sees that end over the desk
+  const N = lowPower ? 4 : 8, furry = (geo, parent, len, bare, lenAt) => {                     // the coat, and N shells of fuzz over it; lenAt scales the fur from place to place
+    const P = geo.attributes.position, fl = new Float32Array(P.count).fill(1);
+    if (lenAt) for (let i = 0; i < P.count; i++) fl[i] = lenAt(P.getX(i), P.getY(i), P.getZ(i));
+    geo.setAttribute('furLen', new THREE.BufferAttribute(fl, 1));
+    for (let i = 1; i <= N; i++) add(geo, furMaterial(i / N, len, bare), 0, 0, 0, parent).castShadow = false;
+    return add(geo, furMaterial(0, len, bare), 0, 0, 0, parent);
+  };
+  // the body, curled on the cushion: one field of rounded parts melted together, flat where she lies
+  const body = (px, py, pz) => {
+    let d = sdEll(px, py, pz, [0.0, 0.27, -0.06], [0.52, 0.3, 0.42]);                              // a round bean of a body, its back rising to the hip
+    d = smin(d, sdEll(px, py, pz, [0.3, 0.31, 0.06], [0.38, 0.34, 0.42]), 0.06);                    // the round haunch, a soft crease where it meets her
+    d = smin(d, sdEll(px, py, pz, [-0.36, 0.21, 0.1], [0.3, 0.22, 0.32]), 0.14);                   // chest and shoulders curling round to the front, lower than the hip
+    d = smin(d, sdLimb(px, py, pz, [0.28, 0.15, 0.34], [0.0, 0.1, 0.5], 0.12, 0.075), 0.06);      // a hind leg folded forward
+    d = smin(d, sdEll(px, py, pz, [-0.04, 0.085, 0.56], [0.075, 0.07, 0.1]), 0.03);                // and the hind paws, side by side, toes to the room
+    d = smin(d, sdEll(px, py, pz, [0.11, 0.08, 0.6], [0.07, 0.065, 0.095]), 0.025);
+    d = smin(d, sdLimb(px, py, pz, [-0.4, 0.12, 0.3], [-0.56, 0.08, 0.48], 0.075, 0.06), 0.07);   // a forearm curled under her chin
+    d = smin(d, sdEll(px, py, pz, [-0.6, 0.065, 0.5], [0.085, 0.06, 0.075]), 0.03);
+    d = smin(d, sdLimb(px, py, pz, [-0.46, 0.1, 0.2], [-0.76, 0.06, 0.32], 0.07, 0.055), 0.07);   // the other reaching out in front
+    d = smin(d, sdEll(px, py, pz, [-0.8, 0.055, 0.33], [0.08, 0.05, 0.065]), 0.03);
+    return Math.max(d, -py);
+  };
+  furry(fieldMesh(body, [-0.95, -0.03, -0.55], [0.75, 0.7, 0.72], 0.024), g, 0.035);
+  // the tail: from the haunch round the right and along the front, tapering to a rounded tip
+  const t0 = V(0.6, 0.14, 0.1), tailG = group(t0.x, t0.y, t0.z, 0, g);                          // on a pivot at its root, so it can flick
+  const tailCurve = new THREE.CatmullRomCurve3([V(0.6, 0.14, 0.1), V(0.68, 0.1, 0.42), V(0.48, 0.07, 0.68), V(0.12, 0.06, 0.74), V(-0.24, 0.065, 0.68)].map((p) => p.sub(t0)));
+  const TS = 60, RS = 16, tg = new THREE.TubeGeometry(tailCurve, TS, 1, RS, false), tp = tg.attributes.position, q = V(0, 0, 0), ctr = V(0, 0, 0);
+  for (let i = 0; i < tp.count; i++) {
+    const t = Math.floor(i / (RS + 1)) / TS;
+    tailCurve.getPointAt(t, ctr); q.fromBufferAttribute(tp, i).sub(ctr).multiply(V(1, 0.85, 1)).multiplyScalar(0.08 - 0.032 * t).add(ctr); tp.setXYZ(i, q.x, q.y, q.z);
+  }
+  tg.computeVertexNormals(); furry(tg, tailG, 0.028);
+  const tip = tailCurve.getPointAt(1); furry(new THREE.SphereGeometry(0.05, 16, 12).translate(tip.x, tip.y, tip.z), tailG, 0.028);
+  // the head, chin down on her forepaws and turned to the room: a smooth round egg of a head, a raised nose bridge to a
+  // small nose, puffy whisker pads, and the fur a little longer at the cheeks and under the chin
+  const head0 = group(-0.6, 0.3, 0.38, -Math.PI / 2 - 0.35, g); head0.rotation.z = -0.18; head0.rotation.x = 0.22; head0.userData.y0 = head0.position.y; head0.scale.setScalar(1.15);
+  const head = group(0, 0, 0, 0, head0); head.rotation.z = 0.12;
+  const face = (px, py, pz) => {
+    let d = sdEll(px, py, pz, [-0.02, 0.03, 0], [0.19, 0.17, 0.19]);                              // a round crown, broad at the temples
+    d = smin(d, sdEll(px, py, pz, [0.03, -0.055, 0], [0.17, 0.12, 0.175]), 0.14);                  // the cheeks, melting into it so the head stays one smooth egg
+    d = smin(d, sdLimb(px, py, pz, [0.1, 0.06, 0], [0.17, -0.03, 0], 0.04, 0.03), 0.05);           // the bridge of the nose
+    d = smin(d, sdEll(px, py, pz, [0.178, -0.038, 0], [0.022, 0.018, 0.026]), 0.02);                // and the nose itself, a little raised
+    d = smin(d, sdEll(px, py, pz, [0.13, -0.078, 0], [0.06, 0.058, 0.1]), 0.06);                   // the muzzle, short and broad
+    for (const s of [-1, 1]) d = smin(d, sdEll(px, py, pz, [0.152, -0.09, s * 0.045], [0.045, 0.044, 0.058]), 0.035);   // two puffy whisker pads
+    d = smin(d, sdEll(px, py, pz, [0.115, -0.13, 0], [0.05, 0.035, 0.06]), 0.04);                   // the chin
+    return d;
+  };
+  // ears: pointed, a little turned out, pink within
+  const ears = [], lids = [], earIn = std('kittenEarIn', { color: 0xf0b4c2, roughness: 0.8 });
+  // eyes, nose and mouth are laid on the face: each point pressed onto the surface down the field, then lifted a hair off it
+  const UPV = V(0, 1, 0), snap = (p) => {
+    const n = V(0, 0, 0), e = 1e-3;
+    for (let it = 0; it < 6; it++) {
+      const d = face(p.x, p.y, p.z); n.set(face(p.x + e, p.y, p.z) - face(p.x - e, p.y, p.z), face(p.x, p.y + e, p.z) - face(p.x, p.y - e, p.z), face(p.x, p.y, p.z + e) - face(p.x, p.y, p.z - e)).divideScalar(2 * e);
+      p.addScaledVector(n, -d / Math.max(1e-6, n.lengthSq()));
+    }
+    return n.normalize();
+  };
+  const seat = (az, el) => {                                                                          // a frame on the face in that direction, looking out of it, its y up the head
+    const p = V(Math.cos(el) * Math.cos(az), Math.sin(el), Math.cos(el) * Math.sin(az)).multiplyScalar(0.2), n = snap(p), side = UPV.clone().cross(n).normalize();
+    return new THREE.Matrix4().makeBasis(side, n.clone().cross(side), n).setPosition(p);
+  };
+  const mark = (geo, frame, mat, parent, off = 0.003) => {
+    const P = geo.applyMatrix4(frame).attributes.position, p = V(0, 0, 0);
+    for (let i = 0; i < P.count; i++) { p.fromBufferAttribute(P, i); p.addScaledVector(snap(p), off); P.setXYZ(i, p.x, p.y, p.z); }
+    geo.computeVertexNormals(); const m = add(geo, mat, 0, 0, 0, parent); m.castShadow = false; return m;
+  };
+  // flat shapes to lay on her: filled with rings of vertices so they bend with the face, or a fine line tapering at both ends
+  const disc = (fn, rings = 4, segs = 40, tint) => {                                                // tint(t): a colour from the middle (0) out to the edge (1)
+    const pos = [0, 0, 0], col = [], idx = [], at = (k, j) => (k === 0 ? 0 : 1 + (k - 1) * segs + (j % segs));
+    for (let k = 1; k <= rings; k++) for (let j = 0; j < segs; j++) { const [x, y] = fn((j / segs) * Math.PI * 2); pos.push((x * k) / rings, (y * k) / rings, 0); }
+    for (let j = 0; j < segs; j++) { idx.push(0, at(1, j), at(1, j + 1)); for (let k = 1; k < rings; k++) idx.push(at(k, j), at(k + 1, j), at(k + 1, j + 1), at(k, j), at(k + 1, j + 1), at(k, j + 1)); }
+    const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setIndex(idx);
+    if (tint) { for (let v = 0; v < pos.length / 3; v++) col.push(...tint(v === 0 ? 0 : Math.ceil(v / segs) / rings).toArray()); geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); }
+    return geo;
+  };
+  const stroke = (pts, w) => {
+    const pos = [], idx = [];
+    pts.forEach((p, i) => {
+      const a = pts[Math.max(0, i - 1)], b = pts[Math.min(pts.length - 1, i + 1)], l = Math.hypot(b.x - a.x, b.y - a.y) || 1, nx = -(b.y - a.y) / l, ny = (b.x - a.x) / l, hw = w * 0.5 * Math.sin(Math.PI * (0.15 + (0.7 * i) / (pts.length - 1)));
+      pos.push(p.x + nx * hw, p.y + ny * hw, 0, p.x - nx * hw, p.y - ny * hw, 0); if (i) idx.push(2 * i - 2, 2 * i - 1, 2 * i, 2 * i - 1, 2 * i + 1, 2 * i);
+    });
+    const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setIndex(idx); return geo;
+  };
+  const almond = (w, h) => (a) => { const c = Math.cos(a), s = Math.sin(a); return [w * c, h * s * (0.92 + 0.08 * Math.abs(s)) * (s < 0 ? 0.95 : 1) + 0.1 * h * c]; };   // round, a touch of almond, the outer corner (+x) lifted
+  const round = (r, sy = 1) => (a) => [r * Math.cos(a), r * sy * Math.sin(a)];
+  const curve = (...p) => new THREE.CubicBezierCurve(...p.map(([x, y]) => new THREE.Vector2(x, y))).getPoints(16);
+  const noseAt = seat(0, -0.19), eyeAt = [seat(-0.5, 0.1), seat(0.5, 0.1)], spot = (m, r) => [...V(0, 0, 0).setFromMatrixPosition(m).toArray(), r];
+  const ruff = (x, y, z) => 1 + 0.4 * THREE.MathUtils.smoothstep(Math.abs(z), 0.1, 0.2) * (1 - THREE.MathUtils.smoothstep(y, -0.02, 0.08)) * (1 - THREE.MathUtils.smoothstep(x, 0.08, 0.16))
+    + 1.2 * (1 - THREE.MathUtils.smoothstep(y, -0.16, -0.08)) * (1 - THREE.MathUtils.smoothstep(x, 0.05, 0.13));   // longer at the cheeks and under the chin
+  furry(fieldMesh(face, [-0.25, -0.2, -0.27], [0.27, 0.24, 0.27], 0.011), head, 0.022, [spot(eyeAt[0], 0.075), spot(eyeAt[1], 0.075), spot(noseAt, 0.075)], ruff);
+  const flat = (color) => new THREE.MeshBasicMaterial({ color, side: THREE.DoubleSide });          // flat colour: the fire close by would wash a lit eye pale, and a lit glint would bloom over it
+  const line = flat(0x6e5a5e), iris = new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide });
+  // a small rounded nose, point down, and under it the line of her lip: down from the nose, then out along each whisker pad
+  mark(disc((a) => { const r = 0.02 * (1 + 0.2 * Math.cos(3 * (a - 1.5 * Math.PI))); return [r * Math.cos(a) * 1.15, r * Math.sin(a) * 0.85]; }, 3, 36), noseAt, flat(0xe8909f), head, 0.0035);
+  mark(stroke(curve([0, -0.016], [0, -0.026], [0, -0.034], [0, -0.042]), 0.0035), noseAt, line, head);
+  [-1, 1].forEach((k) => mark(stroke(curve([0, -0.04], [k * 0.01, -0.06], [k * 0.038, -0.062], [k * 0.052, -0.046]), 0.0035), noseAt, line, head));
+  // whiskers from the pads, fanning out and drooping, and a few over each eye
+  const whisk = flat(0xd8d4cc);                                                                       // pale in any light, never a dark scratch
+  const hair = (root, d, len, droop) => {
+    const pts = [0, 0.33, 0.66, 1].map((t) => root.clone().addScaledVector(d, len * t).add(V(-0.06 * t * t, -droop * t * t, 0)));
+    add(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 16, 0.0016, 3), whisk, 0, 0, 0, head).castShadow = false;
+  };
+  [-1, 1].forEach((s) => {
+    for (let i = 0; i < 4; i++) { const root = V(0.17, -0.078 - 0.011 * i, s * (0.05 + 0.006 * i)); snap(root); hair(root, V(0.35, 0.22 - 0.16 * i, s).normalize(), 0.3 - 0.025 * i, 0.03 + 0.012 * i); }
+    for (let i = 0; i < 2; i++) { const root = V(0.15, 0.085, s * (0.06 + 0.025 * i)); snap(root); hair(root, V(0.6, 0.7, s * 0.8).normalize(), 0.12 - 0.02 * i, 0.01); }
   });
-  return { g, head, sc, tailG, ears };
+  [-1, 1].forEach((s2) => {
+    const ear = group(-0.05, 0.13, s2 * 0.115, 0, head); ears.push(ear);
+    const tilted = group(0, 0, 0, 0, ear); tilted.rotation.set(s2 * 0.32, -s2 * 0.45, -0.12);
+    furry(fullCone(0.095, 0.2, 24, 1).translate(0, 0.09, 0).scale(0.42, 1, 1), tilted, 0.01);
+    add(fullCone(0.07, 0.15, 24, 1).translate(0, 0.085, 0).scale(0.2, 1, 1), earIn, 0.022, 0.01, 0, tilted).castShadow = false;
+    // odd eyes, round with a touch of almond at the outer corner: blue on her right, amber on her left, the iris paler
+    // round the pupil, a round dark pupil and a glint of light. The frame's x points across her face, so mirror for the far eye
+    const at = eyeAt[s2 < 0 ? 0 : 1], open = group(0, 0, 0, 0, head), shut = group(0, 0, 0, 0, head), mx = -s2; lids.push([open, shut]);   // open when she looks; shut while she sleeps
+    const [deep, pale] = (s2 < 0 ? [0x2c7ed0, 0x8fd0f0] : [0xb8901c, 0xeccf5c]).map((c) => new THREE.Color(c));   // the iris pale round the pupil, deepening to its edge
+    const shade = (t) => pale.clone().lerp(deep, THREE.MathUtils.smoothstep(t, 0.55, 0.95)).multiplyScalar(t > 0.9 ? 0.85 : 1);
+    mark(disc(almond(0.055, 0.05), 6, 40, shade).scale(mx, 1, 1), at, iris, open, 0.0034);
+    mark(disc(round(0.036), 4).translate(0, 0.002, 0), at, flat(0x0c0c10), open, 0.0048);                // a big round pupil, the iris a ring round it
+    mark(disc(round(0.009), 2).translate(mx * 0.013, 0.016, 0), at, flat(0xe6e6e6), open, 0.0055);    // a glint, and a small one opposite
+    mark(disc(round(0.0045), 2).translate(-mx * 0.012, -0.013, 0), at, flat(0xd0d0d0), open, 0.0055);
+    mark(stroke(curve([-0.052, -0.004], [-0.02, -0.022], [0.02, -0.02], [0.054, 0.008]), 0.006).scale(mx, 1, 1), at, line, shut, 0.0035);
+  });
+  return { g: root, head: head0, sc, tailG, ears, lids };
 }
 /** an arch: straight sides up to the springing line, a half circle over the top */
 function windowArch(p, w, bot, spring, hole = false) {
@@ -4872,7 +5004,8 @@ function updateHut(dt, t) {
   const cat = sleepyCat, w = play.cat > 0 ? Math.sin(Math.PI * (1 - play.cat)) : 0;
   play.cat = Math.max(0, play.cat - dt / 3);
   cat.g.scale.y = cat.sc * (1 + Math.sin(t * 1.7) * 0.02);
-  cat.head.rotation.z = -0.18 + 0.42 * w; cat.head.rotation.x = 0.22 - 0.2 * w + Math.sin(t * 20) * 0.04 * w;
+  cat.head.rotation.z = -0.18 + 0.42 * w; cat.head.position.y = cat.head.userData.y0 + 0.08 * w; cat.head.rotation.x = 0.22 - 0.2 * w + Math.sin(t * 20) * 0.04 * w;
+  const awake = w > 0.25; cat.lids.forEach(([o, l]) => { o.visible = awake; l.visible = !awake; });                                       // asleep, until she lifts her head to look at you
   play.tail = Math.max(0, (play.tail ?? 0) - dt / 1.6); cat.tailG.rotation.y = Math.sin(t * 13) * 0.32 * play.tail;
   play.ears = Math.max(0, (play.ears ?? 0) - dt / 1.2); cat.ears.forEach((e, i) => { e.rotation.x = Math.sin(t * 30 + i) * 0.25 * play.ears; });
   play.stretch = Math.max(0, (play.stretch ?? 0) - dt / 2.2); cat.g.scale.x = cat.sc * (1 + 0.1 * Math.sin(Math.PI * (1 - play.stretch)) * (play.stretch > 0 ? 1 : 0));
@@ -5318,7 +5451,7 @@ async function loadBakedGLB(base, pre) {
   return new Promise((res, rej) => new GLTFLoader().parse(buf, base, res, rej));
 }
 /** the rooms that come baked from Blender, how to look at them, and how to build them */
-const BAKED = { tent: { view: () => TENT_VIEW, build: () => buildBakedTentRoom() }, shrine: { view: () => SHRINE_VIEW, build: () => buildBakedShrineRoom() }, study: { view: () => STUDY_VIEW, build: () => buildBakedStudyRoom() }, tea: { view: () => TEA_VIEW, build: () => buildBakedTeaRoom() }, window: { view: () => WINDOW_VIEW, build: () => buildBakedWindowRoom() } };
+const BAKED = { tent: { view: () => TENT_VIEW, build: () => buildBakedTentRoom() }, shrine: { view: () => SHRINE_VIEW, build: () => buildBakedShrineRoom() }, study: { view: () => STUDY_VIEW, build: () => buildBakedStudyRoom() }, tea: { view: () => TEA_VIEW, build: () => buildBakedTeaRoom() }, window: { view: () => WINDOW_VIEW, build: () => buildBakedWindowRoom() }, hearth: { view: () => HEARTH_VIEW, build: () => buildBakedHearthRoom() } };
 const bakedP = {};
 function preloadBaked(id) { return (bakedP[id] ??= BAKED[id].build().catch((e) => { console.warn(`baked ${id} unavailable, using the paper one`, e); return null; })); }
 function preloadBakedTent() { return preloadBaked('tent'); }
@@ -5583,12 +5716,12 @@ async function roomSit() {
   busy = true; hidePanel(); setUI('moving'); sfx('soft');
   await flyRoom(BAKED[roomId].view().inside, 1500);
   roomInside = true; busy = false; setUI('room');
-  toast({ tent: '点一下桌上的牌堆，开始占卜', shrine: '默念你的问题，点签筒求签，或点木筊掷筊', study: '宣纸已经铺好，三枚铜钱就在手边', tea: '茶刚斟好，牌就放在杯子旁边', window: '灵摆就挂在桌上，窗外是今晚的月亮' }[roomId]);
+  toast({ tent: '点一下桌上的牌堆，开始占卜', shrine: '默念你的问题，点签筒求签，或点木筊掷筊', study: '宣纸已经铺好，三枚铜钱就在手边', tea: '茶刚斟好，牌就放在杯子旁边', window: '灵摆就挂在桌上，窗外是今晚的月亮', hearth: '炉火正旺，符文袋和锡勺都在手边' }[roomId]);
 }
 /** stand up and step back out to the cut-away view */
 async function roomStand() {
   if (busy || roomFly || !roomInside || throwing) return;
-  busy = true; clearCards(); resetLots(); resetLiuyao(); resetTea(); resetWindow(); hidePanel(); setUI('moving');
+  busy = true; clearCards(); resetLots(); resetLiuyao(); resetTea(); resetWindow(); resetHearth(); hidePanel(); setUI('moving');
   await flyRoom(BAKED[roomId].view().orbit, 1300);
   roomInside = false; busy = false; setUI('room');
 }
@@ -5623,7 +5756,7 @@ function updateRoom(dt, t) {
 
 async function enterRoom(id) {
   if (busy || mode !== 'book') return;
-  if (!ROOMS[id].ready) { if (TEASE[id]) teaserStart(id); else { toast(`「${ROOMS[id].name}」还在装订中，下次翻开时再来坐坐`); sfx('soft'); } return; }
+  if (!ROOMS[id].ready) { toast(`「${ROOMS[id].name}」还在装订中，下次翻开时再来坐坐`); sfx('soft'); return; }
   busy = true; setUI('moving'); clearBurst(); setHover(null);
   const baked = BAKED[id] && !rooms[id] ? preloadBaked(id) : null;
   const P = spreads[cur].P, door = P.group.localToWorld(P.door.clone());
@@ -5661,7 +5794,7 @@ function showRoom(id) {
 }
 async function leaveRoom() {
   if (busy || mode !== 'room') return;
-  busy = true; clearCards(); resetLots(); resetLiuyao(); resetTea(); resetWindow(true); hidePanel(); throwing = null; roomFly = null; roomInside = false;
+  busy = true; clearCards(); resetLots(); resetLiuyao(); resetTea(); resetWindow(true); resetHearth(); hidePanel(); throwing = null; roomFly = null; roomInside = false;
   for (const id in BAKED) if (rooms[id]?.baked) ROOM_VIEW[id] = BAKED[id].view().orbit;
   $('flash').classList.add('on');
   await wait(450);
@@ -6207,10 +6340,12 @@ function roomTap(ndc) {
   if (roomId === 'study') objs.push(...rooms.study.hits);
   if (roomId === 'tea') objs.push(...lnCards.flatMap((c) => c.group.children), ...rooms.tea.hits);
   if (roomId === 'window') objs.push(...rooms.window.hits);
+  if (roomId === 'hearth') objs.push(...rooms.hearth.hits);
   const hit = ray.intersectObjects(objs, false)[0];
   if (!hit) return;
   if (roomId === 'tea') { teaTap(hit); return; }
   if (roomId === 'window') { windowTap(hit); return; }
+  if (roomId === 'hearth') { hearthTap(hit); return; }
   if (hit.object.userData.card !== undefined) { const i = hit.object.userData.card; if (cards[i]?.spread) flipSpreadCard(i); else flipCard(i); }
   else if (roomId === 'shrine') { if (rooms.shrine.baked && !roomInside) roomSit(); else if (hit.object.userData.cup) startLots(); else throwBei(); }
   else if (roomId === 'study') { if (!roomInside) roomSit(); else if (hit.object.userData.coins || rooms.study.coinMeshes.includes(hit.object.parent)) { if (liuyao?.phase === 'ready') tossLiuyao(); else if (!liuyao || liuyao.phase === 'done') { liuyao = null; startLiuyao(); } } }
@@ -6649,13 +6784,15 @@ function nightSky(s, back, moonAt, backY, moonMap) {
         gl_PointSize = (1.2 + mag * 3.2) * px * (.8 + .2 * tw); vA = (.25 + .75 * mag) * (.35 + .65 * tw); }`,
     fragmentShader: `varying float vA; void main(){ vec2 d = gl_PointCoord - .5; float r = dot(d, d); if (r > .25) discard; gl_FragColor = vec4(vec3(.86, .9, 1.) * vA * smoothstep(.25, .0, r), 1.); }` });
   const stars = new THREE.Points(geo, mat); stars.renderOrder = -2; stars.frustumCulled = false; s.add(stars);
-  const moonTex = moonMap ?? (() => {
+  const moonTex = !moonAt ? null : moonMap ?? (() => {
     const c = canvas(512, 512), g = c.getContext('2d');
     const halo = g.createRadialGradient(256, 256, 60, 256, 256, 256); halo.addColorStop(0, 'rgba(255,240,205,.34)'); halo.addColorStop(0.3, 'rgba(200,215,255,.07)'); halo.addColorStop(1, 'rgba(160,180,255,0)');
     g.fillStyle = halo; g.fillRect(0, 0, 512, 512); g.fillStyle = '#f2e8cc'; g.beginPath(); g.arc(256, 256, 96, 0, TAU); g.fill(); return tex(c);
   })();
-  const moon = new THREE.Sprite(new THREE.SpriteMaterial({ map: moonTex, transparent: true, depthWrite: false, fog: false }));
-  moon.position.copy(moonAt); moon.scale.setScalar(9); moon.renderOrder = -1; s.add(moon);
+  if (moonAt) {                                                         // the hearth's sky has the northern lights instead
+    const moon = new THREE.Sprite(new THREE.SpriteMaterial({ map: moonTex, transparent: true, depthWrite: false, fog: false }));
+    moon.position.copy(moonAt); moon.scale.setScalar(9); moon.renderOrder = -1; s.add(moon);
+  }
   const ranges = new THREE.Mesh(new THREE.PlaneGeometry(110, 27.5), new THREE.MeshBasicMaterial({ map: back, transparent: true, depthWrite: false, fog: false }));
   ranges.position.set(0, backY, -46); ranges.renderOrder = -1; s.add(ranges);
   return (t) => { mat.uniforms.t.value = t; };
@@ -8431,6 +8568,713 @@ function windowTap(hit) {
   if (pend && pend.phase !== 'done') { if (pend.phase === 'yesShown') pendShowNo(); else if (pend.phase === 'ready') pendAsk(); else if (pend.phase === 'boardReady') pendSpin(); return; }
   if (u.board) boardIntro(); else pendIntro();
 }
+
+/* ---------- 卢恩符文 and 新年浇锡: the texts of the Nordic hearth ---------- */
+/*
+ * The twenty-four runes of the Elder Futhark, drawn from a leather bag one, three (one for each of the three Norns) or
+ * nine at a time (cast on a white cloth, as Tacitus describes, and read where they land face up); and the Finnish New
+ * Year's tin, melted over the fire, poured into cold water and read by its shadow in candlelight. The images come from
+ * the old rune poems; the readings are written for this book. Runes are not read reversed: there is no old evidence for
+ * it, and nine of them look the same either way up.
+ */
+const RUNE_UI = {
+  note: '符文由程序随机抽出。这是借卢恩的意象做的自我观照，不是预测，也不构成医疗、法律或投资建议。',
+};
+/** the three ways to draw: how many, what it is called, and what to do */
+const RUNE_SPREADS = {
+  one: ['一颗', '此刻的提示', '心里想着一件事，把手伸进皮袋，摸出一颗符文石。'],
+  three: ['三颗', '诺伦三女神', '依次摸出三颗，从左往右排开。三位诺伦女神各读一颗：已经发生的、正在发生的、将要发生的。'],
+  nine: ['九颗', '白布撒落', '一把抓起九颗，撒在白布上。只读正面朝上的，看它们落在中心、四周还是边缘。'],
+};
+/*
+ * A rune: its name, the sound it stands for, what the name means, a keyword, its image from the rune poems, the reading
+ * for a single draw, a few short lines so the same words do not come back each time, a noun phrase for the three Norns'
+ * sentence, and its strokes on a 10 × 16 grid (each stroke a run of x, y points), drawn plain as in the old inscriptions.
+ * The order is the Kylver stone's (Gotland, about 400), which ends d, o; the Vadstena bracteate ends o, d.
+ */
+const RUNES_FUTHARK = [
+  ['Fehu', 'f', '牲畜，财富', '丰盛', '古时候，牛羊就是一户人家的财富。古英语的卢恩诗说：财富人人喜欢，可要想得到敬重，就得大方地分给别人。',
+    '你手里其实有不少东西：时间、手艺、别人对你的信任。好好照看它们，也别攥得太紧；流动起来的财富，才会越来越多。',
+    ['付出过的，正在慢慢长成回报。', '数一数你已经拥有的，比想象中多。', '分一点出去吧，丰盛是流动的。'], '手里的丰盛',
+    [[3, 1, 3, 15], [3, 5, 8, 2], [3, 9, 8, 6]]],
+  ['Uruz', 'u', '原牛', '力量', '原牛是欧洲古时的大野牛，头上一对大角。古英语的卢恩诗说它勇猛、骄傲，在荒原上游荡。世上最后一头原牛，1627 年死在波兰的森林里。',
+    '你身上有一股原始的力气，不精致，但很结实。它适合用来扛起一件难事；用力的时候，也别忘了喘口气。',
+    ['你比自己以为的更有劲。', '像野牛一样，先稳稳站住，再往前顶。', '累了就歇，力气会回来的。'], '身上的韧劲',
+    [[2, 15, 2, 1, 8, 5, 8, 15]]],
+  ['Thurisaz', 'th', '巨人；荆棘', '防御', '在北欧的卢恩诗里，它是「巨人」；在古英语的诗里，它是「荆棘」：非常尖利，谁碰到都会疼。',
+    '荆棘不是坏东西，它护着身后的花。也许你该给自己划一条线：哪些事可以，哪些事不行。遇到阻碍时，先停一下，看清楚再伸手。',
+    ['说「不」，也是一种保护。', '先别急着伸手，看清楚刺在哪里。', '带刺的那一面，也是你的一部分。'], '一道要过的坎',
+    [[3, 1, 3, 15], [3, 5, 7, 8, 3, 11]]],
+  ['Ansuz', 'a', '神', '讯息', '名字的意思是「神」，冰岛的卢恩诗说的就是奥丁。到了古英语的诗里，它变成了「口」，说口是一切言语的源头。',
+    '留意话语：别人无意的一句话，书里的一行字，或者你自己一直没说出口的那句。答案常常就藏在言语里。',
+    ['有句话在等你听见，也可能在等你说出口。', '别人今天说的话，多听一遍。', '把想法写下来，它会更清楚。'], '一句值得听的话',
+    [[3, 1, 3, 15], [3, 2, 8, 5], [3, 6, 8, 9]]],
+  ['Raidho', 'r', '骑行，旅途', '旅程', '古英语的卢恩诗打趣说：坐在屋里，人人都觉得骑马很容易；真骑上一匹壮马走远路，才知道要多大的勇气。',
+    '一件事从想到做，中间隔着一段路。定好方向，找到自己的节奏，一步一步走就好。也许真有一趟远行，也许是心里的一段路。',
+    ['出发吧，路会在脚下展开。', '照自己的节奏走，不必追别人的马。', '方向想好了，剩下的就是上路。'], '一段要走的路',
+    [[3, 1, 3, 15], [3, 1, 8, 4, 3, 8, 8, 15]]],
+  ['Kenaz', 'k', '火把', '灵感', '古英语的卢恩诗说：火把那明亮的火焰人人都认得，它总在王侯们歇息的厅堂里燃着。北欧的卢恩诗里，它的名字却是「疮」——孩子的病痛。同一个符号，一边是厅堂里的火，一边是身上的伤。这里取火光那一支。',
+    '心里有一点火光：一个想法，一份热爱，或者一门手艺。它不必烧成大火，能照亮下一步就够了。',
+    ['一点火光，就够照亮下一步。', '那个一闪而过的念头，值得记下来。', '把手头的事再做精一点，火会更亮。'], '心里的一点火光',
+    [[7, 4, 3, 8, 7, 12]]],
+  ['Gebo', 'g', '礼物', '馈赠', '古英语的卢恩诗说：慷慨给人带来荣誉，也让一无所有的人得到帮助和依靠。它是两笔交叉，倒过来还是它自己。',
+    '关系里有给，也有收。也许有人在等你一句谢谢，也许你该大方地接受别人的好意。你来我往，彼此都会更暖。',
+    ['给出去的善意，会以别的样子回来。', '好意来了，就大方地收下。', '想一想，最近该谢谢谁。'], '彼此的馈赠',
+    [[2, 2, 8, 14], [8, 2, 2, 14]]],
+  ['Wunjo', 'w', '喜悦', '喜悦', '古英语的卢恩诗说：少知痛苦、忧愁和焦虑，日子丰足，又有一处够好的住所，这样的人就享有喜悦。',
+    '喜悦常常很朴素：一顿热饭，一个懂你的人，一件做成的小事。允许自己好好高兴一下，不用找理由。',
+    ['允许自己开心一点。', '今天的小好事，值得说给别人听。', '你在的地方，就有人因为你而高兴。'], '朴素的喜悦',
+    [[3, 1, 3, 15], [3, 1, 8, 4, 3, 7]]],
+  ['Hagalaz', 'h', '冰雹', '骤变', '古英语的卢恩诗说：冰雹是最白的谷粒，从天上旋转着落下，被阵风吹来吹去，最后化成了水。',
+    '也许有一阵突如其来的变化，打乱了原来的计划。冰雹来得急，去得也快，化成的水还会滋润土地。先护好自己，等它过去，再看看它留下了什么。',
+    ['来得急的，去得也快。', '计划被打乱，也许正好空出了新的位置。', '先躲一躲，不必和冰雹较劲。'], '一阵突来的风雨',
+    [[2, 1, 2, 15], [8, 1, 8, 15], [2, 5, 8, 11]]],
+  ['Naudiz', 'n', '需要，困乏', '需要', '古英语的卢恩诗说：困乏压在心上；可是只要及早留意，它也常常会变成帮助和解救。',
+    '缺了什么，才知道真正需要什么。眼下也许有点紧，正好看清哪些是必需的，哪些可以放下。耐住性子，好办法常常是在「不够」里想出来的。',
+    ['需要的东西会来，再等一等。', '分清「想要」和「需要」，心会轻很多。', '不够的时候，最容易想出好办法。'], '一次要做的取舍',
+    [[5, 1, 5, 15], [2, 5, 8, 11]]],
+  ['Isa', 'i', '冰', '静止', '古英语的卢恩诗说：冰极冷，又极滑，像玻璃一样透亮，像宝石；那是霜冻铺成的地面，看着很美。',
+    '事情好像停住了。可冰面下的水其实还在流，只是在等。不妨也停一停，把眼前看清楚，等冰化了再走。',
+    ['先停下来，冰化之前别急着走。', '安静下来，事情会变得透亮。', '停住不是退步，是在等合适的时候。'], '暂时的停顿',
+    [[5, 1, 5, 15]]],
+  ['Jera', 'j', '年，丰收', '收获', '名字的意思是「年」，也指一年的好收成。古英语的卢恩诗说：夏天让人欢喜，大地结出亮闪闪的果实，穷人富人都有份。',
+    '播下的种子，自有它成熟的时候。顺着四季的节奏来，不必催；到了该收的时候，自然会收到。',
+    ['时候到了，自然有结果。', '你种下的，正在一点点长。', '一年有一年的节奏，别急。'], '慢慢成熟的收获',
+    [[4, 1, 1, 5, 4, 9], [6, 7, 9, 11, 6, 15]]],
+  ['Eihwaz', 'ei', '紫杉', '坚韧', '紫杉四季常绿，木头坚硬，能活上千年。古英语的卢恩诗说它树皮粗糙，深深扎根，是「火焰的守护者」，也是庄园里的喜悦。',
+    '变化来来去去，你的根还在。像紫杉一样，扎得深，就撑得久；慢一点没关系，耐得住才是本事。',
+    ['根扎得深，风再大也不怕。', '撑过这一段，你会更结实。', '慢一点，但别松手。'], '扎得很深的根',
+    [[5, 1, 5, 15], [5, 1, 8, 4], [5, 15, 2, 12]]],
+  ['Perthro', 'p', '意思不详', '未知', '这个符文的意思至今没人说得准，有人猜是骰盅，有人猜是梨树。古英语的卢恩诗只说，勇士们在厅堂里欢聚时，它是大家的消遣和乐趣。',
+    '有些事就是没法事先知道。与其猜来猜去，不如带一点好奇，看它怎么展开；给意外留一点空间，意外有时就是惊喜。',
+    ['不知道也没关系，往下看就是了。', '给意外留一扇门。', '像掷骰子那样，放轻松一点。'], '还说不准的事',
+    [[3, 1, 3, 15], [3, 1, 6, 5, 9, 2], [3, 15, 6, 11, 9, 14]]],
+  ['Algiz', 'z', '驼鹿', '守护', '名字大概是「驼鹿」，样子像一对鹿角。古英语的卢恩诗把它说成沼泽里的一种莎草，叶子锋利，碰到会划伤人。它的形状也像一只举起来的手，所以这里的关键词取「守护」。',
+    '有一份保护在你身边：可能是一个人，一个好习惯，也可能是你自己的直觉。听一听那个让你后退一步的声音，也别忘了，你也在守护着别人。',
+    ['有人在默默护着你。', '那个让你犹豫的声音，值得听一听。', '守好自己，也照看好身边的人。'], '身边的守护',
+    [[5, 1, 5, 15], [5, 7, 1, 2], [5, 7, 9, 2]]],
+  ['Sowilo', 's', '太阳', '光明', '古英语的卢恩诗说：出海的人越过「鱼儿的浴场」（大海），一望见太阳，心里就有了盼头，直到船把他们带回陆地。',
+    '光照进来了：事情变得清楚，力气也回来了。把注意力放在你做得好的地方，让它晒晒太阳。',
+    ['光照进来了，看清楚了就去做。', '你身上有光，别藏起来。', '晒晒太阳，心会暖起来。'], '照进来的光',
+    [[7, 1, 3, 6, 7, 10, 3, 15]]],
+  ['Tiwaz', 't', '提尔神', '守信', '提尔是北欧神话里掌管誓约与法度的神。众神要锁住巨狼芬里尔，他把右手放进狼嘴里作担保，最后失去了这只手。古英语的卢恩诗则把它说成一颗守信的星，夜夜在雾上运行，从不失约。',
+    '做对的事，有时要付出一点代价。守住你的承诺和原则，就像夜空里那颗不偏不倚的星。',
+    ['说到做到，心里就踏实。', '为对的事站出来，需要一点勇气。', '像那颗夜夜都在的星，不偏不倚。'], '守住的承诺',
+    [[5, 1, 5, 15], [1, 6, 5, 1, 9, 6]]],
+  ['Berkano', 'b', '桦树', '新生', '冰川退去以后，桦树是最早长回北欧大地的树之一，白色的树皮在雪地里格外显眼。古英语的卢恩诗说它不结籽，却能自己发出新枝，枝叶繁茂，树冠高入云端。',
+    '一个新的开始正在萌芽：一段关系，一个想法，或者一个新的自己。像照顾小树苗那样，耐心、温柔地对待它。',
+    ['新的开始正在萌芽。', '对刚开始的事温柔一点。', '照顾好自己，就像照顾一棵小树。'], '刚冒出的新芽',
+    [[3, 1, 3, 15], [3, 1, 8, 4, 3, 8, 8, 12, 3, 15]]],
+  ['Ehwaz', 'e', '马', '同行', '古英语的卢恩诗说：骏马是王侯们的骄傲，对坐立不安的人来说，它总是一份安慰。人和马能走多远，靠的是彼此信任。',
+    '有人和你一起走：伙伴、朋友，或者家人。彼此配合，比一个人硬撑走得更远。也许是时候信任别人一次，或者让别人信任你。',
+    ['有人和你一起走，会更稳。', '配合好了，路就顺了。', '互相信任，才走得远。'], '一起走的人',
+    [[2, 15, 2, 1, 5, 5, 8, 1, 8, 15]]],
+  ['Mannaz', 'm', '人', '自我', '冰岛的卢恩诗说：「人是人的喜悦。」这个符文说的是人：是你自己，也是你和身边的人。',
+    '认识自己，也在人群里认识自己。你怎么待人，别人怎么待你；镜子里的你，和朋友眼里的你，都是你。',
+    ['好好认识自己，答案在里面。', '人和人，是互相成全的。', '今天对身边的人好一点，也对自己好一点。'], '人群里的你',
+    [[2, 15, 2, 1, 8, 8], [8, 15, 8, 1, 2, 8]]],
+  ['Laguz', 'l', '水，湖', '直觉', '古英语的卢恩诗说：出海的人在摇晃的船上，会觉得大海无边无际；挪威的卢恩诗则说：瀑布，是从山上落下来的河。',
+    '顺着水流走。情绪和直觉都像水，挡是挡不住的，不如听听它想把你带到哪里。也许答案不在脑子里，在心里。',
+    ['顺着水流，相信直觉。', '心里起了波浪，让它流一流，就平了。', '有时候，感觉比道理更早知道答案。'], '心里的水流',
+    [[3, 1, 3, 15], [3, 1, 8, 5]]],
+  ['Ingwaz', 'ng', '英格神', '孕育', '英格是古代日耳曼人敬奉的神，常被认为就是丰饶之神弗雷。古英语的卢恩诗说：东丹麦人最先见到他，后来他越过海浪往东去了，车子跟在他身后。',
+    '有东西在安静地酝酿：一个计划，一份感情，或者你自己。不必急着让人看见，让它在暗处慢慢长。',
+    ['安静地酝酿，时候到了自会开花。', '把心事收好，慢慢养着。', '一件事做完了，新的也在孕育。'], '正在酝酿的事',
+    [[5, 3, 8, 8, 5, 13, 2, 8, 5, 3]]],
+  ['Dagaz', 'd', '白天', '破晓', '古英语的卢恩诗说：白天是天上的光，人人喜爱，给富人和穷人一样带来希望和欢乐。',
+    '天快亮了。熬过最暗的时候，转机就在眼前。也许是一个豁然开朗的瞬间，也许只是今天比昨天亮了一点。',
+    ['天快亮了，转机就在眼前。', '夜再长，也会过去。', '换个角度看，事情一下子亮了。'], '快要亮起来的天',
+    [[2, 2, 2, 14, 8, 2, 8, 14, 2, 2]]],
+  ['Othala', 'o', '祖传的家园', '归属', '名字指祖上传下来的田产和家。古英语的卢恩诗说：家对每个人都很珍贵，能在自己家里安安稳稳地过日子，就是福气。',
+    '想想你从哪里来：家人、故乡，从小养成的习惯。它们是你的根，也是你可以回去的地方。你也可以亲手建一个新的家。',
+    ['你有可以回去的地方。', '从家里带来的，是你的底气。', '留下来的好好珍惜，想改的慢慢来。'], '可以回去的家',
+    [[5, 1, 2, 5, 9, 12], [5, 1, 8, 5, 1, 12]]],
+];
+/** the three Norns at the well under the world tree, one for each of three runes laid left to right, and the clause each
+ * gives the sentence they make together (X is the rune's phrase). The bag holds one stone of each rune, so a draw of three or
+ * nine never repeats one */
+const NORNS = [
+  ['乌尔德', 'Urðr', '已经发生的', '这件事走到今天，背后是X'],
+  ['薇儿丹蒂', 'Verðandi', '正在发生的', '眼下正在展开的，是X'],
+  ['诗寇蒂', 'Skuld', '将要发生的', '顺着走下去，前面也许是X'],
+];
+/** nine runes cast on the cloth: where a face-up rune lands, and the lines for the casts that leave a part empty. Several in
+ * one part are read together, their phrases joined by 、 (in the ring by the clock, from twelve); an empty edge is passed over */
+const RUNE_CAST = {
+  center: ['中心', '落在中心的，是这件事眼下最要紧的'],
+  ring: ['四周', '围在四周的，是正在牵动它的人和事'],
+  edge: ['边缘', '落在边上的，离你还远一些，也许正慢慢靠近，也许正渐渐走远'],
+  emptyCenter: '中心是空的：这件事还没有一个最要紧的点，先看看四周。',
+  down: '背面朝上的不读，它们的话留到下次。',
+  none: '九颗都背面朝上：今天不必读，收起来改天再撒。',
+};
+
+/*
+ * 新年浇锡: a lump of tin melted in a ladle over the fire, poured into a bucket of cold water and held up to a candle;
+ * the shadow on the wall is read. A shape: its name, the outline it is drawn from (in _hearth.js), the reading, which the
+ * panel opens with TIN_UI.lead, since these are the old sayings retold; and the look of the tin itself adds a line under a
+ * small label of its own (the old saying that bubbles mean money is kept).
+ */
+const TIN_UI = {
+  intro: '芬兰人跨年夜的老习俗：把一小块铸成马蹄形的锡放进长柄勺，在炉火上熔化，一口气倒进冷水，看它凝成什么形状。这里随时都能浇，不必等到跨年。',
+  melt: '把长柄勺伸进炉火，等锡化成亮晶晶的一汪。',
+  pour: '心里想着接下来的日子，一口气倒进水桶。',
+  lift: '嗤的一声，锡凝住了。把它捞起来，举到蜡烛前。',
+  shadow: '看墙上的影子像什么。',
+  lead: '照老说法，看个热闹——',
+  note: '锡的形状由程序随机生成。真的熔锡要两百多度，旧时的跨年锡大多还含铅，请不要在家模仿。这是借民俗做的自我观照，不是预测，也不构成医疗、法律或投资建议。',
+};
+const TIN_SHAPES = [
+  ['船', 'ship', '也许要出一趟远门，或者驶进一片没去过的水域。'],
+  ['心', 'heart', '心里会多住进一个人，或者和老朋友更亲近一些。'],
+  ['戒指', 'ring', '有个约定会落定，一段关系会更牢靠。'],
+  ['星星', 'star', '你许下的愿望有光照着，朝它走就是了。'],
+  ['月牙', 'crescent', '事情像月亮，会有圆缺，也会再圆。'],
+  ['太阳', 'sun', '日子会亮堂起来，身上的力气也会回来。'],
+  ['鸟', 'bird', '会有消息飞来，也许是一封信，也许是一通久违的电话。'],
+  ['鱼', 'fish', '网里有鱼，桌上就有饭：日子会过得宽裕些。'],
+  ['马', 'horse', '事情会往前跑起来，路上也许还会遇到好同伴。'],
+  ['驯鹿', 'reindeer', '驯鹿能在深雪里走很远：再长的路，你也走得到。'],
+  ['熊', 'bear', '熊在冬天睡足了，春天才有力气。先歇一歇，力气在攒着。'],
+  ['天鹅', 'swan', '大天鹅是芬兰的国鸟。像它一样，安静、从容，也有自己的骄傲。'],
+  ['松树', 'pine', '冬天也绿着：不管外面怎样，你都能稳稳站住。'],
+  ['花', 'flower', '有件事会开花，说不定比你想的还好看。'],
+  ['房子', 'house', '家里会添一份暖意，或者你会找到一个住得舒心的地方。'],
+  ['门', 'door', '一扇新的门会打开，走不走进去，由你决定。'],
+  ['钥匙', 'key', '卡住的地方会找到钥匙，答案也许就在手边。'],
+  ['桥', 'bridge', '会有一座桥，把你和一个人、一个地方连起来。'],
+  ['山', 'mountain', '心里有一座想爬的山。一步一步，会登上去的。'],
+  ['云', 'cloud', '有一点心事飘着。说出来，云就散了。'],
+  ['浪', 'wave', '日子会有起伏，像海浪一样，但一直在往前。'],
+  ['火焰', 'flame', '像炉火一样的热情会回来，照亮你想做的事。'],
+  ['雪花', 'snowflake', '世上没有两片一样的雪花，你的路也只属于你。'],
+  ['羽毛', 'feather', '肩上会轻一些，有件事终于可以放下了。'],
+  ['王冠', 'crown', '你做的事会被看见，也会得到应有的认可。'],
+  ['书', 'book', '会学到新东西，或者翻开新的一页。'],
+  ['杯子', 'cup', '会有值得举杯的时候，记得叫上朋友。'],
+  ['灯笼', 'lantern', '再暗的路上也有一盏灯，会有人为你照路。'],
+  ['蛋', 'egg', '有个新的开始正在壳里长，别急着敲开它。'],
+  ['说不上像什么', 'blob', '它谁也不像，就像它自己。接下来的日子，你也不必像谁。'],
+];
+/** how the tin itself looks */
+const TIN_FINISH = [
+  ['光滑发亮', '锡面光滑发亮：事情会顺顺当当，看得清清楚楚。'],
+  ['满是小气泡', '锡面上有许多小气泡和小疙瘩：气泡是钱，手头会宽裕一点。'],
+  ['碎成几块', '锡碎成了几块：要做的事也许得分成几段，一段一段来就好。'],
+  ['又厚又沉', '一整块又厚又沉：心里有底，事情扎实。'],
+  ['薄得透光', '薄薄一片，几乎透光：轻装上阵，不必背太多。'],
+];
+
+/* ---------- the Nordic hearth baked in Blender (blender/build_hearth.py): a log cabin on a snowed-in island ---------- */
+/*
+ * Page 6's cabin in the round: logs with notched corners under a steep roof of snow and icicles, spruces, a frozen pond,
+ * a snowman, a kick-sled, a reindeer by the window, the northern lights over snowy mountains and snow falling. Inside, the
+ * fire in a whitewashed fireplace, a low table on a rag rug with a white cloth and the rune pouch. Two ways of asking:
+ * 卢恩符文, one, three (the Norns) or nine runes cast on the cloth; and 新年浇锡, tin melted in a ladle over the fire,
+ * poured into cold water and held up to the candle, its shadow on the white of the chimney breast read as an old saying.
+ */
+const HEARTH_ASSETS = 'hearth/', HEARTH_PRE = 'hearth_10300532';
+const HEARTH_VIEW = {
+  orbit: { at: V(0, 3.2, 0.3), narrowAt: V(0, 4.3, 0.3), orbit: { yaw: 0, pitch: 0.3, dist: 31, narrow: 1.2 }, yaw: 0.8, pitch: 0.2, fov: [44, 28] },
+  inside: { eye: V(0, 2.25, 2.6), at: V(0, 1.5, -0.6), yaw: 0.7, pitch: 0.42, fov: [72, 50] },
+};
+/** the mountains beyond the island: two ranges of snowy peaks, the near one dark with forest at its foot; fading out below */
+function hearthRanges() {
+  const c = canvas(2048, 512), g = c.getContext('2d');
+  const ridge = (base, amp, seed) => {                     // a jagged crest: the midpoint pushed up or down, halving each time
+    const rr = mulberry(seed), n = 129, h = new Array(n).fill(0); h[0] = rr(); h[n - 1] = rr();
+    for (let step = n - 1, a = 1; step > 1; step /= 2, a *= 0.55) for (let i = step / 2; i < n; i += step) h[i] = (h[i - step / 2] + h[i + step / 2]) / 2 + (rr() - 0.5) * a;
+    return h.map((v, i) => [(i / (n - 1)) * 2048, base - amp * v]);
+  };
+  const range = (pts, top, bottom, y0, y1) => {
+    const gr = g.createLinearGradient(0, y0, 0, y1); gr.addColorStop(0, top); gr.addColorStop(1, bottom);
+    g.fillStyle = gr; g.beginPath(); g.moveTo(0, 512); pts.forEach(([x, y]) => g.lineTo(x, y)); g.lineTo(2048, 512); g.closePath(); g.fill();
+  };
+  range(ridge(340, 200, 61), '#66789a', '#18223a', 140, 340);
+  const near = ridge(378, 90, 67); range(near, '#3c4a66', '#101828', 290, 400);
+  const rr = mulberry(71); g.fillStyle = '#101a2c';
+  for (let x = 0; x < 2048; x += 9 + rr() * 10) { const y = near[Math.min(128, Math.round((x / 2048) * 128))][1] + 40 + rr() * 30, h = 14 + rr() * 22; g.beginPath(); g.moveTo(x, y - h); g.lineTo(x + 6, y); g.lineTo(x - 6, y); g.fill(); }
+  g.fillRect(0, 420, 2048, 92);
+  g.globalCompositeOperation = 'destination-out';
+  const fade = g.createLinearGradient(0, 400, 0, 505); fade.addColorStop(0, 'rgba(0,0,0,0)'); fade.addColorStop(1, 'rgba(0,0,0,1)'); g.fillStyle = fade; g.fillRect(0, 400, 2048, 112);
+  g.globalCompositeOperation = 'source-over';
+  return tex(c);
+}
+/*
+ * The northern lights: curtains on a wide arc of sky behind the island, drawn by a shader so they keep moving. Nothing
+ * in them repeats at a fixed spacing: each curtain's hem wanders, its height and brightness gather and thin by noise,
+ * and its fine rays are noise too, drifting slowly sideways.
+ */
+function aurora(s) {
+  const mat = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.BackSide, uniforms: { t: { value: 0 } },
+    vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }',
+    fragmentShader: `uniform float t; varying vec2 vUv;
+      float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+      float noise(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3. - 2. * f);
+        return mix(mix(hash(i), hash(i + vec2(1., 0.)), f.x), mix(hash(i + vec2(0., 1.)), hash(i + vec2(1.)), f.x), f.y); }
+      float fbm(vec2 p){ float v = 0., a = .5; for (int i = 0; i < 4; i++) { v += a * noise(p); p = p * 2.03 + 17.1; a *= .5; } return v; }
+      void main(){
+        vec3 c = vec3(0.);
+        for (int k = 0; k < 3; k++) {
+          float fk = float(k), x = vUv.x * 5. + fk * 5.7;
+          // the hem meanders and folds, slowly; the curtain's height and its bright patches come and go along it
+          float hem = .1 + .4 * fbm(vec2(x * .55 + t * .015, fk * 3.1)) + .06 * sin(x * 1.7 + 2. * fbm(vec2(x, t * .03)) + t * .05);
+          float h = .1 + .38 * fbm(vec2(x * .9 - t * .01, fk + 4.));
+          float b = smoothstep(.44, .7, fbm(vec2(x * .7 + t * .012, fk + 9.)));
+          float y = vUv.y - hem;
+          float body = smoothstep(-.008, .02, y) * exp(-max(y, 0.) / h * 2.2);
+          // fine rays of any width, bent by a slow warp so they sway rather than march
+          float r = fbm(vec2(x * 38. + t * .06 + 4. * fbm(vec2(x * 1.5, t * .02 + fk)), fk * 7.));
+          float rays = .2 + 1.3 * pow(r, 2.2);
+          vec3 tint = mix(vec3(.2, 1., .6), vec3(.72, .36, .96), smoothstep(.2, 1., max(y, 0.) / h));
+          c += tint * body * b * rays * (k == 0 ? 1. : .7);
+        }
+        float edge = smoothstep(0., .14, vUv.x) * smoothstep(1., .86, vUv.x) * smoothstep(.98, .7, vUv.y);
+        gl_FragColor = vec4(c * .75 * edge, 1.);
+      }` });
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(58, 58, 34, 64, 1, true, Math.PI - 1.4, 2.8), mat);
+  m.position.set(0, 6, 0); m.renderOrder = -1.5; m.frustumCulled = false; s.add(m);
+  return (t) => { mat.uniforms.t.value = t; };
+}
+/** snow falling over the island, drifting a little, round and round */
+function snowfall(s) {
+  const N = 900, pos = new Float32Array(N * 3), seed = new Float32Array(N), rr = mulberry(91);
+  const under = (x, y, z) => Math.abs(x) < 3.2 && z > -2.6 && z < 2.5 && y < 7.6 - Math.abs(x) * 0.8;   // the cabin and its roof
+  for (let i = 0; i < N; i++) { do { pos[i * 3] = rr() * 22 - 11; pos[i * 3 + 1] = rr() * 16; pos[i * 3 + 2] = rr() * 16 - 8; } while (under(pos[i * 3], pos[i * 3 + 1], pos[i * 3 + 2])); seed[i] = rr(); }
+  const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  const c = canvas(32, 32), g = c.getContext('2d'), r = g.createRadialGradient(16, 16, 0, 16, 16, 16); r.addColorStop(0, 'rgba(255,255,255,1)'); r.addColorStop(0.5, 'rgba(235,242,255,.6)'); r.addColorStop(1, 'rgba(235,242,255,0)');
+  g.fillStyle = r; g.fillRect(0, 0, 32, 32);
+  const pts = new THREE.Points(geo, new THREE.PointsMaterial({ map: tex(c), size: 0.07, transparent: true, depthWrite: false, opacity: 0.85 }));
+  pts.frustumCulled = false; s.add(pts);
+  return (dt, t) => {
+    for (let i = 0; i < N; i++) {
+      const k = i * 3, sd = seed[i];
+      pos[k + 1] -= (0.35 + sd * 0.35) * dt; pos[k] += Math.sin(t * 0.6 + sd * 40) * 0.12 * dt; pos[k + 2] += Math.cos(t * 0.45 + sd * 23) * 0.08 * dt;
+      if (pos[k + 1] < -0.2 || under(pos[k], pos[k + 1], pos[k + 2])) { pos[k + 1] = 15 + rr(); pos[k] = rr() * 22 - 11; pos[k + 2] = rr() * 16 - 8; }
+    }
+    geo.attributes.position.needsUpdate = true;
+  };
+}
+async function buildBakedHearthRoom() {
+  const gltf = await loadBakedGLB(HEARTH_ASSETS, HEARTH_PRE);
+  const s = bakedScene(gltf, 0x08101e);
+  s.add(new THREE.HemisphereLight(0xfff0e0, 0x403028, 1.1));               // only the live parts (runes, ladle, tin) are lit
+  const fx = [], warm = tentGlow('rgba(255,236,190,1)', 'rgba(255,170,80,.45)'), cool = tentGlow('rgba(235,240,255,1)', 'rgba(150,180,255,.35)'), flame = tentFlame();
+  const sprite = (map, pos, size, color, kind) => {
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map, color, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true }));
+    sp.position.copy(pos); sp.scale.setScalar(size); s.add(sp); const f = { sp, size, base: color.clone(), kind, seed: Math.random() * 100 }; fx.push(f); return f;
+  };
+  const at = {}, chimneys = [];
+  gltf.scene.traverse((o) => {
+    if (!o.name.startsWith('FX_')) return;
+    const p = o.getWorldPosition(new THREE.Vector3()), n = o.name;
+    if (n === 'FX_candle_TinCandle') at.candle = p.clone();
+    if (n.startsWith('FX_candle')) { sprite(flame, p.clone().add(V(0, 0.004, 0)), 0.045, new THREE.Color(2.2, 1.7, 1.2), 'flame'); sprite(warm, p, 0.3, new THREE.Color(0.8, 0.5, 0.25), 'glow'); }
+    else if (n.startsWith('FX_lantern_LanternLightPost')) sprite(warm, p, 1.3, new THREE.Color(0.85, 0.55, 0.25), 'glow');
+    else if (n.startsWith('FX_lantern')) sprite(warm, p, n.endsWith('Star') ? 0.9 : 0.5, new THREE.Color(0.75, 0.5, 0.25), 'glow');
+    else if (n === 'FX_star') sprite(warm, p, 0.7, new THREE.Color(0.8, 0.55, 0.3), 'breath');
+    else if (n.startsWith('FX_smoke')) chimneys.push(p.clone());
+    else at[n.slice(3)] = p.clone();
+  });
+  const fire = at.fire ?? V(0, 0.82, -1.45), table = at.table ?? V(0, 0.9, 0), clothAt = at.cloth ?? V(-0.06, 0.902, 0.02), pouch = at.pouch ?? V(-0.52, 1.1, -0.26);
+  const ladleAt = at.ladle ?? V(0.62, 0.53, -0.82), bucket = at.bucket ?? V(1.5, 0.72, -0.92), shadowAt = at.shadow ?? V(0, 2.92, -1.266);
+  // the fire itself: tongues of flame of different sizes, a glow round them; a live warm light for the live things
+  const tongues = [[0, 0, 0.36], [-0.11, -0.02, 0.26], [0.12, 0.02, 0.28], [0.04, 0.05, 0.2], [-0.05, 0.04, 0.22]].map(([x, z, sz]) => sprite(flame, fire.clone().add(V(x, sz * 0.32 - 0.12, z)), sz, new THREE.Color(1.9, 1.3, 0.75), 'flame'));
+  sprite(warm, fire.clone().add(V(0, 0.05, 0.1)), 1.5, new THREE.Color(0.75, 0.42, 0.18), 'glow');
+  const fireLight = new THREE.PointLight(0xffa058, 5, 7, 1.6); fireLight.position.copy(fire).add(V(0, 0.2, 0.5)); s.add(fireLight);
+  const candleLight = new THREE.PointLight(0xffc888, 0.6, 2.5, 2); const candle = at.candle ?? V(0.52, 1.125, 0.28); candleLight.position.copy(candle); s.add(candleLight);
+  const sky = nightSky(s, hearthRanges(), null, -9.6), lights = aurora(s), snow = snowfall(s);
+  document.fonts.load('700 40px "Noto Serif SC"', NORNS.flat().join('')).catch(() => {});
+  // what you can touch: the table to sit at, the cloth and the pouch, the ladle and the bucket, the fire, the dog, the reindeer
+  const hidden = new THREE.MeshBasicMaterial({ visible: false });
+  const hit = (geo, p, key) => { const m = new THREE.Mesh(geo, hidden); m.position.copy(p); m.userData[key] = true; s.add(m); return m; };
+  const tableHit = hit(new THREE.BoxGeometry(1.3, 0.5, 0.92), table.clone().add(V(0, -0.25, 0)), 'table');
+  const pouchHit = hit(new THREE.SphereGeometry(0.13, 8, 6), pouch.clone().add(V(0, -0.1, 0)), 'pouch');
+  const tinHits = [hit(new THREE.SphereGeometry(0.22, 8, 6), bucket, 'tin'), hit(new THREE.SphereGeometry(0.18, 8, 6), ladleAt, 'tin')];
+  const fireHit = hit(new THREE.BoxGeometry(0.9, 0.8, 0.5), fire.clone().add(V(0, -0.05, 0.1)), 'fire');
+  const dogHit = hit(new THREE.SphereGeometry(0.45, 8, 6), (at.dog ?? V(-0.73, 0.53, 0.84)).clone().add(V(-0.35, -0.1, -0.15)), 'dog');
+  const deerHit = hit(new THREE.SphereGeometry(0.75, 8, 6), at.deer ?? V(4.35, 0.95, 1.35), 'deer');
+  const C = hearthCloth(s, clothAt), L = hearthLadle(s, ladleAt), W = hearthShadow(s, shadowAt);
+  // closer looks, each for a screen with the panel at the side and one with it below (as in the moonlit window)
+  const look = (base, eye, at, fov, dx = 0) => ({ eye: base.clone().add(eye).setX(base.x + eye.x + dx), at: base.clone().add(at).setX(base.x + at.x + dx), yaw: 0.3, pitch: 0.25, fov: [fov, fov] });
+  const views = {
+    cloth: [look(clothAt, V(0, 0.82, 0.72), V(0, 0, -0.02), 44, 0.17), look(clothAt, V(0, 1.38, 1.02), V(0, 0, 0.5), 62)],
+    hearth: [look(V(0.65, 0.68, -1.1), V(0.85, 1.05, 1.6), V(0, 0, 0), 46), look(V(0.72, 0.68, -1.1), V(0.3, 1.95, 3.15), V(0.05, -0.15, 0.3), 64)],
+    shadow: [look(V(0.15, 2.4, -0.9), V(0.9, -0.15, 1.85), V(-0.15, 0.15, -0.2), 46, 0.3), look(V(0.15, 2.4, -0.9), V(0.65, 0.05, 2.7), V(-0.1, -0.15, 0.25), 66)],
+  };
+  let smokeT = 0;
+  const update = (dt, t) => {
+    fxPulse(fx, t); sky(t); lights(t); snow(dt, t);
+    const fl = Math.sin(t * 9.3) * 0.5 + Math.sin(t * 23.1) * 0.3 + Math.sin(t * 3.7) * 0.2;
+    fireLight.intensity = 5 * (1 + fl * 0.14); tongues.forEach((f, i) => { f.sp.position.y += Math.sin(t * (6 + i) + f.seed) * 0.0004; });
+    if (Math.random() < dt * 14) sparks.emit(tmpV.copy(fire).add(V(rnd(-0.18, 0.18), 0.1, rnd(-0.08, 0.08))), tmpW.set(rnd(-0.03, 0.03), rnd(0.25, 0.5), rnd(-0.02, 0.04)), { life: rnd(0.6, 1.2), size: rnd(0.01, 0.018), color: EMBERS, drag: 0.4 });
+    if ((smokeT -= dt) < 0) { smokeT = 0.22; for (const p of chimneys) smoke.emit(tmpV.copy(p).add(V(rnd(-0.04, 0.04), 0, rnd(-0.04, 0.04))), tmpW.set(rnd(0.03, 0.08), rnd(0.2, 0.3), rnd(-0.02, 0.02)), { life: rnd(3.5, 5), size: 0.24, drag: 0.15, color: new THREE.Color(0.3, 0.32, 0.4) }); }
+    updateRuneStones(dt, t); updateTin(dt, t);
+  };
+  return { scene: s, table: tableHit, hits: [tableHit, pouchHit, C.mesh, ...tinHits, fireHit, dogHit, deerHit], warm: { intensity: 0 }, warmBase: 0, mobiles: [], flames: [], glow: [], baked: true, update,
+    cloth: C, ladle: L, wall: W, at: { fire, table, cloth: clothAt, pouch, ladle: ladleAt, bucket, shadow: shadowAt, candle }, views };
+}
+const EMBERS = new THREE.Color(1.0, 0.55, 0.2);
+
+/* ---------- the white cloth the runes fall on: linen, a red border stitched round it, the centre and the ring marked ---------- */
+const CLOTH = 0.74, CLOTH_CENTER = 0.1, CLOTH_RING = 0.24, CLOTH_EDGE = CLOTH / 2;
+function hearthCloth(s, at) {
+  const c = canvas(1024, 1024), g = c.getContext('2d'), rr = mulberry(33), px = 1024 / CLOTH;
+  g.fillStyle = '#f2ece0'; g.fillRect(0, 0, 1024, 1024);
+  for (let i = 0; i < 1024; i += 3) { g.fillStyle = `rgba(150,130,100,${0.03 + rr() * 0.04})`; g.fillRect(i, 0, 1, 1024); g.fillRect(0, i, 1024, 1); }   // the weave
+  g.strokeStyle = '#a8303a'; g.lineWidth = 10; g.strokeRect(46, 46, 932, 932);
+  for (let i = 0; i < 40; i++) {                             // a band of little stitched diamonds inside the border
+    for (const [x, y] of [[80 + i * 22, 80], [80 + i * 22, 944], [80, 80 + i * 22], [944, 80 + i * 22]]) { g.fillStyle = '#b8424a'; g.beginPath(); g.moveTo(x, y - 7); g.lineTo(x + 7, y); g.lineTo(x, y + 7); g.lineTo(x - 7, y); g.fill(); }
+  }
+  g.setLineDash([14, 10]); g.lineWidth = 4;
+  g.strokeStyle = 'rgba(168,48,58,.55)'; g.beginPath(); g.arc(512, 512, CLOTH_CENTER * px, 0, TAU); g.stroke();
+  g.strokeStyle = 'rgba(60,80,130,.45)'; g.beginPath(); g.arc(512, 512, CLOTH_RING * px, 0, TAU); g.stroke();
+  g.setLineDash([]);
+  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(CLOTH, CLOTH), new THREE.MeshBasicMaterial({ map: tex(c), color: 0xe6d6c2 }));   // unlit, as the baked room is, warmed to the firelight
+  mesh.rotation.x = -Math.PI / 2; mesh.position.copy(at).add(V(0, 0.002, 0)); mesh.userData.cloth = true; s.add(mesh);
+  return { mesh, at: at.clone() };
+}
+
+/* ---------- the rune stones: 24 pebbles, each with its letter in gold on one face ---------- */
+const RUNE_TEX = {};
+function runeGlyphTex(i) {
+  return (RUNE_TEX[i] ??= (() => {
+    const c = canvas(128, 192), g = c.getContext('2d');
+    g.strokeStyle = '#ffdc96'; g.lineWidth = 13; g.lineCap = g.lineJoin = 'round'; g.shadowColor = '#ffb050'; g.shadowBlur = 12;
+    for (const st of RUNES_FUTHARK[i][8]) { g.beginPath(); for (let k = 0; k < st.length; k += 2) { const x = 14 + st[k] * 10, y = 16 + st[k + 1] * 10; if (k) g.lineTo(x, y); else g.moveTo(x, y); } g.stroke(); }
+    return tex(c);
+  })());
+}
+const STONE_GEO = new THREE.SphereGeometry(1, 20, 12), GLYPH_GEO = new THREE.PlaneGeometry(0.034, 0.051).rotateX(-Math.PI / 2);
+function runeStone(s, i) {
+  const g = new THREE.Group(), tint = 0.9 + Math.random() * 0.2;
+  const body = new THREE.Mesh(STONE_GEO, new THREE.MeshStandardMaterial({ color: new THREE.Color(0.52 * tint, 0.5 * tint, 0.47 * tint), roughness: 0.7 }));
+  body.scale.set(0.029, 0.012, 0.037);
+  const glyph = new THREE.Mesh(GLYPH_GEO, new THREE.MeshBasicMaterial({ map: runeGlyphTex(i), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, color: new THREE.Color(0.22, 0.18, 0.13) }));
+  glyph.position.y = 0.0123; g.add(body, glyph); s.add(g);
+  return { g, glyph, i, glow: 0, glowTo: 0 };
+}
+let rune = null;                           // the draw under way: { kind, phase, stones }
+let runeForce = null;                      // tests can fix the next draw: a list of rune indices (and for nine, landings)
+const RUNE_LAST = {};
+function runeLine(i) { const lines = RUNES_FUTHARK[i][6]; let k; do k = Math.floor(Math.random() * lines.length); while (lines.length > 1 && k === RUNE_LAST[i]); RUNE_LAST[i] = k; return lines[k]; }
+/** n different runes: the bag holds one stone of each */
+function drawRunes(n) { const pool = RUNES_FUTHARK.map((_, i) => i); for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; } return pool.slice(0, n); }
+/** a stone's flight from the pouch to where it lands: an arc, turning over as it goes, then a little settle */
+function flyStone(st, from, to, up, dur, delay, spins) {
+  st.fly = { from: from.clone(), to: to.clone(), up, dur, t: -delay, spins, yaw: rnd(-0.5, 0.5) + (st.yaw ?? 0) };
+  st.g.position.copy(from); st.g.visible = false;
+}
+function updateRuneStones(dt) {
+  if (!rune) return;
+  for (const st of rune.stones) {
+    const f = st.fly;
+    if (f) {
+      f.t += dt; if (f.t < 0) continue;
+      st.g.visible = true; const k = Math.min(1, f.t / f.dur), e = easeIO(k);
+      st.g.position.lerpVectors(f.from, f.to, e); st.g.position.y += f.up * 4 * k * (1 - k);
+      st.g.rotation.set(Math.PI * f.spins * (1 - e) + (st.down ? Math.PI : 0), f.yaw, 0);
+      if (k >= 1) { st.fly = null; st.g.position.copy(f.to); sfx('clack'); if (rune.kind === 'nine') burstAt(sparks, f.to, 5, { speed: 0.03, up: 0.04, size: 0.006, life: 0.5 }); }
+    }
+    st.glow += (st.glowTo - st.glow) * Math.min(1, dt * 3);
+    st.glyph.material.color.setRGB(0.22 + 1.58 * st.glow, 0.18 + 1.24 * st.glow, 0.13 + 0.67 * st.glow);   // a faint carving until it is read
+  }
+}
+function clearRunes() {
+  if (!rune) return;
+  for (const st of rune.stones) { st.g.parent?.remove(st.g); st.g.children.forEach((m) => m.material.dispose()); }
+  for (const m of rune.tags ?? []) { m.parent?.remove(m); m.material.map?.dispose(); m.material.dispose(); }
+  rune = null;
+}
+async function flyHearth(kind) {
+  const v = rooms.hearth.views[kind][matchMedia('(max-aspect-ratio: 1/1), (max-width: 760px)').matches ? 1 : 0];
+  if (ROOM_VIEW.hearth === v || roomFly) return;
+  busy = true; setUI('moving'); await flyRoom(v, 1000); busy = false;
+}
+function backToHearth() { return roomId === 'hearth' && roomInside && ROOM_VIEW.hearth !== HEARTH_VIEW.inside && !roomFly ? flyRoom(HEARTH_VIEW.inside, 900) : Promise.resolve(); }
+function runeIntro() {
+  if (roomId !== 'hearth' || busy || (rune && rune.phase !== 'done') || (tin && tin.phase !== 'done')) return;
+  if (!roomInside) { roomSit(); return; }
+  endTin(false);
+  const [one, three, nine] = ['one', 'three', 'nine'].map((k) => RUNE_SPREADS[k]);
+  showPanel(`<span class="seal">符</span><small>卢恩符文 · Runes</small><h3>摸几颗？</h3><p class="spread-pick"><b>${one[0]} · ${one[1]}</b>　${one[2]}<br><b>${three[0]} · ${three[1]}</b>　${three[2]}<br><b>${nine[0]} · ${nine[1]}</b>　${nine[2]}</p>`,
+    [[`${one[0]} · ${one[1]}`, () => runeDraw('one')], [`${three[0]} · ${three[1]}`, () => runeDraw('three'), true], [`${nine[0]} · ${nine[1]}`, () => runeDraw('nine')]]);
+}
+async function runeDraw(kind) {
+  if (roomId !== 'hearth' || !roomInside || busy) return;
+  hidePanel(); clearRunes(); endTin(false);
+  const R = rooms.hearth, c = R.at.cloth, from = R.at.pouch.clone().add(V(0, 0.04, 0)), n = { one: 1, three: 3, nine: 9 }[kind];
+  const ids = runeForce?.ids ?? drawRunes(n), my = (rune = { kind, phase: 'drawing', stones: ids.map((i) => runeStone(R.scene, i)) });
+  await flyHearth('cloth'); if (rune !== my) return;
+  sfx('rattle'); setUI('room');
+  if (kind === 'nine') {
+    // a handful cast at once: they land scattered, some face down, a few off the cloth altogether
+    const spots = runeForce?.spots ?? castSpots(9);
+    my.stones.forEach((st, k) => { const [x, z, down] = spots[k]; st.down = down; st.yaw = rnd(-0.9, 0.9); st.spot = [x, z]; flyStone(st, from, c.clone().add(V(x, 0.012, z)), 0.22, 0.75 + Math.random() * 0.25, k * 0.05, 1 + Math.floor(Math.random() * 3)); });
+    await wait(1600); if (rune !== my) return;
+    my.stones.forEach((st) => { if (!st.down && onCloth(st.spot)) st.glowTo = 1; });
+  } else {
+    const xs = n === 1 ? [0] : [-0.2, 0, 0.2];
+    for (let k = 0; k < n; k++) { flyStone(my.stones[k], from, c.clone().add(V(xs[k], 0.012, 0.02)), 0.16, 0.8, k * 0.55, 2); }
+    await wait(900 + n * 550); if (rune !== my) return;
+    for (const st of my.stones) { st.glowTo = 1; sfx('pop'); await wait(n === 1 ? 300 : 420); if (rune !== my) return; }
+    if (n === 3) normTags(my);
+  }
+  runeForce = null; await wait(500); if (rune !== my) return;
+  my.phase = 'done'; showRuneReading(my); setUI('room');
+}
+/** nine landing places: spread round the middle of the cloth, none on top of another; about half face up */
+function castSpots(n) {
+  const out = [];
+  for (let tries = 0; out.length < n && tries < 400; tries++) {
+    const r = Math.abs(rnd(-1, 1) + rnd(-1, 1)) * 0.2 + 0.02, a = rnd(0, TAU), x = Math.cos(a) * r, z = Math.sin(a) * r * 0.95;
+    if (out.some(([px, pz]) => Math.hypot(px - x, pz - z) < 0.075)) continue;
+    out.push([x, z, Math.random() < 0.45]);
+  }
+  return out;
+}
+const onCloth = ([x, z]) => Math.abs(x) < CLOTH_EDGE - 0.015 && Math.abs(z) < CLOTH_EDGE - 0.015;
+function zoneOf([x, z]) { const d = Math.hypot(x, z); return !onCloth([x, z]) ? 'off' : d < CLOTH_CENTER ? 'center' : d < CLOTH_RING ? 'ring' : 'edge'; }
+/** the Norns' names under the three stones, small, on the cloth */
+function normTags(my) {
+  my.tags = NORNS.map(([name, , gloss], k) => {
+    const c = canvas(256, 96), g = c.getContext('2d'); g.textAlign = 'center'; g.fillStyle = '#7a2a30'; g.font = '700 40px "Noto Serif SC", serif'; g.fillText(name, 128, 44);
+    g.fillStyle = '#6a5a48'; g.font = '500 28px "Noto Serif SC", serif'; g.fillText(gloss, 128, 84);
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(0.17, 0.064).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: tex(c), transparent: true, depthWrite: false }));
+    m.position.copy(rooms.hearth.cloth.mesh.position).add(V(my.stones[k].g.position.x - rooms.hearth.cloth.mesh.position.x, 0.0015, my.stones[k].g.position.z - rooms.hearth.cloth.mesh.position.z + 0.075)); rooms.hearth.scene.add(m); return m;
+  });
+}
+function showRuneReading(my) {
+  sfx('chime');
+  const R = (st) => RUNES_FUTHARK[st.i], btns = [['再摸一次', () => runeDraw(my.kind), true], ['换个抽法', () => { endRunes(false); runeIntro(); }], ['收起', () => endRunes()]];
+  if (my.kind === 'one') {
+    const [name, sound, meaning, key, image, reading] = R(my.stones[0]);
+    showPanel(`<span class="seal">符</span><small>卢恩符文 · ${name} · 读作 ${sound}</small><h3>${key}</h3><p class="gua-image">${meaning}</p><p>${reading}</p><p class="ln-sentence">${runeLine(my.stones[0].i)}</p><p class="gua-image">${image}</p><div class="note">${RUNE_UI.note}</div>`, btns);
+  } else if (my.kind === 'three') {
+    const rows = my.stones.map((st, k) => `<b>${NORNS[k][0]} · ${NORNS[k][2]}</b>　${R(st)[0]}「${R(st)[3]}」`).join('<br>');
+    const sentence = NORNS.map((n, k) => n[3].replace('X', R(my.stones[k])[7])).join('；') + '。';
+    showPanel(`<span class="seal">符</span><small>卢恩符文 · 诺伦三女神</small><h3 style="letter-spacing:.04em">${my.stones.map((st) => R(st)[3]).join(' · ')}</h3><p class="spread-pick">${rows}</p><p class="ln-sentence">${sentence}</p><div class="note">${RUNE_UI.note}</div>`, btns);
+  } else {
+    const up = my.stones.filter((st) => !st.down && onCloth(st.spot)), by = { center: [], ring: [], edge: [] };
+    up.forEach((st) => by[zoneOf(st.spot)]?.push(st));
+    by.ring.sort((a, b) => clockOf(a.spot) - clockOf(b.spot));
+    const lines = [];
+    if (!up.length) lines.push(RUNE_CAST.none);
+    else {
+      for (const z of ['center', 'ring', 'edge']) { if (by[z].length) lines.push(`${RUNE_CAST[z][1]}：${by[z].map((st) => R(st)[7]).join('、')}。`); else if (z === 'center') lines.push(RUNE_CAST.emptyCenter); }
+      if (up.length < 9) lines.push(RUNE_CAST.down);
+    }
+    const head = by.center.length ? by.center.map((st) => R(st)[3]).join(' · ') : up.length ? '先看四周' : '改天再撒';
+    const list = up.map((st) => `${R(st)[0]}「${R(st)[3]}」`).join('　');
+    showPanel(`<span class="seal">符</span><small>卢恩符文 · 白布撒落 · 朝上 ${up.length} 颗</small><h3>${head}</h3>${list ? `<p class="gua-image">${list}</p>` : ''}${lines.map((l) => `<p class="ln-sentence">${l}</p>`).join('')}<div class="note">${RUNE_UI.note}</div>`, btns);
+    $('panel').classList.add('long');
+  }
+}
+/** a ring position as a clock hand from twelve (the far side of the cloth), clockwise */
+function clockOf([x, z]) { const a = Math.atan2(x, -z); return a < 0 ? a + TAU : a; }
+function endRunes(fly = true) {
+  clearRunes(); hidePanel();
+  if (fly) backToHearth().then(() => setUI('room')); setUI('room');
+}
+
+/* ---------- 新年浇锡: the ladle, the tin melting in it, the cold water, the shadow on the wall ---------- */
+function hearthLadle(s, rest) {
+  const iron = new THREE.MeshStandardMaterial({ color: 0x3a3a40, metalness: 0.7, roughness: 0.45 }), wood = new THREE.MeshStandardMaterial({ color: 0x7a5034, roughness: 0.7 });
+  const g = new THREE.Group();
+  const bowl = new THREE.Mesh(new THREE.SphereGeometry(0.055, 20, 10, 0, TAU, Math.PI / 2, Math.PI / 2), iron); bowl.material.side = THREE.DoubleSide;
+  const rim = new THREE.Mesh(new THREE.TorusGeometry(0.055, 0.004, 6, 24).rotateX(Math.PI / 2), iron);
+  const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.5, 6).rotateZ(Math.PI / 2 - 0.25).translate(0.3, 0.06, 0), iron);
+  const grip = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.012, 0.16, 8).rotateZ(Math.PI / 2 - 0.25).translate(0.6, 0.135, 0), wood);
+  // the tin in the bowl: a little horseshoe first, then a bright pool as it melts
+  const shoe = new THREE.Mesh(new THREE.TorusGeometry(0.022, 0.0075, 8, 20, Math.PI * 1.35).rotateX(Math.PI / 2).rotateY(0.6), new THREE.MeshStandardMaterial({ color: 0xd0d4dc, metalness: 0.35, roughness: 0.3, emissive: 0x24262c }));
+  shoe.position.y = -0.03;
+  const pool = new THREE.Mesh(new THREE.CircleGeometry(0.044, 24).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0xe0e4ea, metalness: 0.4, roughness: 0.15, emissive: 0xff7a30, emissiveIntensity: 0 }));
+  pool.position.y = -0.012; pool.scale.setScalar(0.01);
+  g.add(bowl, rim, handle, grip, shoe, pool); g.position.copy(rest).add(V(0, 0.05, 0)); g.rotation.order = 'YXZ'; g.rotation.y = -0.6; s.add(g);
+  return { g, shoe, pool, rest: g.position.clone(), restYaw: -0.6, tw: null };
+}
+/** move the ladle to a place, turned (yaw) and tipped about its own handle (tip), over ms */
+function ladleTo(L, pos, yaw, tip, ms) {
+  return new Promise((done) => { L.tw = { t: 0, ms, from: L.g.position.clone(), to: pos.clone(), y0: L.g.rotation.y, y1: yaw, x0: L.g.rotation.x, x1: tip, done }; });
+}
+/** the wall where the shadow falls: a warm patch of candlelight, the shadow drawn over it */
+function hearthShadow(s, at) {
+  const lit = canvas(256, 256), g = lit.getContext('2d'), r = g.createRadialGradient(128, 128, 10, 128, 128, 128);
+  r.addColorStop(0, 'rgba(255,200,130,.5)'); r.addColorStop(1, 'rgba(255,170,90,0)'); g.fillStyle = r; g.fillRect(0, 0, 256, 256);
+  const glow = new THREE.Mesh(new THREE.PlaneGeometry(1.15, 1.15), new THREE.MeshBasicMaterial({ map: tex(lit), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0 }));
+  const c = canvas(512, 512), map = tex(c);
+  const shade = new THREE.Mesh(new THREE.PlaneGeometry(0.95, 0.95), new THREE.MeshBasicMaterial({ map, transparent: true, depthWrite: false, color: 0x2a1c14, opacity: 0 }));
+  glow.position.copy(at).add(V(0, 0, 0.004)); shade.position.copy(at).add(V(0, 0, 0.006)); s.add(glow, shade);
+  return { glow, shade, c, map, at: at.clone(), show: 0, showTo: 0 };
+}
+/* the outlines the shadow can take, in a box -1..1, y up: some borrowed from the tea leaves, the rest drawn here */
+const TIN_ART = (() => {
+  const arc = (cx, cy, r, a0, a1, n = 18) => Array.from({ length: n + 1 }, (_, i) => { const a = a0 + (a1 - a0) * (i / n); return [cx + Math.cos(a) * r, cy + Math.sin(a) * r]; });
+  const T = TEA_SHAPES;
+  return {
+    ship: T.boat, heart: T.heart, ring: T.ring, star: T.star, crescent: T.moon, sun: T.sun, bird: T.bird, fish: T.fish, key: T.key, house: T.house, mountain: T.mountain,
+    bridge: T.bridge, flower: T.flower, feather: T.feather, crown: T.crown,
+    horse: { fill: [[[-0.6, 0.0], [0.25, 0.05], [0.45, 0.55], [0.75, 0.6], [0.7, 0.4], [0.45, 0.3], [0.4, -0.15], [-0.55, -0.2]]], strokes: [[[-0.5, -0.15], [-0.6, -0.8]], [[-0.3, -0.15], [-0.25, -0.8]], [[0.15, -0.1], [0.12, -0.8]], [[0.35, -0.1], [0.42, -0.8]], [[-0.6, 0.0], [-0.85, -0.35]]] },
+    reindeer: { fill: [[[-0.6, -0.15], [0.3, -0.1], [0.5, 0.25], [0.72, 0.28], [0.68, 0.1], [0.42, -0.05], [0.38, -0.35], [-0.55, -0.4]]], strokes: [[[-0.5, -0.35], [-0.52, -0.95]], [[-0.3, -0.35], [-0.28, -0.95]], [[0.15, -0.3], [0.13, -0.95]], [[0.32, -0.3], [0.36, -0.95]], [[0.5, 0.3], [0.4, 0.65], [0.2, 0.85]], [[0.45, 0.5], [0.62, 0.7]], [[0.6, 0.3], [0.72, 0.62], [0.95, 0.75]]] },
+    bear: { fill: [arc(-0.05, -0.1, 0.55, 0, TAU, 24), arc(0.55, 0.15, 0.28, 0, TAU, 16), arc(0.48, 0.42, 0.1, 0, TAU, 8), arc(0.72, 0.38, 0.1, 0, TAU, 8), [[-0.45, -0.4], [-0.3, -0.85], [-0.1, -0.85], [-0.1, -0.4]], [[0.15, -0.4], [0.25, -0.85], [0.45, -0.85], [0.4, -0.35]]] },
+    swan: { fill: [[[-0.85, -0.2], [0.2, -0.25], [0.55, -0.05], [0.3, 0.05], [-0.4, 0.05]], [[0.1, -0.1], [0.25, 0.3], [0.2, 0.65], [0.38, 0.8], [0.6, 0.72], [0.4, 0.62], [0.36, 0.3], [0.3, -0.1]]] },
+    pine: { fill: [[[0, 0.95], [0.35, 0.45], [0.18, 0.45], [0.55, -0.05], [0.3, -0.05], [0.72, -0.55], [-0.72, -0.55], [-0.3, -0.05], [-0.55, -0.05], [-0.18, 0.45], [-0.35, 0.45]]], strokes: [[[0, -0.55], [0, -0.95]]] },
+    door: { fill: [[[-0.45, -0.9], [0.45, -0.9], [0.45, 0.45], ...arc(0, 0.45, 0.45, 0, Math.PI, 14).slice(1), [-0.45, 0.45]]], strokes: [[[0.25, -0.15], [0.3, -0.15]]] },
+    cloud: { fill: [arc(-0.45, -0.1, 0.32, 0, TAU, 16), arc(0, 0.12, 0.42, 0, TAU, 18), arc(0.45, -0.05, 0.34, 0, TAU, 16), [[-0.75, -0.42], [0.8, -0.42], [0.8, -0.1], [-0.75, -0.1]]] },
+    wave: { strokes: [Array.from({ length: 30 }, (_, i) => { const x = -0.95 + i * 0.066; return [x, 0.15 * Math.sin(x * 4.2) + 0.1]; }), Array.from({ length: 30 }, (_, i) => { const x = -0.9 + i * 0.062; return [x, 0.15 * Math.sin(x * 4.2 + 1) - 0.35]; })] },
+    flame: { fill: [[[0, 0.95], [0.25, 0.5], [0.5, 0.15], [0.48, -0.35], [0.25, -0.7], [0, -0.8], [-0.25, -0.7], [-0.48, -0.35], [-0.45, 0.05], [-0.2, 0.3], [-0.12, 0.62]]] },
+    snowflake: { strokes: Array.from({ length: 6 }, (_, i) => { const a = (i / 6) * TAU; return [[0, 0], [Math.cos(a) * 0.9, Math.sin(a) * 0.9]]; }).concat(Array.from({ length: 6 }, (_, i) => { const a = (i / 6) * TAU, p = [Math.cos(a) * 0.55, Math.sin(a) * 0.55]; return [[p[0] + Math.cos(a + 0.9) * 0.22, p[1] + Math.sin(a + 0.9) * 0.22], p, [p[0] + Math.cos(a - 0.9) * 0.22, p[1] + Math.sin(a - 0.9) * 0.22]]; })) },
+    book: { fill: [[[-0.9, -0.5], [-0.05, -0.62], [-0.05, 0.55], [-0.9, 0.62]], [[0.05, -0.62], [0.9, -0.5], [0.9, 0.62], [0.05, 0.55]]] },
+    cup: { fill: [[[-0.5, 0.45], [0.5, 0.45], [0.4, -0.55], [-0.4, -0.55]], [[-0.6, -0.55], [0.6, -0.55], [0.6, -0.7], [-0.6, -0.7]]], strokes: [arc(0.55, 0.0, 0.25, -Math.PI / 2, Math.PI / 2, 12)] },
+    lantern: { fill: [[[-0.35, -0.7], [0.35, -0.7], [0.4, 0.35], [-0.4, 0.35]], [[-0.5, 0.35], [0.5, 0.35], [0, 0.65]]], strokes: [arc(0, 0.72, 0.15, 0, TAU, 12), [[-0.42, -0.75], [0.42, -0.75]]] },
+    egg: { fill: [Array.from({ length: 32 }, (_, i) => { const a = (i / 32) * TAU, y = Math.sin(a); return [Math.cos(a) * 0.55 * (1 - 0.18 * y), y * 0.8]; })] },
+    blob: { fill: [Array.from({ length: 24 }, (_, i) => { const a = (i / 24) * TAU, r = 0.55 + 0.18 * Math.sin(a * 3 + 1) + 0.1 * Math.sin(a * 5); return [Math.cos(a) * r, Math.sin(a) * r * 0.85]; })] },
+  };
+})();
+/** a shape's silhouette into a canvas, s pixels across, as poured metal: thick, its ends blobbed, a few drips; pieces cut */
+function paintTin(g, shape, size, rr, finish) {
+  const P = ([x, y]) => [size / 2 + x * size * 0.42, size / 2 - y * size * 0.42];
+  g.fillStyle = g.strokeStyle = '#fff'; g.lineCap = g.lineJoin = 'round'; g.lineWidth = size * 0.1;
+  for (const line of shape.strokes ?? []) { g.beginPath(); line.forEach((p, i) => { const [x, y] = P(p); if (i) g.lineTo(x, y); else g.moveTo(x, y); }); g.stroke(); const [ex, ey] = P(line[line.length - 1]); g.beginPath(); g.arc(ex, ey, size * 0.06, 0, TAU); g.fill(); }
+  for (const poly of shape.fill ?? []) { g.beginPath(); poly.forEach((p, i) => { const [x, y] = P(p); if (i) g.lineTo(x, y); else g.moveTo(x, y); }); g.closePath(); g.fill(); g.stroke(); }
+  for (let k = 0; k < 5; k++) { g.beginPath(); g.arc(size * (0.2 + rr() * 0.6), size * (0.2 + rr() * 0.6), size * (0.02 + rr() * 0.03), 0, TAU); g.fill(); }
+  if (finish === '碎成几块') { g.globalCompositeOperation = 'destination-out'; g.lineWidth = size * 0.035; for (let k = 0; k < 2; k++) { const a = rr() * Math.PI; g.beginPath(); g.moveTo(size / 2 - Math.cos(a) * size, size / 2 - Math.sin(a) * size + (k - 0.5) * size * 0.3); g.lineTo(size / 2 + Math.cos(a) * size, size / 2 + Math.sin(a) * size + (k - 0.5) * size * 0.3); g.stroke(); } g.globalCompositeOperation = 'source-over'; }
+  if (finish === '满是小气泡') { g.globalCompositeOperation = 'destination-out'; for (let k = 0; k < 26; k++) { g.beginPath(); g.arc(size * rr(), size * rr(), size * (0.006 + rr() * 0.01), 0, TAU); g.fill(); } g.globalCompositeOperation = 'source-over'; }
+}
+/** the cast tin: a little relief of the silhouette, thicker where the metal pooled, cut out by the same mask */
+function tinPiece(s, shapeKey, finish) {
+  const rr = mulberry(Math.floor(Math.random() * 1e6)), N = 96, mc = canvas(N, N), mg = mc.getContext('2d');
+  paintTin(mg, TIN_ART[shapeKey], N, rr, finish);
+  // blur the mask a little by drawing it small and back up, then use it as both the cut-out and the height
+  const sm = canvas(24, 24), sg = sm.getContext('2d'); sg.drawImage(mc, 0, 0, 24, 24);
+  const bl = canvas(N, N), bg = bl.getContext('2d'); bg.imageSmoothingEnabled = true; bg.drawImage(sm, 0, 0, N, N);
+  const hd = bg.getImageData(0, 0, N, N).data, md = mg.getImageData(0, 0, N, N).data;
+  const thick = { 又厚又沉: 0.018, 薄得透光: 0.005 }[finish] ?? 0.01, size = 0.2, seg = 48;
+  const geo = new THREE.PlaneGeometry(size, size, seg, seg), pos = geo.attributes.position;
+  for (let i = 0; i < pos.count; i++) {
+    const u = pos.getX(i) / size + 0.5, v = 0.5 - pos.getY(i) / size, px = Math.max(0, Math.min(N - 1, Math.floor(u * N))), py = Math.max(0, Math.min(N - 1, Math.floor(v * N))), k = (py * N + px) * 4;
+    const h = (hd[k + 3] / 255) * 0.6 + (md[k + 3] / 255) * 0.4;
+    pos.setZ(i, h * thick * (0.75 + 0.5 * rr()) - thick * 0.3);
+  }
+  geo.computeVertexNormals();
+  const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: 0xd4d8e0, metalness: 0.35, roughness: finish === '光滑发亮' ? 0.2 : finish === '满是小气泡' ? 0.55 : 0.34, emissive: 0x2a2c32, alphaMap: tex(mc), alphaTest: 0.45, side: THREE.DoubleSide }));
+  s.add(m); return { m, mask: mc };
+}
+/** draw the shadow: the silhouette, soft-edged, a little bigger than the tin and a little blurred, on the wall */
+function paintShadow(W, mask) {
+  const g = W.c.getContext('2d'); g.clearRect(0, 0, 512, 512);
+  const sm = canvas(64, 64); sm.getContext('2d').drawImage(mask, 0, 0, 64, 64);
+  g.imageSmoothingEnabled = true; g.globalAlpha = 0.55; g.drawImage(sm, 40, 40, 432, 432); g.globalAlpha = 0.9; g.drawImage(mask, 56, 56, 400, 400); g.globalAlpha = 1;
+  W.map.needsUpdate = true;
+}
+let tin = null;                            // the casting under way: { phase, shape, finish, piece }
+let tinForce = null;                       // tests can fix the next casting: [shape index, finish index]
+function tinIntro() {
+  if (roomId !== 'hearth' || busy || (tin && tin.phase !== 'done') || (rune && rune.phase !== 'done')) return;
+  if (!roomInside) { roomSit(); return; }
+  endRunes(false); endTin(false);
+  showPanel(`<span class="seal">锡</span><small>新年浇锡 · Uudenvuodentina</small><h3>浇一勺新年的锡</h3><p>${TIN_UI.intro}</p>`, [['熔锡', tinMelt, true], ['收起', hidePanel]]);
+}
+async function tinMelt() {
+  if (roomId !== 'hearth' || !roomInside || busy || (tin && tin.phase !== 'done')) return;
+  hidePanel(); endTin(false); endRunes(false);
+  const R = rooms.hearth, L = R.ladle, my = (tin = { phase: 'melting' });
+  L.shoe.visible = true; L.shoe.scale.setScalar(1); L.pool.scale.setScalar(0.01); L.pool.material.emissiveIntensity = 0;
+  await flyHearth('hearth'); if (tin !== my) return; setUI('room');
+  sfx('soft'); await ladleTo(L, R.at.fire.clone().add(V(0.04, -0.1, 0.1)), -0.9, 0, 1300); if (tin !== my) return;
+  sfx('crackle'); my.melt = 0; await wait(2600); if (tin !== my) return;
+  my.phase = 'molten'; sfx('pop'); setUI('room');
+}
+async function tinPour() {
+  const my = tin; if (!my || my.phase !== 'molten' || busy) return;
+  const R = rooms.hearth, L = R.ladle; my.phase = 'pouring'; setUI('room');
+  await ladleTo(L, R.at.bucket.clone().add(V(-0.04, 0.28, 0.02)), -1.2, 0, 1000); if (tin !== my) return;
+  await ladleTo(L, L.g.position.clone(), -1.2, -1.1, 450); if (tin !== my) return;
+  L.pool.scale.setScalar(0.01); sfx('hiss');
+  for (let k = 0; k < 26; k++) sparks.emit(tmpV.copy(R.at.bucket).add(V(rnd(-0.03, 0.03), 0.18 + rnd(0, 0.06), rnd(-0.03, 0.03))), tmpW.set(rnd(-0.05, 0.05), rnd(-0.6, -0.3), rnd(-0.05, 0.05)), { life: 0.35, size: 0.012, color: EMBERS });
+  for (let k = 0; k < 10; k++) smoke.emit(tmpV.copy(R.at.bucket).add(V(rnd(-0.08, 0.08), 0.02, rnd(-0.08, 0.08))), tmpW.set(rnd(-0.04, 0.04), rnd(0.25, 0.45), rnd(-0.04, 0.04)), { life: rnd(1.2, 2), size: 0.16, drag: 0.4, color: new THREE.Color(0.8, 0.82, 0.86) });
+  await wait(700); if (tin !== my) return;
+  await ladleTo(L, L.rest, L.restYaw, 0, 900); if (tin !== my) return;
+  my.phase = 'cast'; setUI('room');
+}
+async function tinLift() {
+  const my = tin; if (!my || my.phase !== 'cast' || busy) return;
+  const R = rooms.hearth, [si, fi] = tinForce ?? [Math.floor(Math.random() * TIN_SHAPES.length), Math.floor(Math.random() * TIN_FINISH.length)];
+  tinForce = null; my.shape = si; my.finish = fi; my.phase = 'lifting'; setUI('room');
+  const P = tinPiece(R.scene, TIN_SHAPES[si][1], TIN_FINISH[fi][0]); my.piece = P;
+  // held up in front of the candle, over the mantel, so its shadow falls on the white of the chimney breast
+  const from = R.at.bucket.clone().add(V(0, 0.05, 0)), hold = R.at.shadow.clone().add(V(0.24, -0.4, 0.8));
+  P.m.position.copy(from); P.m.lookAt(camera.position); my.lift = { t: 0, ms: 1700, from, to: hold };
+  paintShadow(R.wall, P.mask);
+  await flyHearth('shadow'); if (tin !== my) return;
+  await wait(1000); if (tin !== my) return;
+  R.wall.showTo = 1; sfx('pop'); await wait(1400); if (tin !== my) return;
+  my.phase = 'done'; showTinReading(my); setUI('room');
+}
+function showTinReading(my) {
+  const [name, , line] = TIN_SHAPES[my.shape], [fname, fline] = TIN_FINISH[my.finish];
+  sfx('chime');
+  showPanel(`<span class="seal">锡</span><small>新年浇锡 · 墙上的影子像</small><h3>${name}</h3><p class="gua-image">${TIN_UI.lead}</p><p>${line}</p><p class="gua-image">锡面 · ${fname}</p><p>${fline}</p><div class="note">${TIN_UI.note}</div>`,
+    [['再浇一勺', tinMelt, true], ['收起', () => endTin()]]);
+}
+function updateTin(dt, t) {
+  const R = rooms.hearth; if (!R) return;
+  const L = R.ladle, tw = L.tw;
+  if (tw) {
+    tw.t += dt * 1000; const k = Math.min(1, tw.t / tw.ms), e = easeIO(k);
+    L.g.position.lerpVectors(tw.from, tw.to, e); L.g.position.y += Math.sin(Math.PI * k) * 0.08 * tw.from.distanceTo(tw.to);
+    L.g.rotation.y = tw.y0 + (tw.y1 - tw.y0) * e; L.g.rotation.x = tw.x0 + (tw.x1 - tw.x0) * e;
+    if (k >= 1) { L.tw = null; tw.done(); }
+  }
+  if (tin?.melt !== undefined && tin.melt < 1) {
+    tin.melt = Math.min(1, tin.melt + dt / 2.4); const m = tin.melt;
+    L.shoe.scale.setScalar(Math.max(0.01, 1 - m)); L.shoe.visible = m < 0.98; L.pool.scale.setScalar(0.2 + 0.8 * m); L.pool.material.emissiveIntensity = 0.9 * m;
+    if (m >= 1) delete tin.melt;
+  }
+  if (tin?.phase === 'molten' && Math.random() < dt * 6) sparks.emit(tmpV.copy(L.g.position).add(V(0, 0.01, 0)), tmpW.set(rnd(-0.02, 0.02), rnd(0.05, 0.12), rnd(-0.02, 0.02)), { life: 0.6, size: 0.008, color: EMBERS });
+  const lf = tin?.lift, P = tin?.piece;
+  if (lf && P) {
+    lf.t += dt * 1000; const k = Math.min(1, lf.t / lf.ms), e = easeIO(k);
+    P.m.position.lerpVectors(lf.from, lf.to, e); P.m.position.y += Math.sin(Math.PI * k) * 0.15;
+    P.m.lookAt(camera.position); P.m.rotateZ(Math.sin(t * 0.8) * 0.05);       // turned to you, the same way round as its shadow
+    if (k >= 1) { P.m.position.y = lf.to.y + Math.sin(t * 1.3) * 0.004; }
+    if (Math.random() < dt * 3) sparks.emit(tmpV.copy(P.m.position), tmpW.set(0, 0.02, 0), { life: 0.7, size: 0.005, color: MINT, drag: 0.4 });
+  }
+  const W = R.wall; W.show += (W.showTo - W.show) * Math.min(1, dt * 2.5);
+  const fl = 1 + Math.sin(t * 11) * 0.025 + Math.sin(t * 4.3) * 0.02;   // the candle flickers, and the shadow with it
+  W.shade.material.opacity = 0.85 * W.show; W.glow.material.opacity = W.show; W.shade.scale.setScalar(fl); W.shade.position.x = W.at.x + Math.sin(t * 5.1) * 0.004;
+}
+/** the tin put by: the shadow fades, the piece goes, the ladle back on the hearth */
+function endTin(fly = true) {
+  const R = rooms.hearth;
+  if (tin?.piece) { tin.piece.m.parent?.remove(tin.piece.m); tin.piece.m.geometry.dispose(); tin.piece.m.material.alphaMap?.dispose(); tin.piece.m.material.dispose(); }
+  tin = null; hidePanel();
+  if (R) { R.wall.showTo = 0; const L = R.ladle; L.tw = null; L.g.position.copy(L.rest); L.g.rotation.set(0, L.restYaw, 0, 'YXZ'); L.shoe.visible = true; L.shoe.scale.setScalar(1); L.pool.scale.setScalar(0.01); L.pool.material.emissiveIntensity = 0; }
+  if (fly) backToHearth().then(() => setUI('room')); setUI('room');
+}
+function resetHearth() { endRunes(false); endTin(false); }
+/** the buttons along the bottom while a reading is under way; true when they take the place of the room's own */
+function hearthButtons(act, hint) {
+  if (rune && rune.phase !== 'done') { hint.textContent = rune.kind === 'nine' ? '九颗符文石撒在了白布上……' : '符文石一颗一颗从皮袋里出来……'; return true; }
+  if (!tin || tin.phase === 'done') return false;
+  if (tin.phase === 'melting') { hint.textContent = TIN_UI.melt; return true; }
+  if (tin.phase === 'molten') { hint.textContent = TIN_UI.pour; act.append(button('倒进水里', tinPour, true), button('放下锡勺', () => endTin())); return true; }
+  if (tin.phase === 'pouring') { hint.textContent = '嗤——'; return true; }
+  if (tin.phase === 'cast') { hint.textContent = TIN_UI.lift; act.append(button('举到烛光前', tinLift, true), button('放下锡勺', () => endTin())); return true; }
+  if (tin.phase === 'lifting') { hint.textContent = TIN_UI.shadow; return true; }
+  return false;
+}
+/** a tap in the cabin: the dog, the reindeer, the fire, the cloth or the pouch, the ladle or the bucket, or the table */
+function hearthTap(hit) {
+  const u = hit.object.userData;
+  if (u.dog) { sfx('thump'); toast('大狗翻了个身，尾巴在地板上拍了两下'); return; }
+  if (u.deer) { sfx('jingle'); toast('驯鹿抬起头，鼻尖上落了一片雪'); return; }
+  if (u.fire) { sfx('crackle'); burstAt(sparks, rooms.hearth.at.fire.clone().add(V(0, 0.15, 0.1)), 24, { speed: 0.12, up: 0.4, size: 0.012, life: 0.9, color: EMBERS }); toast('炉火噼啪响了一声，飞起几点火星'); return; }
+  if (!roomInside) { roomSit(); return; }
+  if (tin && tin.phase !== 'done') { if (tin.phase === 'molten') tinPour(); else if (tin.phase === 'cast') tinLift(); return; }
+  if (rune && rune.phase !== 'done') return;
+  if (u.tin) tinIntro(); else runeIntro();
+}
 /** ?dev in the address: the frame counter and the window.__book test hooks */
 const DEV = /[?&]dev\b/.test(location.search);
 /* ================= running it ================= */
@@ -8526,7 +9370,8 @@ function setupInput() {
       look.tyaw = THREE.MathUtils.clamp(look.tyaw + (v.orbit ? -dx : dx) * k, base.yaw - (v.yaw ?? 1.1), base.yaw + (v.yaw ?? 1.1));
       look.tpitch = THREE.MathUtils.clamp(look.tpitch + dy * k, base.pitch - (v.pitch ?? 0.7), base.pitch + (v.pitch ?? 0.7));
     } else {
-      user.yaw = THREE.MathUtils.clamp(user.yaw - dx * 0.004, -0.75, 0.75);
+      const reach = mode === 'hut' && camera.aspect < 0.85 ? 1.1 : 0.75;        // an upright phone in the hut may turn far enough to see the cat
+      user.yaw = THREE.MathUtils.clamp(user.yaw - dx * 0.004, -reach, reach);
       user.pitch = THREE.MathUtils.clamp(user.pitch + dy * 0.003, -0.45, 0.45);
     }
   });
@@ -8664,6 +9509,13 @@ function sfx(kind) {
       for (let i = 0; i < 9; i++) { const at = t + Math.random() * 0.9, s = noise(0.04), f = actx.createBiquadFilter(), g = actx.createGain(); f.type = 'highpass'; f.frequency.value = 900 + Math.random() * 2400; g.gain.setValueAtTime(0, at); g.gain.linearRampToValueAtTime(0.08 + Math.random() * 0.06, at + 0.002); g.gain.exponentialRampToValueAtTime(0.001, at + 0.05); s.connect(f).connect(g).connect(out); s.start(at); }
     } else if (kind === 'rattle') {
       for (let i = 0; i < 4; i++) { const at = t + i * (0.025 + Math.random() * 0.03), s = noise(0.03), f = actx.createBiquadFilter(), g = actx.createGain(); f.type = 'bandpass'; f.frequency.value = 1800 + Math.random() * 1800; f.Q.value = 6; g.gain.setValueAtTime(0.0, at); g.gain.linearRampToValueAtTime(0.09, at + 0.003); g.gain.exponentialRampToValueAtTime(0.001, at + 0.03); s.connect(f).connect(g).connect(out); s.start(at); }
+    } else if (kind === 'hiss') {                                    // molten tin into cold water: a sharp hiss that sighs away
+      const s = noise(1.4), f = actx.createBiquadFilter(), g = actx.createGain(); f.type = 'highpass'; f.frequency.setValueAtTime(2600, t); f.frequency.linearRampToValueAtTime(1200, t + 1.3);
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.13, t + 0.03); g.gain.exponentialRampToValueAtTime(0.003, t + 1.35); s.connect(f).connect(g).connect(out); s.start(t);
+    } else if (kind === 'thump') {                                   // a big dog's tail, twice on the floorboards
+      [0, 0.32].forEach((d) => { const s = noise(0.12), f = actx.createBiquadFilter(), g = actx.createGain(); f.type = 'lowpass'; f.frequency.value = 220; g.gain.setValueAtTime(0.5, t + d); g.gain.exponentialRampToValueAtTime(0.001, t + d + 0.12); s.connect(f).connect(g).connect(out); s.start(t + d); });
+    } else if (kind === 'jingle') {                                  // a small bell on a reindeer's collar
+      [0, 0.11, 0.19, 0.34].forEach((d, i) => [2349, 3136, 4699].forEach((fq, j) => tone(fq * (1 + 0.01 * i), t + d, 0.5 - j * 0.12, [0.025, 0.012, 0.006][j])));
     } else if (kind === 'clack') {
       [0, 0.08].forEach((dt) => { const s = noise(0.06), f = actx.createBiquadFilter(), g = actx.createGain(); f.type = 'bandpass'; f.frequency.value = 1500; f.Q.value = 3; g.gain.setValueAtTime(0.35, t + dt); g.gain.exponentialRampToValueAtTime(0.001, t + dt + 0.06); s.connect(f).connect(g).connect(out); s.start(t + dt); });
     }
@@ -8789,7 +9641,7 @@ const LORE = {
   study: ['测字 · 六爻', 'Character & Coins', `<p><b>测字</b>又叫拆字，是把一个汉字拆开、加减笔画，或从字形字义去联想，来解读心里的事。宋代的谢石就以测字出名。</p><p><b>六爻</b>源自《周易》。传统的做法是把<b>三枚铜钱</b>连着掷六次，每次得到一爻，六爻合成一卦，再看卦象和变化的爻来推想事情的走向。</p>`],
   tea: ['雷诺曼 · 茶叶', 'Lenormand & Tea Leaves', `<p>雷诺曼卡以 19 世纪法国很有名的占卜师<b>玛丽·安娜·雷诺曼</b>命名，不过这副 <b>36 张</b>的牌其实源自 1799 年前后德国纽伦堡的一款桌游《希望之游戏》，由约翰·卡斯帕·赫希特尔（Johann Kaspar Hechtel）设计。没有证据表明雷诺曼本人用过这副牌，是她去世后，出版商借她的名气给它命了名。当年的牌面上就印着一张小小的扑克牌，可以兼作纸牌来玩，后来的雷诺曼牌把它留了下来。</p><p>每张牌都是一个日常的意象：骑士、幸运草、船、房子、树……读牌时把几张牌连在一起，像读一句话那样理解，风格直接又生活化。三张一行时，中间那张是这件事的中心；九张摆成方阵时，中间那张是核心，四周的行和列各说一个方向。</p><p><b>茶叶占卜</b>（tasseography）在茶叶传入欧洲以后慢慢流行起来。维多利亚时代的英国人喝完下午茶，会把杯子转三圈、倒扣在碟子上，再看杯里剩下的茶叶像什么：靠近杯口的说眼前，沉在杯底的说远处，挨着杯柄的和自己有关。</p>`],
   window: ['灵摆', 'Pendulum', `<p>灵摆通常是一根细链吊着一枚<b>水晶或金属坠子</b>。手稳稳地提着链子，心里问一个只能回答「是」或「否」的问题，再看坠子怎么摆。按传统做法，提问之前要先请它「示范」一下是和否，这一步叫作<b>校准</b>；画圈常被读作「还没定」；几乎不动，则是这一次不作答，可以换个问法再试。</p><p><b>它从哪里来？</b>用吊着的小东西「问事」，在欧洲和美洲的民间流传已久，比如把戒指或针用线吊在孕妇的肚子上方，看它怎么转，来猜孩子是男是女——这当然只是旧时的说法，没有任何依据。和灵摆最近的亲戚是<b>寻水术</b>（dowsing）：拿着分叉的树枝走过田野，据说能找到水源和矿脉。1556 年阿格里科拉（Georgius Agricola）的矿冶名著《论矿冶》里，就画着矿工拿探矿杖找矿的样子，不过他本人对这种做法并不太相信。</p><p>20 世纪 30 年代前后，法国神父布利（Alexis Bouly）给用灵摆和探测杖「感知」事物的做法起了个名字，叫 radiesthésie，后来传遍欧洲，灵摆也渐渐成了一种独立的占卜工具。常有人说它源自古埃及或古代中国，但目前找不到可靠的史料。中文里的「灵摆」，是这股风潮近几十年传入时的译名。</p><p><b>它为什么会摆？</b>法国化学家<b>谢弗勒尔</b>（Michel Eugène Chevreul）在 1833 年发表的实验里发现：手臂被撑住、或者闭上眼睛的时候，灵摆几乎就不动了。他的结论是，摆动来自我们自己察觉不到的细微肌肉动作。1852 年，英国生理学家卡彭特（William Carpenter）把这类现象叫作<b>意念动作效应</b>。所以灵摆更像一面小镜子，帮你听一听自己心里的倾向。</p><p><b>灵摆盘</b>是在纸上画一个圆盘，或者只画半圈刻度，分好格子，灵摆停在哪一格就读哪一格。这里的盘按中国传统的四时四方来分：东方配春，南方配夏，西方配秋，北方配冬，每个方位各有三个「此刻需要」的词。窗外的月亮，则是按今天的日期算出的今晚的月相。</p>`],
-  hearth: ['卢恩符文', 'Runes', `<p>卢恩符文是古代日耳曼人使用的字母。最古老的「<b>古弗萨克</b>」共 24 个字母，大约从公元 2 世纪开始使用，后来在北欧演变成 16 个字母的「新弗萨克」。</p><p>每个符文既是一个音，也有自己的名字和意象，比如 <b>ᚠ Fehu</b> 代表财富，<b>ᚱ Raidho</b> 代表旅途。</p><p>把符文刻在小石块或木片上、抽出来占卜的做法，主要是在 20 世纪流行起来的。</p>`],
+  hearth: ['卢恩 · 浇锡', 'Runes & Tin', `<p>卢恩符文（rune）是古代日耳曼人用的字母。目前能确定年代的最早一件卢恩铭文，是丹麦维莫瑟沼泽里出土的一把骨梳，约刻于公元 160 年，上面只有一个词：harja。最古老的一套字母叫<b>古弗萨克</b>（Elder Futhark），共 24 个；「弗萨克」就是前六个字母 f、u、th、a、r、k 连起来的读音，好比我们说「ABC」。到了维京时代，北欧把它简化成 16 个字母的<b>新弗萨克</b>；英格兰的盎格鲁-撒克逊人则把它扩充到 28 个以上。</p><p>每个符文既是一个音，又有一个名字，名字本身就是一个意象：Fehu 是牲畜、财富，Uruz 是原牛，Isa 是冰。这些名字和含义，主要是从中世纪留下的三首<b>卢恩诗</b>里来的。它们分别用古英语、古挪威语和古冰岛语写成，每个符文配一两句诗。这里每颗符文石的「意象」，就取自这些诗。</p><p><b>它和占卜有什么关系？</b>罗马史学家塔西佗在公元 98 年前后写的《日耳曼尼亚志》里记载：日耳曼人问事时，会把果树的枝条截成小段，刻上一些记号，随手撒在一块白布上；再由祭司或一家之主一边祷告、一边仰望天空，依次拾起三根，按上面的记号解读。不过那些记号是不是卢恩，并没有定论。北欧神话《诗体埃达》里，主神<b>奥丁</b>说自己吊在一棵大风吹拂的树上，被长矛刺伤，九天九夜没吃没喝，最后俯身拾起了卢恩。古英语和哥特语里，「rune」这个词也有「秘密」的意思。</p><p>今天常见的「抽符文石」，是 20 世纪才流行起来的：把 24 个符文刻在小石子或木片上，装进布袋，抽一颗、抽三颗，或者撒一把。1982 年美国作家拉尔夫·布卢姆（Ralph Blum）的《符文之书》让它风靡一时，书里还多了一颗空白的「命运符文」，那是他自己加的，古代并没有。三颗的抽法常借用北欧神话里的<b>诺伦三女神</b>：她们住在世界之树根下的乌尔德之泉旁，名叫乌尔德、薇儿丹蒂和诗寇蒂，常被说成「已经发生的」「正在发生的」和「将要发生的」，不过这是后来的简化说法。九颗撒在布上，则是呼应塔西佗笔下那块白布。这里的符文<b>不分正逆</b>：古代没有倒着读的证据，而且有九个符文倒过来一模一样。</p><p><b>几个被误用过的符文</b>：20 世纪初，奥地利神秘主义者李斯特（Guido von List）编了一套带民族主义色彩的「阿曼卢恩」，后来纳粹德国挪用了其中几个，比如党卫队标志里的双闪电（取自 Sowilo；单颗 Sowilo 是太阳，两条并排才是那个标志）、所谓的「生命符文」（Algiz）、带翼的 Othala，以及 Tiwaz（后被极右团体沿用）。这是对古老文字的歪曲。这里的 24 个符文都照古代铭文里朴素的样子来画，不加任何装饰；在北欧，它们至今仍是人们熟悉的古老文字。</p><p><b>新年浇锡</b>（芬兰语叫 uudenvuodentina，「新年锡」）是芬兰人跨年夜的老习俗，德语地区和北欧其他地方旧时也有类似的做法：把一小块铸成马蹄形的锡放进长柄勺，在炉火上熔化，一口气倒进一桶冷水，看它凝成什么形状；再把它举到烛光前，看墙上的影子像什么，猜一猜新的一年。老说法里，锡上的小气泡和疙瘩代表钱，像船就要出远门，像心就和爱情有关。传统的跨年「锡」其实大多是铅，2018 年 3 月起，欧盟禁止向消费者出售含铅的锡合金，芬兰和德国的商店就不再卖了，很多人改用蜡或纯锡。这里的锡是画出来的：没有烫手的勺子，也没有铅。</p>`],
 };
 function showLore(id) {
   const [title, en, html] = LORE[id];
@@ -8799,7 +9651,7 @@ function showLore(id) {
 /** before a reading: a breath, and the question held quietly in mind */
 function askQuestion(id) {
   return new Promise(async (done) => {
-    const tarot = ROOMS[id].kind === 'tarot', how = tarot ? '想好了，就从桌上的牌堆里抽牌' : ROOMS[id].kind === 'study' ? '想好了，就到书案前掷铜钱起一卦，或写下一个字' : ROOMS[id].kind === 'tea' ? '想好了，就到茶桌前翻几张雷诺曼，或喝完一杯茶看看杯底' : ROOMS[id].kind === 'window' ? '想好了，就坐到窗下的矮桌前，请灵摆回答，或在灵摆盘上看看此刻需要什么' : '想好了，就把木筊轻轻掷出';
+    const tarot = ROOMS[id].kind === 'tarot', how = tarot ? '想好了，就从桌上的牌堆里抽牌' : ROOMS[id].kind === 'study' ? '想好了，就到书案前掷铜钱起一卦，或写下一个字' : ROOMS[id].kind === 'tea' ? '想好了，就到茶桌前翻几张雷诺曼，或喝完一杯茶看看杯底' : ROOMS[id].kind === 'window' ? '想好了，就坐到窗下的矮桌前，请灵摆回答，或在灵摆盘上看看此刻需要什么' : ROOMS[id].kind === 'hearth' ? '想好了，就坐到炉火边，从皮袋里摸几颗符文石，或者浇一勺锡，看看接下来的日子' : '想好了，就把木筊轻轻掷出';
     const box = el('div', 'ask', `<div class="inner"><div class="ring"></div><div class="breath">吸 气 · 呼 气</div><h3>默念你的问题</h3><p>闭上眼，慢慢呼吸三次<br>在心里，把想问的事轻轻说一遍</p></div>`);
     const inner = box.querySelector('.inner');
     let q = null;
@@ -8934,13 +9786,12 @@ function setUI(state) {
     hint.textContent = r.ready ? `点${id === 'tent' ? '帐篷' : '小屋'}走进去 · 拖动可以换个角度看` : '这一间还在装订中 · 先点小屋试试预告的小玩法';
     act.append(button(cur === 1 ? '‹ 合上' : '‹ 上一页', () => goTo(cur - 1)));
     if (r.ready) act.append(button(`走进${r.name}`, () => enterRoom(id), true));
-    else if (TEASE_BTN[id]) act.append(button(TEASE_BTN[id], () => teaserStart(id), true));
     act.append(button(`ⓘ ${LORE[id][0]}`, () => showLore(id)));
     act.append(button(cur === NS ? '回到封面' : '下一页 ›', () => goTo(cur === NS ? 0 : cur + 1)));
   }
   if (state === 'room') {
     const r = ROOMS[roomId], baked = !!rooms[roomId]?.baked, tent = roomId === 'tent';
-    hint.textContent = baked ? (tent ? (roomInside ? '点桌上的牌堆开始占卜 · 拖动可以环顾帐篷' : '左右拖动看看帐篷 · 点桌子，坐到桌前') : roomId === 'study' ? (roomInside ? '掷铜钱起一卦，或写一个字测一测 · 拖动可以环顾书斋' : '左右拖动看看书斋 · 点书案，走到桌前') : roomId === 'tea' ? (roomInside ? '翻雷诺曼，或喝茶看杯底 · 拖动环顾茶室' : '拖动看看茶室 · 点茶桌坐下') : roomId === 'window' ? (roomInside ? '灵摆问答或灵摆盘 · 点窗外的月亮看月相' : '拖动看看小屋 · 点矮桌坐下') : (roomInside ? '点签筒求签，或点木筊掷筊 · 拖动可以环顾殿内' : '左右拖动看看神龛 · 点供桌，走到桌前')) : r.kind === 'jiaobei' ? '默念你的问题，再掷一次木筊' : '点桌上的牌，抽一张';
+    hint.textContent = baked ? (tent ? (roomInside ? '点桌上的牌堆开始占卜 · 拖动可以环顾帐篷' : '左右拖动看看帐篷 · 点桌子，坐到桌前') : roomId === 'study' ? (roomInside ? '掷铜钱起一卦，或写一个字测一测 · 拖动可以环顾书斋' : '左右拖动看看书斋 · 点书案，走到桌前') : roomId === 'tea' ? (roomInside ? '翻雷诺曼，或喝茶看杯底 · 拖动环顾茶室' : '拖动看看茶室 · 点茶桌坐下') : roomId === 'window' ? (roomInside ? '灵摆问答或灵摆盘 · 点窗外的月亮看月相' : '拖动看看小屋 · 点矮桌坐下') : roomId === 'hearth' ? (roomInside ? '卢恩符文或新年浇锡 · 窗外正下着雪' : '拖动看看小屋 · 点炉边的小桌坐下') : (roomInside ? '点签筒求签，或点木筊掷筊 · 拖动可以环顾殿内' : '左右拖动看看神龛 · 点供桌，走到桌前')) : r.kind === 'jiaobei' ? '默念你的问题，再掷一次木筊' : '点桌上的牌，抽一张';
     if (roomId === 'shrine' && lots && lots.phase !== 'ask' && lots.phase !== 'again' && lots.phase !== 'slip') {
       hint.textContent = { shake: '左右滑动摇签筒，或连点「摇签」· 心里想着你的问题', drop: '一支签落了下来……', confirm: '掷筊请示：这一签可是给我的？', granted: '圣筊！去签诗柜取签诗', drawer: '签诗柜里，你的那一格抽屉打开了' }[lots.phase] ?? '';
       if (lots.phase === 'shake') act.append(button('摇签', () => lotsShake(420), true), button('取消', () => { resetLots(); setUI('room'); }));
@@ -8965,6 +9816,10 @@ function setUI(state) {
       if (windowButtons(act, hint)) return;
       act.append(button('灵摆问答', pendIntro, true), button('灵摆盘', boardIntro));
     }
+    if (roomId === 'hearth' && roomInside) {
+      if (hearthButtons(act, hint)) return;
+      act.append(button('卢恩符文', runeIntro, true), button('新年浇锡', tinIntro));
+    }
     if (r.kind === 'jiaobei' && baked && roomInside) act.append(button('求签', startLots, true), button('掷筊', throwBei));
     else if (r.kind === 'jiaobei' && !baked) act.append(button('掷筊', throwBei, true));
     if (roomId === 'tent' && ritual && ritual.phase !== 'done') {
@@ -8975,7 +9830,7 @@ function setUI(state) {
     }
     if (baked && tent) act.append(roomInside ? button('开始占卜', showSpreadChooser, true) : button('坐到桌前', roomSit, true));
     if (tent && cards.length) cardButtons(act);
-    if (baked && !tent && !roomInside) act.append(button(roomId === 'study' ? '走到书案前' : roomId === 'tea' ? '坐到茶桌前' : roomId === 'window' ? '坐到窗台边' : '走到供桌前', roomSit, true));
+    if (baked && !tent && !roomInside) act.append(button(roomId === 'study' ? '走到书案前' : roomId === 'tea' ? '坐到茶桌前' : roomId === 'window' ? '坐到窗台边' : roomId === 'hearth' ? '坐到炉火边' : '走到供桌前', roomSit, true));
     if (baked && roomInside) act.append(button('起身看看', roomStand));
     act.append(button(`ⓘ ${LORE[roomId][0]}小知识`, () => showLore(roomId)), button('回到书里', leaveRoom));
   }
@@ -8983,9 +9838,9 @@ function setUI(state) {
 $('sound').addEventListener('click', () => { soundOn = !soundOn; $('sound').textContent = soundOn ? '声音 · 开' : '声音 · 关'; });
 /** the gentle reminder behind the corner button; the short version stands under the front door */
 const NOTICE = [
-  '这里的塔罗、掷筊、灵签、六爻、测字、雷诺曼、茶叶占卜、灵摆等，是东西方民俗文化的趣味科普演示。抽牌、掷筊、求签、起卦的结果、杯里茶叶的形状和灵摆的摆动由程序随机生成，测字的解读按字形预先写好，都不具备预测功能。',
+  '这里的塔罗、掷筊、灵签、六爻、测字、雷诺曼、茶叶占卜、灵摆、卢恩符文、新年浇锡等，是东西方民俗文化的趣味科普演示。抽牌、掷筊、求签、起卦的结果、杯里茶叶的形状、灵摆的摆动、抽出的符文和浇出的锡由程序随机生成，测字的解读按字形预先写好，都不具备预测功能。',
   '内容仅供休闲娱乐，不构成医疗、法律、投资或任何人生决策建议。',
-  '神龛、书斋、茶室、窗台小屋、签诗与牌面均为原创艺术创作，不代表任何宗教、庙宇或神明；六爻的卦名与象辞节录自《周易》（公有领域）。',
+  '神龛、书斋、茶室、窗台小屋、炉边小屋、签诗与牌面均为原创艺术创作，不代表任何宗教、庙宇或神明；六爻的卦名与象辞节录自《周易》（公有领域）。',
   '页面不收集、不上传任何个人信息。',
   '小屋里的「人生海海」霓虹灯牌，是向五月天《人生海海》致敬的粉丝设计，与五月天及其唱片公司无关，相关权利归原权利人所有。',
   '命运掌握在自己手中，请保持理性，自主抉择。如果你正经历困扰，请向信任的人或专业人士寻求帮助。',
@@ -9199,7 +10054,7 @@ async function boot() {
   if (m || location.hash === '#book' || location.hash === '#hut') $('intro').hidden = true;
   setUI(mode === 'hut' ? 'hut' : cur === 0 ? 'closed' : 'open');
   if (mode === 'hut' && !$('intro').hidden) $('actions').innerHTML = '';
-  if (DEV) window.__book = { goTo, openBook, backToHut, enterRoom, leaveRoom, tentSit, tentStand, roomSit, roomStand, preloadBakedTent, preloadBaked, get inside() { return roomInside; }, startLots, lotsShake, lotsConfirm: (force) => { if (force) forceBei = 'holy'; lotsAsk(); }, get lots() { return lots; }, get look() { return look; }, startRitual, ritualSwipe, chooseCut, showSpreadChooser, pickSpread, flipSpreadCard, get cards() { return cards; }, get ritual() { return ritual; }, setSample: (fn) => { samplePromise = Promise.resolve(fn); }, setQuestion: (q) => { userQuestion = q; }, showRoom: (id) => { showRoom(id); busy = false; setUI('room'); }, drawCards, flipCard, throwBei, readGua: (values) => showGua(castGua(values)), ensureSpread, spreads, user, rig, tweenRig, props: PROPS, tex3: () => Object.fromEntries(['wall', 'velvet', 'skirt', 'clothTop', 'roundRug', 'sunHanging', 'moonHanging', 'moonFace', 'sign', 'mat', 'valance', 'runner'].map((k) => [k, T3[k]().toDataURL('image/png')]).concat([['cardBack', catTarotBack(300).toDataURL('image/png')], ['card0', catTarot(0, 300).toDataURL('image/png')], ['card2', catTarot(2, 300).toDataURL('image/png')], ['card17', catTarot(17, 300).toDataURL('image/png')]])), catCard: (k, w = 300) => catTarot(k, w).toDataURL('image/png'), cardSamples: () => [catTarot(0, 600), catTarot(2, 600), catTarot(17, 600), catTarotBack(600)].map((c) => c.toDataURL('image/png')), get camera() { return camera; }, pendIntro, pendCalibrate, pendShowNo, pendAsk, boardIntro, pendSpin, showMoon, endPend, get pend() { return pend; }, forcePend: (k) => { pendForce = k; }, moonAge, moonPhase, get rooms() { return rooms; }, get scenes() { return [scene, ...Object.values(rooms).map((r) => r.scene)]; }, get state() { return { cur, mode, busy, turning: !!turn, roomId }; } };
+  if (DEV) window.__book = { goTo, openBook, backToHut, enterRoom, leaveRoom, tentSit, tentStand, roomSit, roomStand, preloadBakedTent, preloadBaked, get inside() { return roomInside; }, startLots, lotsShake, lotsConfirm: (force) => { if (force) forceBei = 'holy'; lotsAsk(); }, get lots() { return lots; }, get look() { return look; }, startRitual, ritualSwipe, chooseCut, showSpreadChooser, pickSpread, flipSpreadCard, get cards() { return cards; }, get ritual() { return ritual; }, setSample: (fn) => { samplePromise = Promise.resolve(fn); }, setQuestion: (q) => { userQuestion = q; }, showRoom: (id) => { showRoom(id); busy = false; setUI('room'); }, drawCards, flipCard, throwBei, readGua: (values) => showGua(castGua(values)), ensureSpread, spreads, user, rig, tweenRig, props: PROPS, tex3: () => Object.fromEntries(['wall', 'velvet', 'skirt', 'clothTop', 'roundRug', 'sunHanging', 'moonHanging', 'moonFace', 'sign', 'mat', 'valance', 'runner'].map((k) => [k, T3[k]().toDataURL('image/png')]).concat([['cardBack', catTarotBack(300).toDataURL('image/png')], ['card0', catTarot(0, 300).toDataURL('image/png')], ['card2', catTarot(2, 300).toDataURL('image/png')], ['card17', catTarot(17, 300).toDataURL('image/png')]])), catCard: (k, w = 300) => catTarot(k, w).toDataURL('image/png'), cardSamples: () => [catTarot(0, 600), catTarot(2, 600), catTarot(17, 600), catTarotBack(600)].map((c) => c.toDataURL('image/png')), get camera() { return camera; }, pendIntro, pendCalibrate, pendShowNo, pendAsk, boardIntro, pendSpin, showMoon, endPend, get pend() { return pend; }, forcePend: (k) => { pendForce = k; }, moonAge, moonPhase, runeIntro, runeDraw, endRunes, tinIntro, tinMelt, tinPour, tinLift, endTin, get rune() { return rune; }, get tin() { return tin; }, forceRunes: (o) => { runeForce = o; }, forceTin: (si, fi) => { tinForce = [si, fi]; }, get rooms() { return rooms; }, get scenes() { return [scene, ...Object.values(rooms).map((r) => r.scene)]; }, get state() { return { cur, mode, busy, turning: !!turn, roomId }; } };
   // before the door opens, a little at a time: compile every material, send every texture to the GPU, then draw the room
   // once from where the walk in starts and once from where it ends, so it shows without a stall
   for (const o of [...scene.children]) { renderer.compile(o, camera, scene); await slice(); }

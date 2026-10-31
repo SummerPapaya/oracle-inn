@@ -93,7 +93,8 @@ function setupInput() {
       look.tyaw = THREE.MathUtils.clamp(look.tyaw + (v.orbit ? -dx : dx) * k, base.yaw - (v.yaw ?? 1.1), base.yaw + (v.yaw ?? 1.1));
       look.tpitch = THREE.MathUtils.clamp(look.tpitch + dy * k, base.pitch - (v.pitch ?? 0.7), base.pitch + (v.pitch ?? 0.7));
     } else {
-      user.yaw = THREE.MathUtils.clamp(user.yaw - dx * 0.004, -0.75, 0.75);
+      const reach = mode === 'hut' && camera.aspect < 0.85 ? 1.1 : 0.75;        // an upright phone in the hut may turn far enough to see the cat
+      user.yaw = THREE.MathUtils.clamp(user.yaw - dx * 0.004, -reach, reach);
       user.pitch = THREE.MathUtils.clamp(user.pitch + dy * 0.003, -0.45, 0.45);
     }
   });
@@ -231,6 +232,13 @@ function sfx(kind) {
       for (let i = 0; i < 9; i++) { const at = t + Math.random() * 0.9, s = noise(0.04), f = actx.createBiquadFilter(), g = actx.createGain(); f.type = 'highpass'; f.frequency.value = 900 + Math.random() * 2400; g.gain.setValueAtTime(0, at); g.gain.linearRampToValueAtTime(0.08 + Math.random() * 0.06, at + 0.002); g.gain.exponentialRampToValueAtTime(0.001, at + 0.05); s.connect(f).connect(g).connect(out); s.start(at); }
     } else if (kind === 'rattle') {
       for (let i = 0; i < 4; i++) { const at = t + i * (0.025 + Math.random() * 0.03), s = noise(0.03), f = actx.createBiquadFilter(), g = actx.createGain(); f.type = 'bandpass'; f.frequency.value = 1800 + Math.random() * 1800; f.Q.value = 6; g.gain.setValueAtTime(0.0, at); g.gain.linearRampToValueAtTime(0.09, at + 0.003); g.gain.exponentialRampToValueAtTime(0.001, at + 0.03); s.connect(f).connect(g).connect(out); s.start(at); }
+    } else if (kind === 'hiss') {                                    // molten tin into cold water: a sharp hiss that sighs away
+      const s = noise(1.4), f = actx.createBiquadFilter(), g = actx.createGain(); f.type = 'highpass'; f.frequency.setValueAtTime(2600, t); f.frequency.linearRampToValueAtTime(1200, t + 1.3);
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.13, t + 0.03); g.gain.exponentialRampToValueAtTime(0.003, t + 1.35); s.connect(f).connect(g).connect(out); s.start(t);
+    } else if (kind === 'thump') {                                   // a big dog's tail, twice on the floorboards
+      [0, 0.32].forEach((d) => { const s = noise(0.12), f = actx.createBiquadFilter(), g = actx.createGain(); f.type = 'lowpass'; f.frequency.value = 220; g.gain.setValueAtTime(0.5, t + d); g.gain.exponentialRampToValueAtTime(0.001, t + d + 0.12); s.connect(f).connect(g).connect(out); s.start(t + d); });
+    } else if (kind === 'jingle') {                                  // a small bell on a reindeer's collar
+      [0, 0.11, 0.19, 0.34].forEach((d, i) => [2349, 3136, 4699].forEach((fq, j) => tone(fq * (1 + 0.01 * i), t + d, 0.5 - j * 0.12, [0.025, 0.012, 0.006][j])));
     } else if (kind === 'clack') {
       [0, 0.08].forEach((dt) => { const s = noise(0.06), f = actx.createBiquadFilter(), g = actx.createGain(); f.type = 'bandpass'; f.frequency.value = 1500; f.Q.value = 3; g.gain.setValueAtTime(0.35, t + dt); g.gain.exponentialRampToValueAtTime(0.001, t + dt + 0.06); s.connect(f).connect(g).connect(out); s.start(t + dt); });
     }
@@ -356,7 +364,7 @@ const LORE = {
   study: ['测字 · 六爻', 'Character & Coins', `<p><b>测字</b>又叫拆字，是把一个汉字拆开、加减笔画，或从字形字义去联想，来解读心里的事。宋代的谢石就以测字出名。</p><p><b>六爻</b>源自《周易》。传统的做法是把<b>三枚铜钱</b>连着掷六次，每次得到一爻，六爻合成一卦，再看卦象和变化的爻来推想事情的走向。</p>`],
   tea: ['雷诺曼 · 茶叶', 'Lenormand & Tea Leaves', `<p>雷诺曼卡以 19 世纪法国很有名的占卜师<b>玛丽·安娜·雷诺曼</b>命名，不过这副 <b>36 张</b>的牌其实源自 1799 年前后德国纽伦堡的一款桌游《希望之游戏》，由约翰·卡斯帕·赫希特尔（Johann Kaspar Hechtel）设计。没有证据表明雷诺曼本人用过这副牌，是她去世后，出版商借她的名气给它命了名。当年的牌面上就印着一张小小的扑克牌，可以兼作纸牌来玩，后来的雷诺曼牌把它留了下来。</p><p>每张牌都是一个日常的意象：骑士、幸运草、船、房子、树……读牌时把几张牌连在一起，像读一句话那样理解，风格直接又生活化。三张一行时，中间那张是这件事的中心；九张摆成方阵时，中间那张是核心，四周的行和列各说一个方向。</p><p><b>茶叶占卜</b>（tasseography）在茶叶传入欧洲以后慢慢流行起来。维多利亚时代的英国人喝完下午茶，会把杯子转三圈、倒扣在碟子上，再看杯里剩下的茶叶像什么：靠近杯口的说眼前，沉在杯底的说远处，挨着杯柄的和自己有关。</p>`],
   window: ['灵摆', 'Pendulum', `<p>灵摆通常是一根细链吊着一枚<b>水晶或金属坠子</b>。手稳稳地提着链子，心里问一个只能回答「是」或「否」的问题，再看坠子怎么摆。按传统做法，提问之前要先请它「示范」一下是和否，这一步叫作<b>校准</b>；画圈常被读作「还没定」；几乎不动，则是这一次不作答，可以换个问法再试。</p><p><b>它从哪里来？</b>用吊着的小东西「问事」，在欧洲和美洲的民间流传已久，比如把戒指或针用线吊在孕妇的肚子上方，看它怎么转，来猜孩子是男是女——这当然只是旧时的说法，没有任何依据。和灵摆最近的亲戚是<b>寻水术</b>（dowsing）：拿着分叉的树枝走过田野，据说能找到水源和矿脉。1556 年阿格里科拉（Georgius Agricola）的矿冶名著《论矿冶》里，就画着矿工拿探矿杖找矿的样子，不过他本人对这种做法并不太相信。</p><p>20 世纪 30 年代前后，法国神父布利（Alexis Bouly）给用灵摆和探测杖「感知」事物的做法起了个名字，叫 radiesthésie，后来传遍欧洲，灵摆也渐渐成了一种独立的占卜工具。常有人说它源自古埃及或古代中国，但目前找不到可靠的史料。中文里的「灵摆」，是这股风潮近几十年传入时的译名。</p><p><b>它为什么会摆？</b>法国化学家<b>谢弗勒尔</b>（Michel Eugène Chevreul）在 1833 年发表的实验里发现：手臂被撑住、或者闭上眼睛的时候，灵摆几乎就不动了。他的结论是，摆动来自我们自己察觉不到的细微肌肉动作。1852 年，英国生理学家卡彭特（William Carpenter）把这类现象叫作<b>意念动作效应</b>。所以灵摆更像一面小镜子，帮你听一听自己心里的倾向。</p><p><b>灵摆盘</b>是在纸上画一个圆盘，或者只画半圈刻度，分好格子，灵摆停在哪一格就读哪一格。这里的盘按中国传统的四时四方来分：东方配春，南方配夏，西方配秋，北方配冬，每个方位各有三个「此刻需要」的词。窗外的月亮，则是按今天的日期算出的今晚的月相。</p>`],
-  hearth: ['卢恩符文', 'Runes', `<p>卢恩符文是古代日耳曼人使用的字母。最古老的「<b>古弗萨克</b>」共 24 个字母，大约从公元 2 世纪开始使用，后来在北欧演变成 16 个字母的「新弗萨克」。</p><p>每个符文既是一个音，也有自己的名字和意象，比如 <b>ᚠ Fehu</b> 代表财富，<b>ᚱ Raidho</b> 代表旅途。</p><p>把符文刻在小石块或木片上、抽出来占卜的做法，主要是在 20 世纪流行起来的。</p>`],
+  hearth: ['卢恩 · 浇锡', 'Runes & Tin', `<p>卢恩符文（rune）是古代日耳曼人用的字母。目前能确定年代的最早一件卢恩铭文，是丹麦维莫瑟沼泽里出土的一把骨梳，约刻于公元 160 年，上面只有一个词：harja。最古老的一套字母叫<b>古弗萨克</b>（Elder Futhark），共 24 个；「弗萨克」就是前六个字母 f、u、th、a、r、k 连起来的读音，好比我们说「ABC」。到了维京时代，北欧把它简化成 16 个字母的<b>新弗萨克</b>；英格兰的盎格鲁-撒克逊人则把它扩充到 28 个以上。</p><p>每个符文既是一个音，又有一个名字，名字本身就是一个意象：Fehu 是牲畜、财富，Uruz 是原牛，Isa 是冰。这些名字和含义，主要是从中世纪留下的三首<b>卢恩诗</b>里来的。它们分别用古英语、古挪威语和古冰岛语写成，每个符文配一两句诗。这里每颗符文石的「意象」，就取自这些诗。</p><p><b>它和占卜有什么关系？</b>罗马史学家塔西佗在公元 98 年前后写的《日耳曼尼亚志》里记载：日耳曼人问事时，会把果树的枝条截成小段，刻上一些记号，随手撒在一块白布上；再由祭司或一家之主一边祷告、一边仰望天空，依次拾起三根，按上面的记号解读。不过那些记号是不是卢恩，并没有定论。北欧神话《诗体埃达》里，主神<b>奥丁</b>说自己吊在一棵大风吹拂的树上，被长矛刺伤，九天九夜没吃没喝，最后俯身拾起了卢恩。古英语和哥特语里，「rune」这个词也有「秘密」的意思。</p><p>今天常见的「抽符文石」，是 20 世纪才流行起来的：把 24 个符文刻在小石子或木片上，装进布袋，抽一颗、抽三颗，或者撒一把。1982 年美国作家拉尔夫·布卢姆（Ralph Blum）的《符文之书》让它风靡一时，书里还多了一颗空白的「命运符文」，那是他自己加的，古代并没有。三颗的抽法常借用北欧神话里的<b>诺伦三女神</b>：她们住在世界之树根下的乌尔德之泉旁，名叫乌尔德、薇儿丹蒂和诗寇蒂，常被说成「已经发生的」「正在发生的」和「将要发生的」，不过这是后来的简化说法。九颗撒在布上，则是呼应塔西佗笔下那块白布。这里的符文<b>不分正逆</b>：古代没有倒着读的证据，而且有九个符文倒过来一模一样。</p><p><b>几个被误用过的符文</b>：20 世纪初，奥地利神秘主义者李斯特（Guido von List）编了一套带民族主义色彩的「阿曼卢恩」，后来纳粹德国挪用了其中几个，比如党卫队标志里的双闪电（取自 Sowilo；单颗 Sowilo 是太阳，两条并排才是那个标志）、所谓的「生命符文」（Algiz）、带翼的 Othala，以及 Tiwaz（后被极右团体沿用）。这是对古老文字的歪曲。这里的 24 个符文都照古代铭文里朴素的样子来画，不加任何装饰；在北欧，它们至今仍是人们熟悉的古老文字。</p><p><b>新年浇锡</b>（芬兰语叫 uudenvuodentina，「新年锡」）是芬兰人跨年夜的老习俗，德语地区和北欧其他地方旧时也有类似的做法：把一小块铸成马蹄形的锡放进长柄勺，在炉火上熔化，一口气倒进一桶冷水，看它凝成什么形状；再把它举到烛光前，看墙上的影子像什么，猜一猜新的一年。老说法里，锡上的小气泡和疙瘩代表钱，像船就要出远门，像心就和爱情有关。传统的跨年「锡」其实大多是铅，2018 年 3 月起，欧盟禁止向消费者出售含铅的锡合金，芬兰和德国的商店就不再卖了，很多人改用蜡或纯锡。这里的锡是画出来的：没有烫手的勺子，也没有铅。</p>`],
 };
 function showLore(id) {
   const [title, en, html] = LORE[id];
@@ -366,7 +374,7 @@ function showLore(id) {
 /** before a reading: a breath, and the question held quietly in mind */
 function askQuestion(id) {
   return new Promise(async (done) => {
-    const tarot = ROOMS[id].kind === 'tarot', how = tarot ? '想好了，就从桌上的牌堆里抽牌' : ROOMS[id].kind === 'study' ? '想好了，就到书案前掷铜钱起一卦，或写下一个字' : ROOMS[id].kind === 'tea' ? '想好了，就到茶桌前翻几张雷诺曼，或喝完一杯茶看看杯底' : ROOMS[id].kind === 'window' ? '想好了，就坐到窗下的矮桌前，请灵摆回答，或在灵摆盘上看看此刻需要什么' : '想好了，就把木筊轻轻掷出';
+    const tarot = ROOMS[id].kind === 'tarot', how = tarot ? '想好了，就从桌上的牌堆里抽牌' : ROOMS[id].kind === 'study' ? '想好了，就到书案前掷铜钱起一卦，或写下一个字' : ROOMS[id].kind === 'tea' ? '想好了，就到茶桌前翻几张雷诺曼，或喝完一杯茶看看杯底' : ROOMS[id].kind === 'window' ? '想好了，就坐到窗下的矮桌前，请灵摆回答，或在灵摆盘上看看此刻需要什么' : ROOMS[id].kind === 'hearth' ? '想好了，就坐到炉火边，从皮袋里摸几颗符文石，或者浇一勺锡，看看接下来的日子' : '想好了，就把木筊轻轻掷出';
     const box = el('div', 'ask', `<div class="inner"><div class="ring"></div><div class="breath">吸 气 · 呼 气</div><h3>默念你的问题</h3><p>闭上眼，慢慢呼吸三次<br>在心里，把想问的事轻轻说一遍</p></div>`);
     const inner = box.querySelector('.inner');
     let q = null;
@@ -501,13 +509,12 @@ function setUI(state) {
     hint.textContent = r.ready ? `点${id === 'tent' ? '帐篷' : '小屋'}走进去 · 拖动可以换个角度看` : '这一间还在装订中 · 先点小屋试试预告的小玩法';
     act.append(button(cur === 1 ? '‹ 合上' : '‹ 上一页', () => goTo(cur - 1)));
     if (r.ready) act.append(button(`走进${r.name}`, () => enterRoom(id), true));
-    else if (TEASE_BTN[id]) act.append(button(TEASE_BTN[id], () => teaserStart(id), true));
     act.append(button(`ⓘ ${LORE[id][0]}`, () => showLore(id)));
     act.append(button(cur === NS ? '回到封面' : '下一页 ›', () => goTo(cur === NS ? 0 : cur + 1)));
   }
   if (state === 'room') {
     const r = ROOMS[roomId], baked = !!rooms[roomId]?.baked, tent = roomId === 'tent';
-    hint.textContent = baked ? (tent ? (roomInside ? '点桌上的牌堆开始占卜 · 拖动可以环顾帐篷' : '左右拖动看看帐篷 · 点桌子，坐到桌前') : roomId === 'study' ? (roomInside ? '掷铜钱起一卦，或写一个字测一测 · 拖动可以环顾书斋' : '左右拖动看看书斋 · 点书案，走到桌前') : roomId === 'tea' ? (roomInside ? '翻雷诺曼，或喝茶看杯底 · 拖动环顾茶室' : '拖动看看茶室 · 点茶桌坐下') : roomId === 'window' ? (roomInside ? '灵摆问答或灵摆盘 · 点窗外的月亮看月相' : '拖动看看小屋 · 点矮桌坐下') : (roomInside ? '点签筒求签，或点木筊掷筊 · 拖动可以环顾殿内' : '左右拖动看看神龛 · 点供桌，走到桌前')) : r.kind === 'jiaobei' ? '默念你的问题，再掷一次木筊' : '点桌上的牌，抽一张';
+    hint.textContent = baked ? (tent ? (roomInside ? '点桌上的牌堆开始占卜 · 拖动可以环顾帐篷' : '左右拖动看看帐篷 · 点桌子，坐到桌前') : roomId === 'study' ? (roomInside ? '掷铜钱起一卦，或写一个字测一测 · 拖动可以环顾书斋' : '左右拖动看看书斋 · 点书案，走到桌前') : roomId === 'tea' ? (roomInside ? '翻雷诺曼，或喝茶看杯底 · 拖动环顾茶室' : '拖动看看茶室 · 点茶桌坐下') : roomId === 'window' ? (roomInside ? '灵摆问答或灵摆盘 · 点窗外的月亮看月相' : '拖动看看小屋 · 点矮桌坐下') : roomId === 'hearth' ? (roomInside ? '卢恩符文或新年浇锡 · 窗外正下着雪' : '拖动看看小屋 · 点炉边的小桌坐下') : (roomInside ? '点签筒求签，或点木筊掷筊 · 拖动可以环顾殿内' : '左右拖动看看神龛 · 点供桌，走到桌前')) : r.kind === 'jiaobei' ? '默念你的问题，再掷一次木筊' : '点桌上的牌，抽一张';
     if (roomId === 'shrine' && lots && lots.phase !== 'ask' && lots.phase !== 'again' && lots.phase !== 'slip') {
       hint.textContent = { shake: '左右滑动摇签筒，或连点「摇签」· 心里想着你的问题', drop: '一支签落了下来……', confirm: '掷筊请示：这一签可是给我的？', granted: '圣筊！去签诗柜取签诗', drawer: '签诗柜里，你的那一格抽屉打开了' }[lots.phase] ?? '';
       if (lots.phase === 'shake') act.append(button('摇签', () => lotsShake(420), true), button('取消', () => { resetLots(); setUI('room'); }));
@@ -532,6 +539,10 @@ function setUI(state) {
       if (windowButtons(act, hint)) return;
       act.append(button('灵摆问答', pendIntro, true), button('灵摆盘', boardIntro));
     }
+    if (roomId === 'hearth' && roomInside) {
+      if (hearthButtons(act, hint)) return;
+      act.append(button('卢恩符文', runeIntro, true), button('新年浇锡', tinIntro));
+    }
     if (r.kind === 'jiaobei' && baked && roomInside) act.append(button('求签', startLots, true), button('掷筊', throwBei));
     else if (r.kind === 'jiaobei' && !baked) act.append(button('掷筊', throwBei, true));
     if (roomId === 'tent' && ritual && ritual.phase !== 'done') {
@@ -542,7 +553,7 @@ function setUI(state) {
     }
     if (baked && tent) act.append(roomInside ? button('开始占卜', showSpreadChooser, true) : button('坐到桌前', roomSit, true));
     if (tent && cards.length) cardButtons(act);
-    if (baked && !tent && !roomInside) act.append(button(roomId === 'study' ? '走到书案前' : roomId === 'tea' ? '坐到茶桌前' : roomId === 'window' ? '坐到窗台边' : '走到供桌前', roomSit, true));
+    if (baked && !tent && !roomInside) act.append(button(roomId === 'study' ? '走到书案前' : roomId === 'tea' ? '坐到茶桌前' : roomId === 'window' ? '坐到窗台边' : roomId === 'hearth' ? '坐到炉火边' : '走到供桌前', roomSit, true));
     if (baked && roomInside) act.append(button('起身看看', roomStand));
     act.append(button(`ⓘ ${LORE[roomId][0]}小知识`, () => showLore(roomId)), button('回到书里', leaveRoom));
   }
@@ -550,9 +561,9 @@ function setUI(state) {
 $('sound').addEventListener('click', () => { soundOn = !soundOn; $('sound').textContent = soundOn ? '声音 · 开' : '声音 · 关'; });
 /** the gentle reminder behind the corner button; the short version stands under the front door */
 const NOTICE = [
-  '这里的塔罗、掷筊、灵签、六爻、测字、雷诺曼、茶叶占卜、灵摆等，是东西方民俗文化的趣味科普演示。抽牌、掷筊、求签、起卦的结果、杯里茶叶的形状和灵摆的摆动由程序随机生成，测字的解读按字形预先写好，都不具备预测功能。',
+  '这里的塔罗、掷筊、灵签、六爻、测字、雷诺曼、茶叶占卜、灵摆、卢恩符文、新年浇锡等，是东西方民俗文化的趣味科普演示。抽牌、掷筊、求签、起卦的结果、杯里茶叶的形状、灵摆的摆动、抽出的符文和浇出的锡由程序随机生成，测字的解读按字形预先写好，都不具备预测功能。',
   '内容仅供休闲娱乐，不构成医疗、法律、投资或任何人生决策建议。',
-  '神龛、书斋、茶室、窗台小屋、签诗与牌面均为原创艺术创作，不代表任何宗教、庙宇或神明；六爻的卦名与象辞节录自《周易》（公有领域）。',
+  '神龛、书斋、茶室、窗台小屋、炉边小屋、签诗与牌面均为原创艺术创作，不代表任何宗教、庙宇或神明；六爻的卦名与象辞节录自《周易》（公有领域）。',
   '页面不收集、不上传任何个人信息。',
   '小屋里的「人生海海」霓虹灯牌，是向五月天《人生海海》致敬的粉丝设计，与五月天及其唱片公司无关，相关权利归原权利人所有。',
   '命运掌握在自己手中，请保持理性，自主抉择。如果你正经历困扰，请向信任的人或专业人士寻求帮助。',
@@ -766,7 +777,7 @@ async function boot() {
   if (m || location.hash === '#book' || location.hash === '#hut') $('intro').hidden = true;
   setUI(mode === 'hut' ? 'hut' : cur === 0 ? 'closed' : 'open');
   if (mode === 'hut' && !$('intro').hidden) $('actions').innerHTML = '';
-  if (DEV) window.__book = { goTo, openBook, backToHut, enterRoom, leaveRoom, tentSit, tentStand, roomSit, roomStand, preloadBakedTent, preloadBaked, get inside() { return roomInside; }, startLots, lotsShake, lotsConfirm: (force) => { if (force) forceBei = 'holy'; lotsAsk(); }, get lots() { return lots; }, get look() { return look; }, startRitual, ritualSwipe, chooseCut, showSpreadChooser, pickSpread, flipSpreadCard, get cards() { return cards; }, get ritual() { return ritual; }, setSample: (fn) => { samplePromise = Promise.resolve(fn); }, setQuestion: (q) => { userQuestion = q; }, showRoom: (id) => { showRoom(id); busy = false; setUI('room'); }, drawCards, flipCard, throwBei, readGua: (values) => showGua(castGua(values)), ensureSpread, spreads, user, rig, tweenRig, props: PROPS, tex3: () => Object.fromEntries(['wall', 'velvet', 'skirt', 'clothTop', 'roundRug', 'sunHanging', 'moonHanging', 'moonFace', 'sign', 'mat', 'valance', 'runner'].map((k) => [k, T3[k]().toDataURL('image/png')]).concat([['cardBack', catTarotBack(300).toDataURL('image/png')], ['card0', catTarot(0, 300).toDataURL('image/png')], ['card2', catTarot(2, 300).toDataURL('image/png')], ['card17', catTarot(17, 300).toDataURL('image/png')]])), catCard: (k, w = 300) => catTarot(k, w).toDataURL('image/png'), cardSamples: () => [catTarot(0, 600), catTarot(2, 600), catTarot(17, 600), catTarotBack(600)].map((c) => c.toDataURL('image/png')), get camera() { return camera; }, pendIntro, pendCalibrate, pendShowNo, pendAsk, boardIntro, pendSpin, showMoon, endPend, get pend() { return pend; }, forcePend: (k) => { pendForce = k; }, moonAge, moonPhase, get rooms() { return rooms; }, get scenes() { return [scene, ...Object.values(rooms).map((r) => r.scene)]; }, get state() { return { cur, mode, busy, turning: !!turn, roomId }; } };
+  if (DEV) window.__book = { goTo, openBook, backToHut, enterRoom, leaveRoom, tentSit, tentStand, roomSit, roomStand, preloadBakedTent, preloadBaked, get inside() { return roomInside; }, startLots, lotsShake, lotsConfirm: (force) => { if (force) forceBei = 'holy'; lotsAsk(); }, get lots() { return lots; }, get look() { return look; }, startRitual, ritualSwipe, chooseCut, showSpreadChooser, pickSpread, flipSpreadCard, get cards() { return cards; }, get ritual() { return ritual; }, setSample: (fn) => { samplePromise = Promise.resolve(fn); }, setQuestion: (q) => { userQuestion = q; }, showRoom: (id) => { showRoom(id); busy = false; setUI('room'); }, drawCards, flipCard, throwBei, readGua: (values) => showGua(castGua(values)), ensureSpread, spreads, user, rig, tweenRig, props: PROPS, tex3: () => Object.fromEntries(['wall', 'velvet', 'skirt', 'clothTop', 'roundRug', 'sunHanging', 'moonHanging', 'moonFace', 'sign', 'mat', 'valance', 'runner'].map((k) => [k, T3[k]().toDataURL('image/png')]).concat([['cardBack', catTarotBack(300).toDataURL('image/png')], ['card0', catTarot(0, 300).toDataURL('image/png')], ['card2', catTarot(2, 300).toDataURL('image/png')], ['card17', catTarot(17, 300).toDataURL('image/png')]])), catCard: (k, w = 300) => catTarot(k, w).toDataURL('image/png'), cardSamples: () => [catTarot(0, 600), catTarot(2, 600), catTarot(17, 600), catTarotBack(600)].map((c) => c.toDataURL('image/png')), get camera() { return camera; }, pendIntro, pendCalibrate, pendShowNo, pendAsk, boardIntro, pendSpin, showMoon, endPend, get pend() { return pend; }, forcePend: (k) => { pendForce = k; }, moonAge, moonPhase, runeIntro, runeDraw, endRunes, tinIntro, tinMelt, tinPour, tinLift, endTin, get rune() { return rune; }, get tin() { return tin; }, forceRunes: (o) => { runeForce = o; }, forceTin: (si, fi) => { tinForce = [si, fi]; }, get rooms() { return rooms; }, get scenes() { return [scene, ...Object.values(rooms).map((r) => r.scene)]; }, get state() { return { cur, mode, busy, turning: !!turn, roomId }; } };
   // before the door opens, a little at a time: compile every material, send every texture to the GPU, then draw the room
   // once from where the walk in starts and once from where it ends, so it shows without a stall
   for (const o of [...scene.children]) { renderer.compile(o, camera, scene); await slice(); }

@@ -1,6 +1,7 @@
 // Checks the texts of the readings: the tent's tarot (src/_cards.txt, src/_cards_major.txt), the shrine's slips
 // (src/_lingqian.txt), the study's 六爻 (src/_liuyao.txt) and 测字 (src/_cezi.txt, src/_cezi_table.txt), and the tea table's
-// 雷诺曼 and 茶叶占卜 (src/_lenormand.txt), and the moonlit window's 灵摆 and 月相 (src/_pendulum.txt). Those files are the one source the page is built from, and a proofreading table
+// 雷诺曼 and 茶叶占卜 (src/_lenormand.txt), the moonlit window's 灵摆 and 月相 (src/_pendulum.txt), and the hearth's 卢恩符文 and
+// 新年浇锡 (src/_runes.txt). Those files are the one source the page is built from, and a proofreading table
 // should be made from them too, never copied by hand.
 // Usage: node tools/check_content.mjs           -> the checks; exits 1 if one fails
 //        node tools/check_content.mjs --json    -> also prints every text as JSON, for making a proofreading table
@@ -13,6 +14,7 @@ const array = (file, name) => { const t = src(file), a = t.indexOf(`const ${name
 const MAJOR = array('_cards.txt', 'MAJOR'), MAJOR_REV = array('_cards_major.txt', 'MAJOR_REV'), ROMAN = array('_cards.txt', 'ROMAN');
 const { LINGQIAN } = new Function(`${src('_lingqian.txt')}\nreturn { LINGQIAN };`)();
 const PD = new Function(`${src('_pendulum.txt')}\nreturn { PENDULUM_UI, PENDULUM_ANSWERS, PENDULUM_BOARD, MOON_PHASES };`)();
+const RN = new Function(`${src('_runes.txt')}\nreturn { RUNE_UI, RUNE_SPREADS, RUNES_FUTHARK, NORNS, RUNE_CAST, TIN_UI, TIN_SHAPES, TIN_FINISH };`)();
 const LN = new Function(`${src('_lenormand.txt')}\nreturn { LENORMAND, LN_SPREADS, LN_SIDES, TEA_SYMBOLS, TEA_ZONES, TEA_SIDES };`)();
 let failed = 0;
 const fail = (msg) => { failed++; console.log('  ✗ ' + msg); };
@@ -96,6 +98,43 @@ for (const d of dupes(pdLines)) fail(`a line is used twice: ${d}`);
 for (const [k, t] of Object.entries(PENDULUM_UI)) if (typeof t === 'string' && !t) fail(`prompt ${k} is empty`);
 console.log(`  ${Object.values(PENDULUM_ANSWERS).reduce((n, a) => n + a[2].length, 0)} answers, ${words.length} board words, ${MOON_PHASES.length} moon phases`);
 
+console.log('卢恩 · 浇锡');
+const { RUNE_UI, RUNE_SPREADS, RUNES_FUTHARK, NORNS, RUNE_CAST, TIN_UI, TIN_SHAPES, TIN_FINISH } = RN;
+const rnLines = [];
+if (RUNES_FUTHARK.length !== 24) fail(`${RUNES_FUTHARK.length} runes, not 24`);
+// a rune that reads the same upside down: its strokes, turned half round the middle of the 10 × 16 grid, are the same strokes
+const segs = (strokes, turn) => strokes.flatMap((st) => st.slice(0, -2).map((_, i) => i % 2 ? null : [st[i], st[i + 1], st[i + 2], st[i + 3]]).filter(Boolean))
+  .map(([a, b, c, d]) => (turn ? [10 - a, 16 - b, 10 - c, 16 - d] : [a, b, c, d])).map(([a, b, c, d]) => (a < c || (a === c && b < d) ? [a, b, c, d] : [c, d, a, b]).join(',')).sort().join(' ');
+const same = [];
+for (const [name, sound, meaning, key, image, reading, lines, phrase, strokes] of RUNES_FUTHARK) {
+  if (!name || !sound || !meaning || [...key].length !== 2 || !ends(image) || !ends(reading) || lines.length < 3 || !phrase || /[，。；：？！]$/.test(phrase)) fail(`rune ${name}: a part missing or unfinished`);
+  for (const t of [reading, ...lines]) { if (!ends(t)) fail(`rune ${name}: unfinished 「${t}」`); if (BANNED.test(t)) fail(`rune ${name}: a verdict or a promise 「${t}」`); rnLines.push(t); }
+  for (const st of strokes) if (st.length < 4 || st.length % 2 || st.some((v, i) => v < 0 || v > (i % 2 ? 16 : 10))) fail(`rune ${name}: a stroke off the grid`);
+  if (segs(strokes, false) === segs(strokes, true)) same.push(name);
+}
+// the knowledge card says nine runes look the same upside down, and these are the nine: a changed stroke must change it too
+if (same.join(' ') !== 'Gebo Hagalaz Naudiz Isa Jera Eihwaz Sowilo Ingwaz Dagaz') fail(`the runes that read the same upside down are now ${same.join(' ')}; the knowledge card names nine`);
+for (const d of dupes(RUNES_FUTHARK.map((r) => r[0]))) fail(`two runes are called ${d}`);
+for (const d of dupes(RUNES_FUTHARK.map((r) => r[3]))) fail(`two runes share the keyword ${d}`);
+for (const d of dupes(RUNES_FUTHARK.map((r) => r[7]))) fail(`two runes share the phrase ${d}`);
+if (NORNS.length !== 3 || NORNS.some((n) => n.length !== 4 || !n[3].includes('X'))) fail('the three Norns: a name, a name in Old Norse, a gloss and a clause with X');
+for (const [k, v] of Object.entries(RUNE_CAST)) if (!(Array.isArray(v) ? v[0] && v[1] : ends(v))) fail(`cast ${k}: missing or unfinished`);
+for (const [k, v] of Object.entries(RUNE_SPREADS)) if (v.length !== 3 || !ends(v[2])) fail(`spread ${k}: a count, a name and a finished prompt`);
+if (TIN_SHAPES.length < 30) fail(`only ${TIN_SHAPES.length} tin shapes`);
+for (const [name, shape, line] of TIN_SHAPES) { if (!name || !shape || !ends(line)) fail(`tin ${name}: a part missing`); if (BANNED.test(line)) fail(`tin ${name}: a verdict or a promise`); rnLines.push(line); }
+for (const d of dupes(TIN_SHAPES.map((t) => t[0]))) fail(`two tin shapes are called ${d}`);
+for (const d of dupes(TIN_SHAPES.map((t) => t[1]))) fail(`two tin shapes are drawn as ${d}`);
+for (const [name, shape] of TIN_SHAPES) if (!/^[a-z]+$/.test(shape)) fail(`tin ${name}: the outline key ${shape} is not a plain word`);
+// every shape needs an outline to be cast and to throw its shadow (TIN_ART in src/_hearth.js, some borrowed from the tea leaves)
+const artSrc = src('_hearth.js'), art = artSrc.slice(artSrc.indexOf('const TIN_ART'), artSrc.indexOf('})();', artSrc.indexOf('const TIN_ART')));
+const artKeys = new Set([...art.matchAll(/\b(\w+): (?:T\.\w+|\{)/g)].map((m) => m[1]));
+for (const [name, shape] of TIN_SHAPES) if (!artKeys.has(shape)) fail(`tin ${name}: no outline ${shape} in TIN_ART`);
+for (const k of artKeys) if (!TIN_SHAPES.some((t) => t[1] === k)) fail(`TIN_ART has ${k}, which no tin shape uses`);
+for (const [name, line] of TIN_FINISH) { if (!name || !ends(line)) fail(`tin finish ${name}: missing or unfinished`); rnLines.push(line); }
+for (const d of dupes(rnLines)) fail(`a line is used twice: ${d}`);
+for (const [k, t] of Object.entries({ ...RUNE_UI, ...TIN_UI })) if (!ends(t) && !t.endsWith('——')) fail(`prompt ${k} is empty or unfinished`);   // the tin's lead runs on into the reading
+console.log(`  ${RUNES_FUTHARK.length} runes (${same.length} the same upside down), ${RUNES_FUTHARK.reduce((n, r) => n + r[6].length, 0)} short lines, ${TIN_SHAPES.length} tin shapes, ${TIN_FINISH.length} finishes`);
+
 console.log('六爻');
 const { GUA, TRIGRAM } = C;
 if (GUA.length !== 64) fail(`${GUA.length} hexagrams, not 64`);
@@ -157,6 +196,9 @@ if (process.argv.includes('--json')) {
     pendulumUi: PENDULUM_UI, pendulumAnswers: PENDULUM_ANSWERS,
     board: PENDULUM_BOARD.map(([dir, season, theme, line, cells]) => ({ dir, season, theme, line, cells: cells.map(([word, l]) => ({ word, line: l })) })),
     moon: MOON_PHASES.map(([name, days, sky, folk, line]) => ({ name, days, sky, folk, line })),
+    runeUi: RUNE_UI, runeSpreads: RUNE_SPREADS, norns: NORNS, runeCast: RUNE_CAST,
+    runes: RUNES_FUTHARK.map(([name, sound, meaning, key, image, reading, lines, phrase, strokes], i) => ({ no: i + 1, name, sound, meaning, key, image, reading, lines, phrase, strokes })),
+    tinUi: TIN_UI, tin: TIN_SHAPES.map(([name, shape, line]) => ({ name, shape, line })), tinFinish: TIN_FINISH.map(([name, line]) => ({ name, line })),
     gua: GUA.map(([no, name, up, lo, image, key, line, note]) => ({ no, name, full: C.guaFullName(GUA[no - 1]), up, low: lo, image, key, line, note: note || '' })),
     cezi: chars.map((ch) => ({ ch, parts: CEZI[ch][0], line: CEZI[ch][1], pick: picks.includes(ch), heavy: CEZI_HEAVY.includes(ch) })),
     picks: CEZI_PICKS,

@@ -18,7 +18,7 @@ const ROOMS = {
   study:  { name: '文房书案',     methods: '测字 · 六爻', kind: 'study',   ready: true },
   tea:    { name: '维多利亚茶桌', methods: '雷诺曼 · 茶叶占卜', kind: 'tea', ready: true },
   window: { name: '月下窗台',     methods: '灵摆问答 · 灵摆盘', kind: 'window', ready: true },
-  hearth: { name: '北欧炉边',     methods: '卢恩符文' },
+  hearth: { name: '北欧炉边',     methods: '卢恩符文 · 新年浇锡', kind: 'hearth', ready: true },
 };
 const ORDER = Object.keys(ROOMS);   // spread k (1…6) is ORDER[k - 1]
 const NS = ORDER.length;            // leaves: 0 is the front cover with half the pages, 1…5 are single boards
@@ -76,6 +76,11 @@ function popDepth(U, map) {
   m.customProgramCacheKey = () => 'popDepth';
   return m;
 }
+/** a cone with every face: three r169 drops half of each band but the tip's when the top radius is 0 (the witch's hat came out
+ *  latticed), so the tip is made a hair wide */
+function fullCone(r, h, radial, bands, open = false) { return new THREE.CylinderGeometry(1e-4, r, h, radial, bands, open); }
+/** a painted sheet laid over a solid ground, so nothing shows through where the paint is thin (roofs are never holed) */
+function solidSheet(c, ground) { const o = canvas(c.width, c.height), g = o.getContext('2d'); g.fillStyle = ground; g.fillRect(0, 0, o.width, o.height); g.drawImage(c, 0, 0); return o; }
 function popTex(c, rx = 1, ry = 1) {
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
@@ -314,7 +319,7 @@ function house(P, s) {
   }
   if (s.roof === 'pyramid') {
     const rx = w / 2 + s.over, rz = d / 2 + s.over;
-    P.piece(new THREE.ConeGeometry(Math.SQRT2 * rx, s.rise, 4, 1, true, Math.PI / 4), popTex(F.roof(), 4, 2), { ...o, flat: true, m: mat4(V(x, h + s.rise / 2, z), 0, 0, 0, 1, 1, rz / rx) });
+    P.piece(new THREE.ConeGeometry(Math.SQRT2 * rx, s.rise, 4, 1, true, Math.PI / 4), popTex(solidSheet(F.roof(), '#2f3f6e'), 4, 2), { ...o, flat: true, m: mat4(V(x, h + s.rise / 2, z), 0, 0, 0, 1, 1, rz / rx) });
     P.piece(new THREE.SphereGeometry(0.016, 10, 8), 0xd9a441, { ...o, m: mat4(V(x, h + s.rise + 0.012, z)) });
   }
   if (s.chimney) {
@@ -346,10 +351,10 @@ function teaHouse(P, x, z, delay = 0.24) {
 function witchTower(P, x, z, delay = 0.24) {
   const o = { delay, mode: 1, tag: 'window' };
   house(P, { id: 'window', x: x - 0.07, z, w: 0.34, h: 0.21, d: 0.26, roof: 'pyramid', rise: 0.18, over: 0.035, doorX: 0.25, glows: [[-0.2, 0.12, 0.16]], delay });
-  const tx = x + 0.18, tz = z + 0.07, navy = popTex(FRONTS.window.roof(), 6, 2);
-  P.piece(new THREE.CylinderGeometry(0.11, 0.125, 0.44, 12, 1, true), popTex(towerTex(), 2, 1), { ...o, m: mat4(V(tx, 0.22, tz)) });
+  const tx = x + 0.18, tz = z + 0.07, navy = popTex(solidSheet(HOUSE_TEX.tiles('#2f3f6e', '#5a6fa8', 546, false), '#2f3f6e'), 6, 2);   // no stars: on a cone they squeeze into slivers that look like holes
+  P.piece(new THREE.CylinderGeometry(0.11, 0.125, 0.44, 24, 1, true), popTex(towerTex()), { ...o, m: mat4(V(tx, 0.22, tz)) });
   P.piece(new THREE.CylinderGeometry(0.17, 0.17, 0.014, 16), 0x2f3f6e, { ...o, m: mat4(V(tx, 0.447, tz)) });
-  P.piece(new THREE.ConeGeometry(0.15, 0.36, 12, 4, true), navy, { ...o, m: mat4(V(tx + 0.02, 0.63, tz), 0, 0, -0.1) });
+  P.piece(fullCone(0.15, 0.36, 12, 4, true), navy, { ...o, m: mat4(V(tx + 0.02, 0.63, tz), 0, 0, -0.1) });
   P.piece(new THREE.PlaneGeometry(0.06, 0.06), popTex(starCard(590, false)), { ...o, m: mat4(V(tx + 0.04, 0.83, tz)) });
   P.glow(tx + 0.04, 0.83, tz + 0.005, 0.08);
   [[0, 0.36], [0.9, 0.3], [-0.9, 0.24]].forEach(([a, y]) => P.glow(tx + Math.sin(a) * 0.13, y, tz + Math.cos(a) * 0.13, 0.08));
@@ -552,7 +557,6 @@ function prefetch() {
 /** each frame: magic for whichever spread lies open */
 let starClock = 4;
 function updateSpreadMagic(dt, t) {
-  updateTeaser(dt, t);
   for (const k in spreads) {
     const P = spreads[k].P, open = P.group.visible ? THREE.MathUtils.smoothstep(P.U.uU.value, 0.9, 1) : 0;
     P.fade = open;
@@ -693,9 +697,11 @@ function fitDist(fov) {
 }
 function home() {
   if (mode === 'hut') {
-    const portrait = camera.aspect < 0.85;
-    // a phone held upright sees a narrow slice of the room: let it turn further (about 41° either way, 26° on wide screens)
-    return { tx: 0.3, ty: 3.0, tz: -2.5, dist: portrait ? 17 : 15, yaw: user.yaw * (portrait ? 0.96 : 0.6), pitch: THREE.MathUtils.clamp(0.1 + user.pitch * 0.5, -0.05, 0.5), fov: hutFov() };
+    const portrait = camera.aspect < 0.85, yaw = user.yaw * (portrait ? 0.96 : 0.6);
+    // a phone held upright sees a narrow slice of the room: let it turn further (about 60° either way, 26° on wide screens),
+    // coming in closer the further it turns so it stays inside the side walls (x = ±11) and sees past the desk
+    const dist = portrait ? Math.min(17, 10.2 / Math.max(0.01, Math.abs(Math.sin(yaw)))) : 15;
+    return { tx: 0.3, ty: 3.0, tz: -2.5, dist, yaw, pitch: THREE.MathUtils.clamp(0.1 + user.pitch * 0.5, -0.05, 0.5), fov: hutFov() };
   }
   const closed = cur === 0 ? (turn ? 1 - turn.phi / Math.PI : 1) : 0, portrait = camera.aspect < 0.85, fov = bookFov();
   return {
@@ -725,59 +731,3 @@ function updateRig(dt) {
   if (Math.abs(camera.fov - rig.fov) > 0.01) { camera.fov = rig.fov; camera.updateProjectionMatrix(); }
 }
 
-/* ---------- a taste of the pages still being bound: one small thing to try on each ---------- */
-/*
- * Tapping the little house on an unfinished page (or its button) plays a short preview on the page itself and
- * says what it showed: a rune stone.
- * What lands is what the panel reports.
- */
-let teaser = null;
-// runes drawn as strokes on a 10 × 16 grid; only ones without a modern history of misuse
-const RUNES = [['Fehu', '丰盛', '付出会有回报，丰收在路上。', [[3, 1, 3, 15], [3, 5, 8, 2], [3, 9, 8, 6]]], ['Uruz', '力量', '你身上有股韧劲，可以扛住。', [[2, 15, 2, 1, 8, 5, 8, 15]]],
-  ['Ansuz', '讯息', '留意别人的一句话，里面有答案。', [[3, 1, 3, 15], [3, 2, 8, 5], [3, 6, 8, 9]]], ['Raidho', '旅程', '出发吧，路会在脚下展开。', [[3, 1, 3, 15], [3, 1, 8, 4, 3, 8, 8, 15]]],
-  ['Kenaz', '灵感', '一点火光就够照亮下一步。', [[8, 1, 3, 8, 8, 15]]], ['Gebo', '馈赠', '给出去的善意，会以别的样子回来。', [[2, 2, 8, 14], [8, 2, 2, 14]]],
-  ['Wunjo', '喜悦', '允许自己开心一点。', [[3, 1, 3, 15], [3, 1, 8, 4, 3, 7]]], ['Nauthiz', '耐心', '需要的东西会来，再等一等。', [[5, 1, 5, 15], [2, 5, 8, 10]]],
-  ['Isa', '静止', '先停下来，冰化之前别急着走。', [[5, 1, 5, 15]]], ['Jera', '收获', '时候到了，自然有结果。', [[4, 1, 1, 5, 4, 9], [6, 7, 9, 11, 6, 15]]],
-  ['Berkano', '新生', '新的开始正在萌芽。', [[3, 1, 3, 15], [3, 1, 8, 4, 3, 8, 8, 12, 3, 15]]], ['Ehwaz', '同行', '有人和你一起走，会更稳。', [[2, 15, 2, 1, 5, 5, 8, 1, 8, 15]]],
-  ['Mannaz', '自我', '好好认识自己，答案在里面。', [[2, 15, 2, 1, 8, 8], [8, 15, 8, 1, 2, 8]]], ['Laguz', '直觉', '顺着水流，相信直觉。', [[3, 1, 3, 15], [3, 1, 8, 5]]],
-  ['Ingwaz', '孕育', '安静地酝酿，时候到了自会开花。', [[5, 3, 8, 8, 5, 13, 2, 8, 5, 3]]], ['Dagaz', '破晓', '天快亮了，转机就在眼前。', [[2, 2, 2, 14, 8, 2, 8, 14, 2, 2]]]];
-const TEASE_BTN = { hearth: '摸一颗符文石' };
-const TEASE_NOTE = '<div class="note">这一间还在装订中，下次翻开时就能完整地玩 · 仅供娱乐</div>';
-function teaserStart(id) {
-  const P = spreads[cur]?.P;
-  if (!P || P.id !== id || turn || busy || !TEASE[id]) return;
-  teaserClear(); hidePanel(); sfx('pop');
-  const g = new THREE.Group(); P.group.add(g);
-  teaser = { id, P, g, t: 0, done: false, at: P.door.clone().add(V(0, 0, 0.14)) };
-  TEASE[id].make(teaser);
-}
-function teaserClear() { if (!teaser) return; teaser.P.group.remove(teaser.g); teaser.g.traverse((o) => o.geometry?.dispose()); teaser = null; }
-function updateTeaser(dt, t) {
-  if (!teaser) return;
-  if (mode !== 'book' || turn || spreads[cur]?.P !== teaser.P) { teaserClear(); return; }
-  teaser.t += dt; TEASE[teaser.id].tick(teaser, dt, t);
-  if (!teaser.done && teaser.t > teaser.dur) { teaser.done = true; TEASE[teaser.id].reveal(teaser); }
-}
-const teaseAgain = (id) => [['再来一次', () => teaserStart(id), true], ['收起', hidePanel]];
-const TEASE = {
-  hearth: {
-    make(T) {
-      T.rune = RUNES[Math.floor(Math.random() * RUNES.length)];
-      const c = canvas(160, 224), g = c.getContext('2d'); g.strokeStyle = '#ffd27a'; g.lineWidth = 12; g.lineCap = 'round'; g.lineJoin = 'round'; g.shadowColor = '#ffb040'; g.shadowBlur = 14;
-      for (const st of T.rune[3]) { g.beginPath(); for (let i = 0; i < st.length; i += 2) { const x = 30 + st[i] * 10, y = 32 + st[i + 1] * 10; i ? g.lineTo(x, y) : g.moveTo(x, y); } g.stroke(); }
-      const stone = new THREE.Mesh(new RoundedBoxGeometry(0.1, 0.14, 0.035, 3, 0.012), new THREE.MeshStandardMaterial({ color: 0x8a96a2, roughness: 0.85 }));
-      const glyph = new THREE.Mesh(new THREE.PlaneGeometry(0.075, 0.105), new THREE.MeshBasicMaterial({ map: tex(c), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })); glyph.position.z = 0.0185; stone.add(glyph);
-      const g2 = new THREE.Group(); g2.add(stone); g2.position.copy(T.at); T.g.add(g2); T.stone = g2; T.glyph = glyph; T.dur = 1.6; sfx('soft');
-    },
-    tick(T, dt, t) {
-      const k = Math.min(1, T.t / 1.3), e = easeIO(k), g = T.stone;
-      g.position.copy(T.at).add(V(0, 0.08 + 0.18 * e, 0));
-      const face = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(camera.position, g.getWorldPosition(tmpV), camera.up));
-      const parentQ = T.g.getWorldQuaternion(new THREE.Quaternion()).invert();
-      g.quaternion.copy(parentQ.multiply(face)).multiply(new THREE.Quaternion().setFromAxisAngle(V(0, 1, 0), (1 - e) * Math.PI * 2));
-      T.glyph.material.opacity = 0.4 + 0.6 * e * (0.8 + 0.2 * Math.sin(t * 4));
-      if (Math.random() < dt * 18) sparks.emit(g.getWorldPosition(tmpV), tmpW.set(rnd(-0.04, 0.04), rnd(0.02, 0.07), rnd(-0.04, 0.04)), { life: 0.9, size: 0.012, color: GOLD });
-    },
-    reveal(T) { const [latin, name, line] = T.rune; showPanel(`<span class="seal">符</span><small>预告 · 卢恩符文 · ${latin}</small><h3>${name}</h3><p>${line}</p>${TEASE_NOTE}`, teaseAgain('hearth')); },
-  },
-};

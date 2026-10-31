@@ -22,7 +22,7 @@ A pop-up book of fortune-telling rooms, in the browser. Step through a door floa
 ## What's in v1.1
 
 - **The door**: a 3D door that swings open onto a swirling star portal.
-- **The Magic House**: things to poke at, including a gramophone playing a waltz, a cat with four moods, the fire, an hourglass, a sunburst mirror, a telescope, a treasure chest and a wishing tree. Each one's little star goes out once you've tried it.
+- **The Magic House**: things to poke at, including a gramophone playing a waltz, a little white cat with four moods, the fire, an hourglass, a sunburst mirror, a telescope, a treasure chest and a wishing tree. Each one's little star goes out once you've tried it.
 - **The pop-up book**: six spreads; turn the pages and drag to look around.
   - **Page 1 · The Starry Tent** (tarot): swipe to shuffle, cut the deck by hand, then choose a single card, a three-card past–present–future spread or a six-card cross. Cards can come up reversed. The 22 Major Arcana are drawn as cats in a Mucha style, after the compositions of the 1909 public-domain deck.
   - **Page 2 · The Eastern Shrine** (moon blocks and fortune slips): a little temple in the Quanzhou style. Throw the moon blocks, or draw a lot: shake the cup until a stick falls, ask the blocks whether it is yours, then take its poem from the slip cabinet. The sixty poems were written for this book and are attributed to no deity.
@@ -36,7 +36,9 @@ A pop-up book of fortune-telling rooms, in the browser. Step through a door floa
     - Pendulum: first ask it to show its "yes" and its "no" (calibrating), then hold a yes-or-no question in mind.
     - Pendulum board: twelve cells laid out by the four seasons and four quarters of the Chinese tradition; wherever the pendulum settles, read the word for what this moment needs.
     - The moon in the round window is tonight's phase, worked out from the date and time; tap it to learn about that phase.
-  - **Page 6** (the Nordic Hearth): still being bound, with a small preview to try: a rune stone.
+  - **Page 6 · The Nordic Hearth** (runes and New Year's tin): a log cabin on a snowed-in island under the northern lights, the fire lit, a white cloth on the low table by it and the pouch of rune stones.
+    - Runes: all 24 of the Elder Futhark, never read reversed. Draw one; draw three, read by the three Norns as what has happened, what is happening and what is to come; or cast nine on the cloth and read the ones face up by where they land, in the middle, round it or at the edge.
+    - New Year's tin: an old Finnish New Year's Eve custom. Melt a little horseshoe of tin over the fire, pour it into cold water, hold it up to the candle and see what its shadow on the white chimney breast looks like.
 - Works on phones in portrait.
 
 ## Run it locally
@@ -55,13 +57,13 @@ Then open <http://localhost:8000/>. Add `?dev` to the address for a frame counte
 | Path | What's there |
 |---|---|
 | `public/` | Everything that gets deployed: `index.html`, the deck gallery `cat-tarot-deck.html`, `404.html`, Cloudflare's `_headers`, the site icons (`favicon.*`, `apple-touch-icon.png`, `icon-*.png`, `site.webmanifest`) and the link-preview images (`og-image.jpg` 1200×630, `share-square.jpg` 600×600) |
-| `public/tent/`, `public/shrine/`, `public/study/`, `public/tea/`, `public/window/` | The five rooms baked in Blender for real-time 3D: glTF description, base64 geometry and two light atlases each |
+| `public/tent/`, `public/shrine/`, `public/study/`, `public/tea/`, `public/window/`, `public/hearth/` | The six rooms baked in Blender for real-time 3D: glTF description, base64 geometry and two light atlases each |
 | `public/deck/` | The 22 card faces and the card back |
 | `public/vendor/` | three.js r169 and the web-font subsets, hosted with the site (with their licenses) |
 | `src/` | Page source: shell and styles, procedurally painted textures and cards, scenes and interaction |
 | `build.py` | Stitches `src/` into `public/index.html`, with the page's script in `public/js/app.<hash>.js` |
 | `tools/` | Scripts that fetch three.js (`fetch_three.py`) and the web-font subsets (`fetch_fonts.py`) again; checks for font coverage (`check_fonts.mjs`) and for the reading texts (`check_content.mjs`); `cezi_table.py`, which builds the radical and stroke table for 测字 from Unihan |
-| `blender/` | Modelling, texture-painting and baking scripts for the tent, the shrine, the study, the tea room and the window cottage, with their textures and open font subsets |
+| `blender/` | Modelling, texture-painting and baking scripts for the tent, the shrine, the study, the tea room, the window cottage and the hearth cabin, with their textures and open font subsets |
 | `docs/` | The README hero and the social preview image |
 
 ## Build
@@ -73,11 +75,11 @@ python3 build.py --check      # also writes src/.check.mjs for: node --check src
 
 The web fonts hold only the characters the pages use. If `build.py` reports characters missing from the subsets after you change the text, run `python3 tools/fetch_fonts.py` to regenerate `public/vendor/fonts/`, then build again; `node tools/check_fonts.mjs` reads the glyphs actually in the font files and lists any character that would still fall back to a system font.
 
-The tarot, fortune-slip, I Ching, 测字, Lenormand, tea-leaf, pendulum and moon-phase texts live in one place each, in `src/`. After changing them, `node tools/check_content.mjs` checks their form, repeats and wording; with `--json` it also prints every text, for making a proofreading table.
+The tarot, fortune-slip, I Ching, 测字, Lenormand, tea-leaf, pendulum, moon-phase, rune and tin texts live in one place each, in `src/`. After changing them, `node tools/check_content.mjs` checks their form, repeats and wording; with `--json` it also prints every text, for making a proofreading table.
 
 ## 3D scenes (optional)
 
-All five rooms are modelled from scratch by Blender 5.2 Python scripts and baked in Cycles into two light atlases:
+All six rooms are modelled from scratch by Blender 5.2 Python scripts and baked in Cycles into two light atlases:
 
 ```bash
 blender/pipeline_tent_web.sh     # the Starry Tent
@@ -85,9 +87,10 @@ blender/pipeline_shrine.sh       # the Eastern Shrine (textures painted first by
 blender/pipeline_study.sh        # the Scholar's Desk (textures painted first by blender/study_tex.py with Pillow)
 blender/pipeline_tea.sh          # the Victorian Tea Table (textures painted first by blender/tea_tex.py with Pillow)
 blender/pipeline_window.sh       # the Moonlit Window (textures painted first by blender/window_tex.py with Pillow)
+blender/pipeline_hearth.sh       # the Nordic Hearth (textures painted first by blender/hearth_tex.py with Pillow)
 ```
 
-Each run gives its output a new time-stamped name, so browsers never show a stale cached scene. It then updates the names in `src/_rooms.js`, `src/_study.js`, `src/_tea.js` or `src/_window.js` and rebuilds the page. Lettering on the textures uses the open fonts hosted with the site (`blender/webfont.py`). Exported JPEGs are stripped of metadata.
+Each run gives its output a new time-stamped name, so browsers never show a stale cached scene. It then updates the names in `src/_rooms.js`, `src/_study.js`, `src/_tea.js`, `src/_window.js` or `src/_hearth.js` and rebuilds the page. Lettering on the textures uses the open fonts hosted with the site (`blender/webfont.py`). Exported JPEGs are stripped of metadata.
 
 ## Deploy
 
@@ -122,6 +125,7 @@ Each run gives its output a new time-stamped name, so browsers never show a stal
 
 ## Versions
 
+- **v1.3.0** (2026-10-31): page 6, the Nordic Hearth (runes and New Year's tin), is fully playable, with the northern lights moving and snow falling outside; all six rooms of the book are open, and page 6's preview is gone; the tower on page 5 has its whole cone back and its windows and stones are no longer stretched; the Magic House's cat is now a fluffy little white cat asleep in a bed between the fireplace and the bookcase, who lifts her head and opens her odd eyes, one blue and one amber, when you tap her, and can be seen on phones by turning the view.
 - **v1.2.0** (2026-10-30): page 5, the Moonlit Window (pendulum and pendulum board), is fully playable, with tonight's moon phase in its window.
 - **v1.1.0** (2026-10-29): page 3, the Scholar's Desk (I Ching coins and character reading), and page 4, the Victorian Tea Table (Lenormand cards and tea leaves), are fully playable; every tarot card gains a keyword and every fortune slip a one-line gist, with revised card meanings, poems and readings; the web fonts now hold every character the pages use and any 测字 might write; the rooms open on matching views.
 - **v1.0.0** (2026-10): first release. The Magic House, all six spreads of the book, the Starry Tent (tarot) and the Eastern Shrine (moon blocks and fortune slips) are fully playable; the other four pages have previews.

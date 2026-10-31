@@ -176,7 +176,7 @@ async function buildHut() {
   moonShafts(winW, winBot, winArch);
 
   await slice();
-  // the fireplace: brick, a mantel crowded with candles, a ball of magic fire, a cat asleep in the warmth
+  // the fireplace: brick, a mantel crowded with candles, a ball of magic fire, a little white cat curled in her bed by the bookcase
   const brick = std('brick', { map: tx(brickCanvas(), 2, 3), roughness: 0.85, bumpMap: tx(brickCanvas(), 2, 3, false), bumpScale: 2 });
   const fz = -3, fx = -W / 2;
   add(rbox(1.6, top - FLOOR - 6.6, 6.6, 0.1), brick, fx + 0.8, FLOOR + 6.6 + (top - FLOOR - 6.6) / 2, fz);
@@ -189,8 +189,10 @@ async function buildHut() {
   fireLight = new THREE.PointLight(0xff9a40, 36, 18, 1.4); fireLight.position.set(fx + 2.9, FLOOR + 2.0, fz); scene.add(fireLight);
   mantelpiece(FLOOR + 6.525, fz);
   candleLight = new THREE.PointLight(0xffb060, 9, 9, 1.5); candleLight.position.set(fx + 3.9, FLOOR + 8.4, fz + 1.2); scene.add(candleLight);
-  sleepyCat = catAsleep(fx + 2.9, FLOOR + 0.5, fz + 3.6, -Math.PI / 2, 0.72);
-  prop(sleepyCat.g, '橘猫 · 摸摸它', () => { catAnswer(); burstAt(sparks, sleepyCat.g.getWorldPosition(V(0, 0, 0)).add(V(0, 0.9, 0)), 18, { speed: 0.3, up: 0.5, size: 0.05, color: new THREE.Color(1.8, 0.9, 1.1) }); });
+  // in the nook between the fireplace and the bookcase, where it shows on a narrow screen too once you look that way
+  catBed(fx + 3.5, FLOOR, fz - 3.9);
+  sleepyCat = catAsleep(fx + 3.5, FLOOR + 0.3, fz - 3.9, 0.38, 0.66);                // curled with her face to the room, her head at the bookcase end
+  prop(sleepyCat.g, '小白猫 · 摸摸它', () => { catAnswer(); burstAt(sparks, sleepyCat.g.getWorldPosition(V(0, 0, 0)).add(V(0, 0.9, 0)), 18, { speed: 0.3, up: 0.5, size: 0.05, color: new THREE.Color(1.8, 0.9, 1.1) }); });
   garland(V(fx + 1.75, FLOOR + 12.6, fz - 3.2), V(fx + 1.75, FLOOR + 12.6, fz + 3.2), 1.2, 13);
 
   await slice();
@@ -720,7 +722,7 @@ function matryoshka(x, y, z, s, colors) {
   add(lathe([[0, 0], [0.2, 0], [0.24, 0.1], [0.22, 0.3], [0.14, 0.42], [0.16, 0.52], [0.13, 0.64], [0, 0.68]], 28), std('doll' + colors[0], { map: tx(C), roughness: 0.25 }), 0, 0, 0, g);
 }
 function starfish(x, y, z, ry) { const sh = starShape(0.16, 0.06); add(new THREE.ExtrudeGeometry(sh, { depth: 0.03, bevelEnabled: true, bevelSize: 0.02, bevelThickness: 0.02, bevelSegments: 2 }), std('starfish', { color: 0xe8905a, roughness: 0.8 }), x, y + 0.03, z, scene, [-Math.PI / 2, 0, ry]); }
-function conch(x, y, z, ry) { const g = group(x, y, z, ry); add(new THREE.ConeGeometry(0.12, 0.34, 16, 6).rotateZ(Math.PI / 2), std('conch', { color: 0xf2dcc4, roughness: 0.45 }), 0, 0.1, 0, g); add(new THREE.TorusGeometry(0.08, 0.04, 8, 16, Math.PI * 1.4), std('conchIn', { color: 0xf0b8a8, roughness: 0.4 }), 0.1, 0.1, 0, g, [0, Math.PI / 2, 0]); }
+function conch(x, y, z, ry) { const g = group(x, y, z, ry); add(fullCone(0.12, 0.34, 16, 6).rotateZ(Math.PI / 2), std('conch', { color: 0xf2dcc4, roughness: 0.45 }), 0, 0.1, 0, g); add(new THREE.TorusGeometry(0.08, 0.04, 8, 16, Math.PI * 1.4), std('conchIn', { color: 0xf0b8a8, roughness: 0.4 }), 0.1, 0.1, 0, g, [0, Math.PI / 2, 0]); }
 /** the mantelpiece, dressed: a sunburst mirror, a clock, candlesticks, a ginger jar, a bell jar with a moon in it, pampas, books, a little oil lamp, a swag of greenery */
 function mantelpiece(y0, fz) {
   const front = -8.1, mid = -8.75;
@@ -772,40 +774,256 @@ function mantelpiece(y0, fz) {
   const lg = new Sparks(lights.length); lights.forEach((p) => lg.emit(p, V(0, 0, 0), { life: 1e9, size: 0.3, color: new THREE.Color(1.7, 1.25, 0.6), drag: 0 })); lg.update(0); scene.add(lg.points);
 }
 /** a ginger tabby curled up asleep by the fire: back rounded, head resting on its paws, tail wrapped round the front */
+/** a round, fluffy bed for the cat: a fat plush rim, lumpy as fleece, round a soft cushion */
+function catBed(x, y, z) {
+  const g = group(x, y, z), c = canvas(256, 256), cg = c.getContext('2d'), rr = mulberry(5150);
+  cg.fillStyle = '#d6a4ac'; cg.fillRect(0, 0, 256, 256);
+  for (let i = 0; i < 2600; i++) {                                   // short soft strokes of fur in all directions
+    const px_ = rr() * 256, py = rr() * 256, a = rr() * Math.PI * 2, l = 3 + rr() * 6, v = 185 + rr() * 60;
+    cg.strokeStyle = `rgba(${v},${v - 58},${v - 48},.55)`; cg.lineWidth = 1.2; cg.beginPath(); cg.moveTo(px_, py); cg.lineTo(px_ + Math.cos(a) * l, py + Math.sin(a) * l); cg.stroke();
+  }
+  const fleece = new THREE.MeshPhysicalMaterial({ map: tx(c, 3, 1), bumpMap: tx(c, 3, 1, false), bumpScale: 4, roughness: 1, sheen: 1, sheenRoughness: 0.55, sheenColor: new THREE.Color(0xfff6ea) });
+  const gc = canvas(256, 256), gg = gc.getContext('2d');                       // pink-and-white gingham for the cushion
+  gg.fillStyle = '#fbf4f2'; gg.fillRect(0, 0, 256, 256); gg.fillStyle = 'rgba(226,160,170,.55)'; gg.fillRect(0, 0, 128, 256); gg.fillRect(0, 0, 256, 128); gg.fillStyle = 'rgba(214,138,150,.55)'; gg.fillRect(0, 0, 128, 128);
+  const plush = new THREE.MeshPhysicalMaterial({ map: tx(gc, 3, 3), bumpMap: tx(c, 2, 2, false), bumpScale: 1.5, roughness: 0.95, sheen: 0.6, sheenRoughness: 0.5, sheenColor: new THREE.Color(0xfff0f2) });
+  // the rim: a thick ring, pushed in and out a little all round so it looks stuffed rather than turned
+  const rim = new THREE.TorusGeometry(0.95, 0.4, 28, 72), rp = rim.attributes.position, n = new THREE.Vector3(), q = new THREE.Vector3();
+  for (let i = 0; i < rp.count; i++) {
+    q.fromBufferAttribute(rp, i); const a = Math.atan2(q.y, q.x), ring = V(Math.cos(a) * 0.95, Math.sin(a) * 0.95, 0); n.copy(q).sub(ring).normalize();
+    q.addScaledVector(n, 0.035 * Math.sin(a * 9) + 0.02 * Math.sin(a * 23 + q.z * 9) + 0.012 * (rr() - 0.5)); rp.setXYZ(i, q.x, q.y, q.z);
+  }
+  rim.computeVertexNormals(); rim.rotateX(Math.PI / 2).scale(1, 0.55, 1);
+  add(rim, fleece, 0, 0.26, 0, g);
+  add(new THREE.CylinderGeometry(0.98, 1.02, 0.16, 48), fleece, 0, 0.08, 0, g);            // the base under it all
+  const cush = new THREE.SphereGeometry(0.86, 40, 16).scale(1, 0.16, 1); add(cush, plush, 0, 0.2, 0, g);
+  return g;
+}
+/*
+ * A little white cat asleep, curled nose-to-tail in her bed like a porcelain figure: the long loaf of her body, the round
+ * haunch, the hind paws together in front, her chin on her forepaws, the tail wrapped round the front. Her head is narrow
+ * at the crown and full at the cheeks, two soft whisker pads under a small pink nose. Tapped, she lifts her head and opens
+ * her odd eyes, one blue and one amber, roundish pupils. Body and head are each one smooth surface (a distance field
+ * blended where the parts meet), so the joins flow like clay; eyes, nose and mouth are laid onto that surface.
+ * Local axes: +z toward the room, +x to her right, y up; the head's own +x is the way her face points.
+ */
+const smin = (a, b, k) => { const h = Math.max(k - Math.abs(a - b), 0) / k; return Math.min(a, b) - h * h * k * 0.25; };
+const sdEll = (x, y, z, c, r) => {                                                       // an ellipsoid, near enough
+  const px = (x - c[0]) / r[0], py = (y - c[1]) / r[1], pz = (z - c[2]) / r[2], k0 = Math.sqrt(px * px + py * py + pz * pz);
+  const qx = px / r[0], qy = py / r[1], qz = pz / r[2];
+  return (k0 * (k0 - 1)) / Math.max(1e-6, Math.sqrt(qx * qx + qy * qy + qz * qz));
+};
+const sdLimb = (x, y, z, a, b, ra, rb) => {                                              // a capsule tapering from ra at a to rb at b
+  const bx = b[0] - a[0], by = b[1] - a[1], bz = b[2] - a[2], px = x - a[0], py = y - a[1], pz = z - a[2];
+  const t = Math.min(1, Math.max(0, (px * bx + py * by + pz * bz) / (bx * bx + by * by + bz * bz)));
+  const dx = px - bx * t, dy = py - by * t, dz = pz - bz * t;
+  return Math.sqrt(dx * dx + dy * dy + dz * dz) - (ra + (rb - ra) * t);
+};
+/** the smooth closed surface where a distance field f crosses zero, sampled every h over the box lo..hi (naive surface nets) */
+function fieldMesh(f, lo, hi, h) {
+  const nx = Math.ceil((hi[0] - lo[0]) / h) + 1, ny = Math.ceil((hi[1] - lo[1]) / h) + 1, nz = Math.ceil((hi[2] - lo[2]) / h) + 1;
+  const val = new Float32Array(nx * ny * nz), at = (i, j, k) => i + nx * (j + ny * k);
+  for (let k = 0; k < nz; k++) for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) val[at(i, j, k)] = f(lo[0] + i * h, lo[1] + j * h, lo[2] + k * h);
+  // one vertex in every cell the surface passes through, at the mean of its edge crossings
+  const cx = nx - 1, cy = ny - 1, cell = new Int32Array(cx * cy * (nz - 1)).fill(-1), pos = [], idx = [], v = new Float32Array(8);
+  const C = [[0, 0, 0], [1, 0, 0], [0, 1, 0], [1, 1, 0], [0, 0, 1], [1, 0, 1], [0, 1, 1], [1, 1, 1]], E = [[0, 1], [2, 3], [4, 5], [6, 7], [0, 2], [1, 3], [4, 6], [5, 7], [0, 4], [1, 5], [2, 6], [3, 7]];
+  for (let k = 0; k < nz - 1; k++) for (let j = 0; j < cy; j++) for (let i = 0; i < cx; i++) {
+    let inside = 0;
+    for (let c = 0; c < 8; c++) { v[c] = val[at(i + C[c][0], j + C[c][1], k + C[c][2])]; if (v[c] < 0) inside++; }
+    if (inside === 0 || inside === 8) continue;
+    let sx = 0, sy = 0, sz = 0, n = 0;
+    for (const [a, b] of E) { if (v[a] < 0 === v[b] < 0) continue; const t = v[a] / (v[a] - v[b]); sx += C[a][0] + (C[b][0] - C[a][0]) * t; sy += C[a][1] + (C[b][1] - C[a][1]) * t; sz += C[a][2] + (C[b][2] - C[a][2]) * t; n++; }
+    cell[i + cx * (j + cy * k)] = pos.length / 3; pos.push(lo[0] + (i + sx / n) * h, lo[1] + (j + sy / n) * h, lo[2] + (k + sz / n) * h);
+  }
+  // a quad across every grid edge the surface cuts, joining the four cells round it
+  const ci = (i, j, k) => cell[i + cx * (j + cy * k)], quad = (a, b, c, d) => { if (a >= 0 && b >= 0 && c >= 0 && d >= 0) idx.push(a, b, c, a, c, d); };
+  const cut = (i, j, k, di, dj, dk) => val[at(i, j, k)] < 0 !== val[at(i + di, j + dj, k + dk)] < 0;
+  for (let k = 0; k < nz - 1; k++) for (let j = 0; j < cy; j++) for (let i = 0; i < cx; i++) {
+    if (j > 0 && k > 0 && cut(i, j, k, 1, 0, 0)) quad(ci(i, j, k), ci(i, j - 1, k), ci(i, j - 1, k - 1), ci(i, j, k - 1));
+    if (i > 0 && k > 0 && cut(i, j, k, 0, 1, 0)) quad(ci(i, j, k), ci(i - 1, j, k), ci(i - 1, j, k - 1), ci(i, j, k - 1));
+    if (i > 0 && j > 0 && cut(i, j, k, 0, 0, 1)) quad(ci(i, j, k), ci(i - 1, j, k), ci(i - 1, j - 1, k), ci(i, j - 1, k));
+  }
+  // settle each vertex onto the surface, take its normal from the field, and face every triangle outward
+  const nrm = new Float32Array(pos.length), e = h * 0.25;
+  for (let p = 0; p < pos.length; p += 3) {
+    const [x, y, z] = [pos[p], pos[p + 1], pos[p + 2]], gx = (f(x + e, y, z) - f(x - e, y, z)) / (2 * e), gy = (f(x, y + e, z) - f(x, y - e, z)) / (2 * e), gz = (f(x, y, z + e) - f(x, y, z - e)) / (2 * e);
+    const l2 = gx * gx + gy * gy + gz * gz || 1, d = f(x, y, z), l = Math.sqrt(l2);
+    pos[p] -= (d * gx) / l2; pos[p + 1] -= (d * gy) / l2; pos[p + 2] -= (d * gz) / l2; nrm[p] = gx / l; nrm[p + 1] = gy / l; nrm[p + 2] = gz / l;
+  }
+  for (let t = 0; t < idx.length; t += 3) {
+    const [a, b, c] = [idx[t] * 3, idx[t + 1] * 3, idx[t + 2] * 3], ux = pos[b] - pos[a], uy = pos[b + 1] - pos[a + 1], uz = pos[b + 2] - pos[a + 2], wx = pos[c] - pos[a], wy = pos[c + 1] - pos[a + 1], wz = pos[c + 2] - pos[a + 2];
+    if ((uy * wz - uz * wy) * nrm[a] + (uz * wx - ux * wz) * nrm[a + 1] + (ux * wy - uy * wx) * nrm[a + 2] < 0) { const s = idx[t + 1]; idx[t + 1] = idx[t + 2]; idx[t + 2] = s; }
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setAttribute('normal', new THREE.BufferAttribute(nrm, 3)); geo.setIndex(idx);
+  return geo;
+}
+/*
+ * Plush fur for the cat, needing no UVs on a field-built mesh: the coat's normal is ruffled by short strokes of 3D noise combed
+ * along x, and each layer > 0 is a shell pushed out along the normal where only scattered strand tips survive, thinner further out.
+ */
+const FUR_GLSL = `
+uniform float uLayer, uLen;
+varying vec3 vFurP;
+float furHash(vec3 c) { return fract(sin(dot(c, vec3(127.1, 311.7, 74.7))) * 43758.5453); }
+float furNoise(vec3 p) {
+  vec3 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(mix(furHash(i), furHash(i + vec3(1, 0, 0)), f.x), mix(furHash(i + vec3(0, 1, 0)), furHash(i + vec3(1, 1, 0)), f.x), f.y),
+             mix(mix(furHash(i + vec3(0, 0, 1)), furHash(i + vec3(1, 0, 1)), f.x), mix(furHash(i + vec3(0, 1, 1)), furHash(i + vec3(1, 1, 1)), f.x), f.y), f.z);
+}`;
+function furMaterial(layer, len, bare = []) {                                                      // bare: [x, y, z, r] spots kept clear (eyes, nose, mouth)
+  const m = new THREE.MeshPhysicalMaterial({ color: 0xd9dce3, roughness: 1, specularIntensity: 0.25, sheen: 1, sheenRoughness: 0.8, sheenColor: new THREE.Color(0xd8dce4), emissive: 0x23262d });   // a little cool light of her own, so she reads white by the fire
+  m.onBeforeCompile = (sh) => {
+    sh.uniforms.uLayer = { value: layer }; sh.uniforms.uLen = { value: len }; sh.uniforms.uBare = { value: bare.map((b) => new THREE.Vector4(...b)) };
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nuniform float uLayer, uLen;\nattribute float furLen;\nvarying vec3 vFurP;')
+      .replace('#include <begin_vertex>', 'vec3 transformed = position + objectNormal * uLen * uLayer * furLen; vFurP = position;');
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\n' + FUR_GLSL + (bare.length ? `\nuniform vec4 uBare[${bare.length}];` : ''))
+      .replace('#include <map_fragment>', `#include <map_fragment>
+  float keep = 1.0;${bare.length ? `
+  for (int i = 0; i < ${bare.length}; i++) keep *= smoothstep(0.55, 1.0, length(vFurP - uBare[i].xyz) / uBare[i].w);
+  diffuseColor.rgb *= mix(0.84, 1.0, keep);                // the bare skin round the eyes and nose a shade darker, as it is` : ''}
+  if (uLayer > 0.0) {                                       // a shell: only strands long enough to reach it, tapering as they go
+    float reach = furHash(floor(vFurP * 90.0)) * keep;${bare.length ? `
+    reach *= mix(0.5, 1.0, 1.0 - smoothstep(0.05, 0.13, vFurP.x));                  // short on the face, and none round the eyes, nose and mouth` : ''}
+    vec3 q = fract(vFurP * 90.0) - 0.5;
+    if (reach < uLayer || dot(q, q) > 0.22 * (1.0 - uLayer)) discard;
+  }
+  diffuseColor.rgb *= mix(0.88, 1.05, uLayer);              // a little darker at the roots`)
+      .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
+  vec3 fp = vFurP * 160.0;                                  // short strokes combed along x
+  float fh = furNoise(vec3(fp.x * 0.2, fp.y, fp.z)) * 0.65 + furNoise(vec3(fp.x * 0.4, fp.yz * 2.1)) * 0.35;
+  vec3 dpx = dFdx(-vViewPosition), dpy = dFdy(-vViewPosition), r1 = cross(dpy, normal), r2 = cross(normal, dpx);
+  float det = dot(dpx, r1);
+  normal = normalize(abs(det) * normal - sign(det) * 0.002 * (dFdx(fh) * r1 + dFdy(fh) * r2));`);
+  };
+  m.customProgramCacheKey = () => 'fur' + bare.length;
+  return m;
+}
 function catAsleep(x, y, z, ry, sc = 1) {
-  const g = group(x, y, z, ry);
-  g.scale.set(sc, sc, -sc); // mirrored so the curl faces the room
-  const fur = std('catFur', { map: tx(catFurCanvas()), roughness: 0.9 }), headFur = std('catHead', { map: tx(catHeadCanvas()), roughness: 0.9 });
-  const tailFur = std('catTail', { map: tx(catTailCanvas()), roughness: 0.9 }), plain = std('fur', { color: 0xe3a462, roughness: 0.9 });
-  const cream = std('furCream', { color: 0xf8e8cc, roughness: 0.85 }), pink = std('catPink', { color: 0xe89a9a, roughness: 0.6 }), dark = std('catDark', { color: 0x3a2418, roughness: 0.6 });
-  const blob = (r, px_, py, pz, sx, sy, sz, mat, ry_ = 0) => { const m = add(new THREE.SphereGeometry(r, 40, 24).rotateZ(Math.PI / 2), mat, px_, py, pz, g); m.scale.set(sx, sy, sz); m.rotation.y = ry_; return m; };
-  // the body bends round into a crescent: haunch at the back, shoulders turning toward the front
-  blob(0.6, -0.4, 0.43, -0.08, 1.12, 0.8, 1.08, fur, 0.25);
-  blob(0.5, 0.32, 0.4, 0.14, 1.12, 0.8, 1.0, fur, -0.55);
-  blob(0.36, -0.5, 0.4, 0.42, 1.15, 0.85, 0.75, fur, 0.4);
-  // tail round the front, ringed, darker at the tip
-  const t0 = V(-0.9, 0.28, -0.4), tailG = group(t0.x, t0.y, t0.z, 0, g);                    // on a pivot at its root, so it can flick
-  const tail = new THREE.CatmullRomCurve3([V(-0.9, 0.28, -0.4), V(-1.08, 0.2, 0.25), V(-0.68, 0.13, 0.8), V(0.0, 0.12, 1.0), V(0.5, 0.14, 0.92)].map((p) => p.sub(t0)));
-  add(new THREE.TubeGeometry(tail, 32, 0.13, 12), tailFur, 0, 0, 0, tailG);
-  add(new THREE.SphereGeometry(0.13, 14, 10), std('tailTip', { color: 0xa65420, roughness: 0.9 }), 0.5 - t0.x, 0.14 - t0.y, 0.92 - t0.z, tailG);
-  // front paws tucked under the chin, a hind paw peeping out
-  [[0.62, 0.11, 0.7], [0.36, 0.1, 0.8]].forEach(([a, b, c]) => add(new THREE.SphereGeometry(0.14, 16, 10), cream, a, b, c, g).scale.set(1.5, 0.65, 1));
-  add(new THREE.SphereGeometry(0.13, 16, 10), cream, -0.2, 0.1, 0.72, g).scale.set(1.6, 0.6, 1);
-  // the head, resting on its cheek, face turned toward the curl
-  const head = group(0.68, 0.48, 0.5, -1.25, g); head.rotation.z = -0.18; head.rotation.x = 0.22;
-  add(new THREE.SphereGeometry(0.38, 32, 22), headFur, 0, 0, 0, head).scale.set(0.95, 0.86, 1.12);
-  [-1, 1].forEach((s2) => add(new THREE.SphereGeometry(0.17, 16, 12), plain, 0.12, -0.12, s2 * 0.2, head).scale.set(1, 0.85, 1));
-  add(new THREE.SphereGeometry(0.16, 16, 12), cream, 0.28, -0.13, 0, head).scale.set(0.8, 0.68, 1.3);
-  add(new THREE.SphereGeometry(0.034, 10, 8), pink, 0.4, -0.07, 0, head).scale.set(0.8, 0.7, 1.2);
-  const ears = [];
-  [-1, 1].forEach((s2) => {
-    const ear = group(-0.04, 0.3, s2 * 0.2, 0, head); ears.push(ear);
-    add(new THREE.ConeGeometry(0.2, 0.38, 4), plain, 0, 0.04, 0, ear, [s2 * 0.34, Math.PI / 4, -0.12]).scale.set(1, 1, 0.5);
-    add(new THREE.ConeGeometry(0.12, 0.24, 4), pink, 0.05, 0.03, 0, ear, [s2 * 0.34, Math.PI / 4, -0.12]).scale.set(1, 1, 0.35);
-    add(new THREE.TorusGeometry(0.06, 0.012, 4, 12, Math.PI), dark, 0.335, 0.05, s2 * 0.14, head, [0, Math.PI / 2 - s2 * 0.3, Math.PI]).castShadow = false;
-    [-1, 0, 1].forEach((k) => (rod(head, V(0.36, -0.12 + k * 0.02, s2 * 0.1), V(0.46, -0.08 + k * 0.06, s2 * 0.46), 0.004, cream).castShadow = false));
+  const root = group(x, y, z, ry); root.scale.setScalar(sc);
+  const g = group(0, 0, 0, 0, root); g.scale.x = -1;                                                 // built head-left, then mirrored: the phone view sees that end over the desk
+  const N = lowPower ? 4 : 8, furry = (geo, parent, len, bare, lenAt) => {                     // the coat, and N shells of fuzz over it; lenAt scales the fur from place to place
+    const P = geo.attributes.position, fl = new Float32Array(P.count).fill(1);
+    if (lenAt) for (let i = 0; i < P.count; i++) fl[i] = lenAt(P.getX(i), P.getY(i), P.getZ(i));
+    geo.setAttribute('furLen', new THREE.BufferAttribute(fl, 1));
+    for (let i = 1; i <= N; i++) add(geo, furMaterial(i / N, len, bare), 0, 0, 0, parent).castShadow = false;
+    return add(geo, furMaterial(0, len, bare), 0, 0, 0, parent);
+  };
+  // the body, curled on the cushion: one field of rounded parts melted together, flat where she lies
+  const body = (px, py, pz) => {
+    let d = sdEll(px, py, pz, [0.0, 0.27, -0.06], [0.52, 0.3, 0.42]);                              // a round bean of a body, its back rising to the hip
+    d = smin(d, sdEll(px, py, pz, [0.3, 0.31, 0.06], [0.38, 0.34, 0.42]), 0.06);                    // the round haunch, a soft crease where it meets her
+    d = smin(d, sdEll(px, py, pz, [-0.36, 0.21, 0.1], [0.3, 0.22, 0.32]), 0.14);                   // chest and shoulders curling round to the front, lower than the hip
+    d = smin(d, sdLimb(px, py, pz, [0.28, 0.15, 0.34], [0.0, 0.1, 0.5], 0.12, 0.075), 0.06);      // a hind leg folded forward
+    d = smin(d, sdEll(px, py, pz, [-0.04, 0.085, 0.56], [0.075, 0.07, 0.1]), 0.03);                // and the hind paws, side by side, toes to the room
+    d = smin(d, sdEll(px, py, pz, [0.11, 0.08, 0.6], [0.07, 0.065, 0.095]), 0.025);
+    d = smin(d, sdLimb(px, py, pz, [-0.4, 0.12, 0.3], [-0.56, 0.08, 0.48], 0.075, 0.06), 0.07);   // a forearm curled under her chin
+    d = smin(d, sdEll(px, py, pz, [-0.6, 0.065, 0.5], [0.085, 0.06, 0.075]), 0.03);
+    d = smin(d, sdLimb(px, py, pz, [-0.46, 0.1, 0.2], [-0.76, 0.06, 0.32], 0.07, 0.055), 0.07);   // the other reaching out in front
+    d = smin(d, sdEll(px, py, pz, [-0.8, 0.055, 0.33], [0.08, 0.05, 0.065]), 0.03);
+    return Math.max(d, -py);
+  };
+  furry(fieldMesh(body, [-0.95, -0.03, -0.55], [0.75, 0.7, 0.72], 0.024), g, 0.035);
+  // the tail: from the haunch round the right and along the front, tapering to a rounded tip
+  const t0 = V(0.6, 0.14, 0.1), tailG = group(t0.x, t0.y, t0.z, 0, g);                          // on a pivot at its root, so it can flick
+  const tailCurve = new THREE.CatmullRomCurve3([V(0.6, 0.14, 0.1), V(0.68, 0.1, 0.42), V(0.48, 0.07, 0.68), V(0.12, 0.06, 0.74), V(-0.24, 0.065, 0.68)].map((p) => p.sub(t0)));
+  const TS = 60, RS = 16, tg = new THREE.TubeGeometry(tailCurve, TS, 1, RS, false), tp = tg.attributes.position, q = V(0, 0, 0), ctr = V(0, 0, 0);
+  for (let i = 0; i < tp.count; i++) {
+    const t = Math.floor(i / (RS + 1)) / TS;
+    tailCurve.getPointAt(t, ctr); q.fromBufferAttribute(tp, i).sub(ctr).multiply(V(1, 0.85, 1)).multiplyScalar(0.08 - 0.032 * t).add(ctr); tp.setXYZ(i, q.x, q.y, q.z);
+  }
+  tg.computeVertexNormals(); furry(tg, tailG, 0.028);
+  const tip = tailCurve.getPointAt(1); furry(new THREE.SphereGeometry(0.05, 16, 12).translate(tip.x, tip.y, tip.z), tailG, 0.028);
+  // the head, chin down on her forepaws and turned to the room: a smooth round egg of a head, a raised nose bridge to a
+  // small nose, puffy whisker pads, and the fur a little longer at the cheeks and under the chin
+  const head0 = group(-0.6, 0.3, 0.38, -Math.PI / 2 - 0.35, g); head0.rotation.z = -0.18; head0.rotation.x = 0.22; head0.userData.y0 = head0.position.y; head0.scale.setScalar(1.15);
+  const head = group(0, 0, 0, 0, head0); head.rotation.z = 0.12;
+  const face = (px, py, pz) => {
+    let d = sdEll(px, py, pz, [-0.02, 0.03, 0], [0.19, 0.17, 0.19]);                              // a round crown, broad at the temples
+    d = smin(d, sdEll(px, py, pz, [0.03, -0.055, 0], [0.17, 0.12, 0.175]), 0.14);                  // the cheeks, melting into it so the head stays one smooth egg
+    d = smin(d, sdLimb(px, py, pz, [0.1, 0.06, 0], [0.17, -0.03, 0], 0.04, 0.03), 0.05);           // the bridge of the nose
+    d = smin(d, sdEll(px, py, pz, [0.178, -0.038, 0], [0.022, 0.018, 0.026]), 0.02);                // and the nose itself, a little raised
+    d = smin(d, sdEll(px, py, pz, [0.13, -0.078, 0], [0.06, 0.058, 0.1]), 0.06);                   // the muzzle, short and broad
+    for (const s of [-1, 1]) d = smin(d, sdEll(px, py, pz, [0.152, -0.09, s * 0.045], [0.045, 0.044, 0.058]), 0.035);   // two puffy whisker pads
+    d = smin(d, sdEll(px, py, pz, [0.115, -0.13, 0], [0.05, 0.035, 0.06]), 0.04);                   // the chin
+    return d;
+  };
+  // ears: pointed, a little turned out, pink within
+  const ears = [], lids = [], earIn = std('kittenEarIn', { color: 0xf0b4c2, roughness: 0.8 });
+  // eyes, nose and mouth are laid on the face: each point pressed onto the surface down the field, then lifted a hair off it
+  const UPV = V(0, 1, 0), snap = (p) => {
+    const n = V(0, 0, 0), e = 1e-3;
+    for (let it = 0; it < 6; it++) {
+      const d = face(p.x, p.y, p.z); n.set(face(p.x + e, p.y, p.z) - face(p.x - e, p.y, p.z), face(p.x, p.y + e, p.z) - face(p.x, p.y - e, p.z), face(p.x, p.y, p.z + e) - face(p.x, p.y, p.z - e)).divideScalar(2 * e);
+      p.addScaledVector(n, -d / Math.max(1e-6, n.lengthSq()));
+    }
+    return n.normalize();
+  };
+  const seat = (az, el) => {                                                                          // a frame on the face in that direction, looking out of it, its y up the head
+    const p = V(Math.cos(el) * Math.cos(az), Math.sin(el), Math.cos(el) * Math.sin(az)).multiplyScalar(0.2), n = snap(p), side = UPV.clone().cross(n).normalize();
+    return new THREE.Matrix4().makeBasis(side, n.clone().cross(side), n).setPosition(p);
+  };
+  const mark = (geo, frame, mat, parent, off = 0.003) => {
+    const P = geo.applyMatrix4(frame).attributes.position, p = V(0, 0, 0);
+    for (let i = 0; i < P.count; i++) { p.fromBufferAttribute(P, i); p.addScaledVector(snap(p), off); P.setXYZ(i, p.x, p.y, p.z); }
+    geo.computeVertexNormals(); const m = add(geo, mat, 0, 0, 0, parent); m.castShadow = false; return m;
+  };
+  // flat shapes to lay on her: filled with rings of vertices so they bend with the face, or a fine line tapering at both ends
+  const disc = (fn, rings = 4, segs = 40, tint) => {                                                // tint(t): a colour from the middle (0) out to the edge (1)
+    const pos = [0, 0, 0], col = [], idx = [], at = (k, j) => (k === 0 ? 0 : 1 + (k - 1) * segs + (j % segs));
+    for (let k = 1; k <= rings; k++) for (let j = 0; j < segs; j++) { const [x, y] = fn((j / segs) * Math.PI * 2); pos.push((x * k) / rings, (y * k) / rings, 0); }
+    for (let j = 0; j < segs; j++) { idx.push(0, at(1, j), at(1, j + 1)); for (let k = 1; k < rings; k++) idx.push(at(k, j), at(k + 1, j), at(k + 1, j + 1), at(k, j), at(k + 1, j + 1), at(k, j + 1)); }
+    const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setIndex(idx);
+    if (tint) { for (let v = 0; v < pos.length / 3; v++) col.push(...tint(v === 0 ? 0 : Math.ceil(v / segs) / rings).toArray()); geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); }
+    return geo;
+  };
+  const stroke = (pts, w) => {
+    const pos = [], idx = [];
+    pts.forEach((p, i) => {
+      const a = pts[Math.max(0, i - 1)], b = pts[Math.min(pts.length - 1, i + 1)], l = Math.hypot(b.x - a.x, b.y - a.y) || 1, nx = -(b.y - a.y) / l, ny = (b.x - a.x) / l, hw = w * 0.5 * Math.sin(Math.PI * (0.15 + (0.7 * i) / (pts.length - 1)));
+      pos.push(p.x + nx * hw, p.y + ny * hw, 0, p.x - nx * hw, p.y - ny * hw, 0); if (i) idx.push(2 * i - 2, 2 * i - 1, 2 * i, 2 * i - 1, 2 * i + 1, 2 * i);
+    });
+    const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setIndex(idx); return geo;
+  };
+  const almond = (w, h) => (a) => { const c = Math.cos(a), s = Math.sin(a); return [w * c, h * s * (0.92 + 0.08 * Math.abs(s)) * (s < 0 ? 0.95 : 1) + 0.1 * h * c]; };   // round, a touch of almond, the outer corner (+x) lifted
+  const round = (r, sy = 1) => (a) => [r * Math.cos(a), r * sy * Math.sin(a)];
+  const curve = (...p) => new THREE.CubicBezierCurve(...p.map(([x, y]) => new THREE.Vector2(x, y))).getPoints(16);
+  const noseAt = seat(0, -0.19), eyeAt = [seat(-0.5, 0.1), seat(0.5, 0.1)], spot = (m, r) => [...V(0, 0, 0).setFromMatrixPosition(m).toArray(), r];
+  const ruff = (x, y, z) => 1 + 0.4 * THREE.MathUtils.smoothstep(Math.abs(z), 0.1, 0.2) * (1 - THREE.MathUtils.smoothstep(y, -0.02, 0.08)) * (1 - THREE.MathUtils.smoothstep(x, 0.08, 0.16))
+    + 1.2 * (1 - THREE.MathUtils.smoothstep(y, -0.16, -0.08)) * (1 - THREE.MathUtils.smoothstep(x, 0.05, 0.13));   // longer at the cheeks and under the chin
+  furry(fieldMesh(face, [-0.25, -0.2, -0.27], [0.27, 0.24, 0.27], 0.011), head, 0.022, [spot(eyeAt[0], 0.075), spot(eyeAt[1], 0.075), spot(noseAt, 0.075)], ruff);
+  const flat = (color) => new THREE.MeshBasicMaterial({ color, side: THREE.DoubleSide });          // flat colour: the fire close by would wash a lit eye pale, and a lit glint would bloom over it
+  const line = flat(0x6e5a5e), iris = new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide });
+  // a small rounded nose, point down, and under it the line of her lip: down from the nose, then out along each whisker pad
+  mark(disc((a) => { const r = 0.02 * (1 + 0.2 * Math.cos(3 * (a - 1.5 * Math.PI))); return [r * Math.cos(a) * 1.15, r * Math.sin(a) * 0.85]; }, 3, 36), noseAt, flat(0xe8909f), head, 0.0035);
+  mark(stroke(curve([0, -0.016], [0, -0.026], [0, -0.034], [0, -0.042]), 0.0035), noseAt, line, head);
+  [-1, 1].forEach((k) => mark(stroke(curve([0, -0.04], [k * 0.01, -0.06], [k * 0.038, -0.062], [k * 0.052, -0.046]), 0.0035), noseAt, line, head));
+  // whiskers from the pads, fanning out and drooping, and a few over each eye
+  const whisk = flat(0xd8d4cc);                                                                       // pale in any light, never a dark scratch
+  const hair = (root, d, len, droop) => {
+    const pts = [0, 0.33, 0.66, 1].map((t) => root.clone().addScaledVector(d, len * t).add(V(-0.06 * t * t, -droop * t * t, 0)));
+    add(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 16, 0.0016, 3), whisk, 0, 0, 0, head).castShadow = false;
+  };
+  [-1, 1].forEach((s) => {
+    for (let i = 0; i < 4; i++) { const root = V(0.17, -0.078 - 0.011 * i, s * (0.05 + 0.006 * i)); snap(root); hair(root, V(0.35, 0.22 - 0.16 * i, s).normalize(), 0.3 - 0.025 * i, 0.03 + 0.012 * i); }
+    for (let i = 0; i < 2; i++) { const root = V(0.15, 0.085, s * (0.06 + 0.025 * i)); snap(root); hair(root, V(0.6, 0.7, s * 0.8).normalize(), 0.12 - 0.02 * i, 0.01); }
   });
-  return { g, head, sc, tailG, ears };
+  [-1, 1].forEach((s2) => {
+    const ear = group(-0.05, 0.13, s2 * 0.115, 0, head); ears.push(ear);
+    const tilted = group(0, 0, 0, 0, ear); tilted.rotation.set(s2 * 0.32, -s2 * 0.45, -0.12);
+    furry(fullCone(0.095, 0.2, 24, 1).translate(0, 0.09, 0).scale(0.42, 1, 1), tilted, 0.01);
+    add(fullCone(0.07, 0.15, 24, 1).translate(0, 0.085, 0).scale(0.2, 1, 1), earIn, 0.022, 0.01, 0, tilted).castShadow = false;
+    // odd eyes, round with a touch of almond at the outer corner: blue on her right, amber on her left, the iris paler
+    // round the pupil, a round dark pupil and a glint of light. The frame's x points across her face, so mirror for the far eye
+    const at = eyeAt[s2 < 0 ? 0 : 1], open = group(0, 0, 0, 0, head), shut = group(0, 0, 0, 0, head), mx = -s2; lids.push([open, shut]);   // open when she looks; shut while she sleeps
+    const [deep, pale] = (s2 < 0 ? [0x2c7ed0, 0x8fd0f0] : [0xb8901c, 0xeccf5c]).map((c) => new THREE.Color(c));   // the iris pale round the pupil, deepening to its edge
+    const shade = (t) => pale.clone().lerp(deep, THREE.MathUtils.smoothstep(t, 0.55, 0.95)).multiplyScalar(t > 0.9 ? 0.85 : 1);
+    mark(disc(almond(0.055, 0.05), 6, 40, shade).scale(mx, 1, 1), at, iris, open, 0.0034);
+    mark(disc(round(0.036), 4).translate(0, 0.002, 0), at, flat(0x0c0c10), open, 0.0048);                // a big round pupil, the iris a ring round it
+    mark(disc(round(0.009), 2).translate(mx * 0.013, 0.016, 0), at, flat(0xe6e6e6), open, 0.0055);    // a glint, and a small one opposite
+    mark(disc(round(0.0045), 2).translate(-mx * 0.012, -0.013, 0), at, flat(0xd0d0d0), open, 0.0055);
+    mark(stroke(curve([-0.052, -0.004], [-0.02, -0.022], [0.02, -0.02], [0.054, 0.008]), 0.006).scale(mx, 1, 1), at, line, shut, 0.0035);
+  });
+  return { g: root, head: head0, sc, tailG, ears, lids };
 }
 /** an arch: straight sides up to the springing line, a half circle over the top */
 function windowArch(p, w, bot, spring, hole = false) {
@@ -1081,7 +1299,8 @@ function updateHut(dt, t) {
   const cat = sleepyCat, w = play.cat > 0 ? Math.sin(Math.PI * (1 - play.cat)) : 0;
   play.cat = Math.max(0, play.cat - dt / 3);
   cat.g.scale.y = cat.sc * (1 + Math.sin(t * 1.7) * 0.02);
-  cat.head.rotation.z = -0.18 + 0.42 * w; cat.head.rotation.x = 0.22 - 0.2 * w + Math.sin(t * 20) * 0.04 * w;
+  cat.head.rotation.z = -0.18 + 0.42 * w; cat.head.position.y = cat.head.userData.y0 + 0.08 * w; cat.head.rotation.x = 0.22 - 0.2 * w + Math.sin(t * 20) * 0.04 * w;
+  const awake = w > 0.25; cat.lids.forEach(([o, l]) => { o.visible = awake; l.visible = !awake; });                                       // asleep, until she lifts her head to look at you
   play.tail = Math.max(0, (play.tail ?? 0) - dt / 1.6); cat.tailG.rotation.y = Math.sin(t * 13) * 0.32 * play.tail;
   play.ears = Math.max(0, (play.ears ?? 0) - dt / 1.2); cat.ears.forEach((e, i) => { e.rotation.x = Math.sin(t * 30 + i) * 0.25 * play.ears; });
   play.stretch = Math.max(0, (play.stretch ?? 0) - dt / 2.2); cat.g.scale.x = cat.sc * (1 + 0.1 * Math.sin(Math.PI * (1 - play.stretch)) * (play.stretch > 0 ? 1 : 0));

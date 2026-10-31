@@ -129,44 +129,6 @@ function starGlobeCanvas() {
   g.strokeStyle = 'rgba(242,215,143,.3)'; for (let y = 64; y < h; y += 64) { g.beginPath(); g.moveTo(0, y); g.lineTo(w, y); g.stroke(); }
   return c;
 }
-/** ginger tabby fur, for a sphere turned on its side: stripes ring the body, strongest along the back, a pale belly */
-function catFurCanvas(seed = 5150) {
-  const c = canvas(512, 256), g = c.getContext('2d'), r = mulberry(seed);
-  g.fillStyle = '#e3a462'; g.fillRect(0, 0, 512, 256);
-  for (let i = 0; i < 2600; i++) { g.fillStyle = r() < 0.5 ? `rgba(255,222,176,${0.08 + r() * 0.1})` : `rgba(150,78,30,${0.06 + r() * 0.08})`; g.fillRect(r() * 512, r() * 256, 1 + r() * 2, 3 + r() * 6); }
-  const belly = g.createLinearGradient(0, 0, 512, 0);
-  belly.addColorStop(0, 'rgba(250,234,206,.9)'); belly.addColorStop(0.2, 'rgba(250,234,206,0)'); belly.addColorStop(0.8, 'rgba(250,234,206,0)'); belly.addColorStop(1, 'rgba(250,234,206,.9)');
-  g.fillStyle = belly; g.fillRect(0, 0, 512, 256);
-  for (let k = 0; k < 9; k++) {
-    const y0 = 26 + k * 25 + (r() - 0.5) * 6, half = 150 + r() * 40, ph = r() * 6;
-    g.beginPath();
-    for (let x = 256 - half; x <= 256 + half; x += 4) { const w = Math.cos(((x - 256) / half) * (Math.PI / 2)); g.lineTo(x, y0 + Math.sin(x * 0.045 + ph) * 4 - w * 6.5); }
-    for (let x = 256 + half; x >= 256 - half; x -= 4) { const w = Math.cos(((x - 256) / half) * (Math.PI / 2)); g.lineTo(x, y0 + Math.sin(x * 0.045 + ph) * 4 + w * 6.5); }
-    g.closePath(); g.fillStyle = 'rgba(166,84,32,.8)'; g.fill();
-  }
-  return c;
-}
-/** the head: a tabby M on the forehead, stripes on the cheeks, a pale chin */
-function catHeadCanvas() {
-  const c = canvas(512, 256), g = c.getContext('2d'), r = mulberry(5151);
-  g.fillStyle = '#e3a462'; g.fillRect(0, 0, 512, 256);
-  for (let i = 0; i < 1600; i++) { g.fillStyle = r() < 0.5 ? `rgba(255,222,176,${0.08 + r() * 0.1})` : `rgba(150,78,30,${0.06 + r() * 0.08})`; g.fillRect(r() * 512, r() * 256, 1 + r() * 2, 2 + r() * 4); }
-  const chin = g.createRadialGradient(256, 200, 0, 256, 200, 90); chin.addColorStop(0, 'rgba(250,236,210,.95)'); chin.addColorStop(1, 'rgba(250,236,210,0)'); g.fillStyle = chin; g.fillRect(150, 120, 212, 136);
-  g.strokeStyle = 'rgba(160,80,30,.85)'; g.lineCap = 'round';
-  [[240, 4], [256, 5], [272, 4]].forEach(([x, w]) => { g.lineWidth = w; g.beginPath(); g.moveTo(x, 28); g.lineTo(x + (x - 256) * 0.3, 92); g.stroke(); });
-  g.lineWidth = 4; [[-1], [1]].forEach(([s]) => { g.beginPath(); g.moveTo(256 + s * 30, 40); g.quadraticCurveTo(256 + s * 46, 70, 256 + s * 40, 96); g.stroke(); });
-  [[-1], [1]].forEach(([s]) => { for (let k = 0; k < 2; k++) { g.lineWidth = 3.5; g.beginPath(); g.moveTo(256 + s * (62 + k * 4), 118 + k * 16); g.lineTo(256 + s * (100 + k * 6), 112 + k * 18); g.stroke(); } });
-  for (let k = 0; k < 4; k++) { g.lineWidth = 7; g.beginPath(); g.moveTo(10 + k * 6, 40 + k * 26); g.lineTo(130, 46 + k * 26); g.stroke(); g.beginPath(); g.moveTo(502 - k * 6, 40 + k * 26); g.lineTo(382, 46 + k * 26); g.stroke(); }
-  return c;
-}
-/** a ringed tail, darker at the tip */
-function catTailCanvas() {
-  const c = canvas(256, 32), g = c.getContext('2d');
-  g.fillStyle = '#e3a462'; g.fillRect(0, 0, 256, 32);
-  for (let k = 0; k < 7; k++) { g.fillStyle = 'rgba(166,84,32,.8)'; g.fillRect(40 + k * 28, 0, 10 + k, 32); }
-  g.fillStyle = '#a65420'; g.fillRect(236, 0, 20, 32);
-  return c;
-}
 /** button-tufted velvet: one diamond of the lattice, buttons at the corners and the centre */
 function tuftCanvas(bump = false) {
   const c = canvas(256, 256), g = c.getContext('2d'), r = mulberry(5160);

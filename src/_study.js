@@ -46,13 +46,15 @@ function nightSky(s, back, moonAt, backY, moonMap) {
         gl_PointSize = (1.2 + mag * 3.2) * px * (.8 + .2 * tw); vA = (.25 + .75 * mag) * (.35 + .65 * tw); }`,
     fragmentShader: `varying float vA; void main(){ vec2 d = gl_PointCoord - .5; float r = dot(d, d); if (r > .25) discard; gl_FragColor = vec4(vec3(.86, .9, 1.) * vA * smoothstep(.25, .0, r), 1.); }` });
   const stars = new THREE.Points(geo, mat); stars.renderOrder = -2; stars.frustumCulled = false; s.add(stars);
-  const moonTex = moonMap ?? (() => {
+  const moonTex = !moonAt ? null : moonMap ?? (() => {
     const c = canvas(512, 512), g = c.getContext('2d');
     const halo = g.createRadialGradient(256, 256, 60, 256, 256, 256); halo.addColorStop(0, 'rgba(255,240,205,.34)'); halo.addColorStop(0.3, 'rgba(200,215,255,.07)'); halo.addColorStop(1, 'rgba(160,180,255,0)');
     g.fillStyle = halo; g.fillRect(0, 0, 512, 512); g.fillStyle = '#f2e8cc'; g.beginPath(); g.arc(256, 256, 96, 0, TAU); g.fill(); return tex(c);
   })();
-  const moon = new THREE.Sprite(new THREE.SpriteMaterial({ map: moonTex, transparent: true, depthWrite: false, fog: false }));
-  moon.position.copy(moonAt); moon.scale.setScalar(9); moon.renderOrder = -1; s.add(moon);
+  if (moonAt) {                                                         // the hearth's sky has the northern lights instead
+    const moon = new THREE.Sprite(new THREE.SpriteMaterial({ map: moonTex, transparent: true, depthWrite: false, fog: false }));
+    moon.position.copy(moonAt); moon.scale.setScalar(9); moon.renderOrder = -1; s.add(moon);
+  }
   const ranges = new THREE.Mesh(new THREE.PlaneGeometry(110, 27.5), new THREE.MeshBasicMaterial({ map: back, transparent: true, depthWrite: false, fog: false }));
   ranges.position.set(0, backY, -46); ranges.renderOrder = -1; s.add(ranges);
   return (t) => { mat.uniforms.t.value = t; };
