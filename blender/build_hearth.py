@@ -352,7 +352,7 @@ BIRCH = birch_mat('BirchBark')
 PINE = mat('PineNeedle', '#1e3e3a', rough=0.75); GREYWOOD = wood_mat('GreyWood', '#8a8478', '#6a6458', stretch=6, bump=0.1, axis='z', rough=0.85); BARK = wood_mat('Bark', '#4e3e34', '#2e241e', stretch=4, bump=0.35, axis='z', rough=0.9)
 DOG = mat('DogFur', '#b07a44', rough=0.85, sheen=0.8); DOGW = mat('DogCream', '#ead6b4', rough=0.85, sheen=0.8); NOSE = mat('Nose', '#1a1614', rough=0.3)
 DEER = mat('DeerFur', '#7a6454', rough=0.9, sheen=0.6); DEERW = mat('DeerRuff', '#e6ded2', rough=0.9, sheen=0.8); ANTLER = mat('Antler', '#cbb498', rough=0.7)
-CARROT = mat('Carrot', '#e8742a', rough=0.6); SCARF = mat('Scarf', '#2a5a8a', rough=0.85, sheen=0.5)
+CARROT = mat('Carrot', '#e8742a', rough=0.6); SCARF = mat('Scarf', '#2a5a8a', rough=0.85, sheen=0.5); HATRED = mat('HatRed', '#b3262c', rough=0.85, sheen=0.5)
 SLEDRED = mat('SledRed', '#a8282a', rough=0.45, coat=0.4)
 BOOKS = [mat('Book' + k, c, rough=0.7) for k, c in [('Red', '#8a2a2a'), ('Navy', '#2e3a6a'), ('Green', '#2e5a46'), ('Ochre', '#b0802e'), ('Cream', '#d8ccb0')]]
 JAR = mat('JarGlass', '#cfe0e0', rough=0.05, coat=1.0, emit='#a8c0c0', emit_str=0.1); JAM = mat('Lingonberry', '#8a1a22', rough=0.3)
@@ -660,8 +660,11 @@ sphere('DogChest', 0.16, (dx_ + 0.28, dy_ - 0.12, F + 0.14), DOGW, scale=(1.0, 0
 sphere('DogHead', 0.13, (dx_ + 0.42, dy_ - 0.22, F + 0.13), DOG, scale=(1.15, 0.95, 0.75), segs=20, rings=12)
 sphere('DogMuzzle', 0.07, (dx_ + 0.55, dy_ - 0.28, F + 0.1), DOGW, scale=(1.3, 0.9, 0.7), segs=14, rings=10)
 sphere('DogNose', 0.022, (dx_ + 0.63, dy_ - 0.3, F + 0.12), NOSE, segs=10, rings=8)
+dfwd = Vector((0.9, -0.42, 0)).normalized(); dside = Vector((-dfwd.y, dfwd.x, 0))  # the way the head faces, and across it
 for s in (-1, 1):
-    o = sphere(f'DogEar{s}', 0.07, (dx_ + 0.38 + 0.06 * s, dy_ - 0.22 - 0.09 * s, F + 0.2), DOG, scale=(0.6, 1.0, 0.25), segs=12, rings=8); o.rotation_euler = (0.4 * s, 0.3, 0.5)
+    # an ear either side of the head, lying back over it and flopping outward
+    p = Vector((dx_ + 0.42, dy_ - 0.22, F + 0.19)) + dside * (0.1 * s) - dfwd * 0.03
+    o = sphere(f'DogEar{s}', 0.07, tuple(p), DOG, scale=(0.6, 1.0, 0.25), segs=12, rings=8); o.rotation_euler = (-0.6, 0, math.atan2(dside.y * s, dside.x * s) - math.pi / 2)
     tube(f'DogEye{s}', [(dx_ + 0.5, dy_ - 0.28 - 0.05 * s + 0.02, F + 0.17), (dx_ + 0.51, dy_ - 0.3 - 0.05 * s, F + 0.165), (dx_ + 0.5, dy_ - 0.32 - 0.05 * s - 0.0, F + 0.17)], 0.004, NOSE)
 for k, (x, y) in enumerate(((0.36, -0.32), (0.3, -0.36))): sphere(f'DogPaw{k}', 0.05, (dx_ + x, dy_ + y, F + 0.04), DOGW, scale=(1.6, 0.9, 0.6), segs=12, rings=8)
 tube('DogTail', [(dx_ - 0.38, dy_ + 0.05, F + 0.1), (dx_ - 0.42, dy_ - 0.2, F + 0.05), (dx_ - 0.2, dy_ - 0.36, F + 0.04), (dx_ + 0.02, dy_ - 0.38, F + 0.04)], 0.05, DOG, taper=lambda t: 1.0 - 0.5 * t)
@@ -764,6 +767,10 @@ o = cyl('SnowmanNose', 0.03, 0.18, (nx, ny - 0.29, 1.41), CARROT, segs=10, r2=0.
 ring = [Vector((nx + math.cos(a) * 0.21, ny + math.sin(a) * 0.21, 1.22)) for a in [TAU * i / 32 for i in range(33)]]
 sweep('SnowmanScarf', ring, [(-0.05, -0.03), (0.05, -0.03), (0.05, 0.03), (-0.05, 0.03)], SCARF)
 tube('SnowmanScarfEnd', [(nx + 0.12, ny - 0.17, 1.2), (nx + 0.18, ny - 0.24, 1.0), (nx + 0.16, ny - 0.27, 0.86)], 0.04, SCARF, poly=True)
+# and a red knitted hat, set back on the head above the eyes: a cream cuff and a bobble
+lathe('SnowmanHat', [(0.178, 0.0), (0.176, 0.05), (0.16, 0.1), (0.12, 0.15), (0.06, 0.18), (0.0, 0.19)], (nx, ny, 1.53), HATRED, segs=28)
+cyl('SnowmanHatCuff', 0.188, 0.06, (nx, ny, 1.55), SHEEP, segs=28)
+sphere('SnowmanHatBobble', 0.055, (nx, ny, 1.74), SHEEP, segs=16, rings=10)
 # a fence of slanted poles (a skigard) along the front right
 for k in range(5):
     x = 3.0 + k * 0.62; y = -3.55 + k * 0.28
@@ -884,7 +891,8 @@ if '--preview' in ARGS or '--render' in ARGS:
     shots = [('front', -90, 0.38, 27.0, 44, WIDE), ('left', -128, 0.36, 27.0, 44, WIDE), ('right', -52, 0.36, 27.0, 44, WIDE),
              ('inside', -90, 0.22, 3.4, 26, (0, 0.4, F + 1.2)), ('table', -90, 0.75, 1.9, 30, (TX, TY, T)),
              ('hearth', -90, 0.06, 2.9, 30, (0, FY, F + 1.5)), ('leftwall', 0, 0.12, 2.6, 30, (-IX, 0.3, F + 1.5)),
-             ('rightwall', 180, 0.12, 2.6, 30, (IX, 0.2, F + 1.5)), ('deer', -60, 0.2, 6.5, 40, (4.0, -1.6, 1.0))]
+             ('rightwall', 180, 0.12, 2.6, 30, (IX, 0.2, F + 1.5)), ('deer', -60, 0.2, 6.5, 40, (4.0, -1.6, 1.0)),
+             ('dog', -40, 1.0, 1.5, 40, (dx_ + 0.35, dy_ - 0.2, F + 0.15)), ('snowman', -95, 0.12, 3.2, 40, (nx, ny, 1.05))]
     if '--only' in ARGS: shots = [s_ for s_ in shots if s_[0] in ARGS[ARGS.index('--only') + 1].split(',')]
     for name, yaw, pitch, dist, lens, at in shots:
         tgt.location = at; cd.lens = lens; place_cam(yaw, pitch, dist); sc.render.filepath = OUT + f'hearth_{name}{"" if big else "_preview"}.png'

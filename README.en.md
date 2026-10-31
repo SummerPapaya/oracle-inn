@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/hero.webp" width="100%" alt="Oracle Inn: an arched gold window showing, in turn, the door, the Magic House, the pop-up book, the Starry Tent, the Eastern Shrine and a fortune slip">
+  <img src="docs/hero.webp" width="100%" alt="Oracle Inn: an arched gold window showing, in turn, the door, the Magic House, then each page of the pop-up book and the room inside it: the Starry Tent, the Eastern Shrine, the Scholar's Desk, the Victorian Tea Table, the Moonlit Window and the Nordic Hearth, and at last all six rooms together">
 </p>
 
 <p align="center">
@@ -12,14 +12,14 @@ A pop-up book of fortune-telling rooms, in the browser. Step through a door floa
 
 > **A gentle reminder**
 >
-> - The tarot, moon blocks, fortune slips, I Ching coins, character reading, Lenormand cards, tea leaves and the rest are a light-hearted demonstration of Eastern and Western folk customs. Cards, blocks, slips and hexagrams, and the shapes of the leaves in the cup, are drawn at random by the program, and the character readings are written in advance from the shape of each character; nothing here can predict anything.
+> - The tarot, moon blocks, fortune slips, I Ching coins, character reading, Lenormand cards, tea leaves, pendulum, runes, New Year's tin and the rest are a light-hearted demonstration of Eastern and Western folk customs. Cards, blocks, slips and hexagrams, the shapes of the leaves in the cup, the pendulum's swing, the runes drawn and the tin poured are all chosen at random by the program, and the character readings are written in advance from the shape of each character; nothing here can predict anything.
 > - It is for fun only, and is not medical, legal, financial or any other kind of life advice.
-> - The shrine, the study, the tea room, the fortune-slip poems and the cards are original artwork and do not represent any religion, temple or deity. The hexagram names and images are excerpted from the Zhou Yi (I Ching), which is in the public domain.
+> - The shrine, the study, the tea room, the cottage by the window, the cabin by the hearth, the fortune-slip poems and the cards are original artwork and do not represent any religion, temple or deity. The hexagram names and images are excerpted from the Zhou Yi (I Ching), which is in the public domain.
 > - The page collects and sends no personal information.
 > - The 人生海海 (People Life, Ocean Wild) neon sign in the house is a fan's tribute to Mayday's album of that name. It is not affiliated with Mayday or their label, and all rights in it stay with their owners.
 > - Your path is yours to choose; keep a clear head and decide for yourself. If you are going through a hard time, please reach out to someone you trust or to a professional.
 
-## What's in v1.1
+## What's in v1.3
 
 - **The door**: a 3D door that swings open onto a swirling star portal.
 - **The Magic House**: things to poke at, including a gramophone playing a waltz, a little white cat with four moods, the fire, an hourglass, a sunburst mirror, a telescope, a treasure chest and a wishing tree. Each one's little star goes out once you've tried it.
@@ -125,6 +125,7 @@ Each run gives its output a new time-stamped name, so browsers never show a stal
 
 ## Versions
 
+- **v1.3.1** (2026-10-31): the link previews, the GitHub social preview and the README hero now show all six rooms, and the page description and the reminder name every room's readings; in the Nordic Hearth the dog has both ears again, the ladle's handle meets its bowl, and the snowman outside wears a red knitted hat; the little white cat in the Magic House is a fifth bigger, her head a little rounder.
 - **v1.3.0** (2026-10-31): page 6, the Nordic Hearth (runes and New Year's tin), is fully playable, with the northern lights moving and snow falling outside; all six rooms of the book are open, and page 6's preview is gone; the tower on page 5 has its whole cone back and its windows and stones are no longer stretched; the Magic House's cat is now a fluffy little white cat asleep in a bed between the fireplace and the bookcase, who lifts her head and opens her odd eyes, one blue and one amber, when you tap her, and can be seen on phones by turning the view.
 - **v1.2.0** (2026-10-30): page 5, the Moonlit Window (pendulum and pendulum board), is fully playable, with tonight's moon phase in its window.
 - **v1.1.0** (2026-10-29): page 3, the Scholar's Desk (I Ching coins and character reading), and page 4, the Victorian Tea Table (Lenormand cards and tea leaves), are fully playable; every tarot card gains a keyword and every fortune slip a one-line gist, with revised card meanings, poems and readings; the web fonts now hold every character the pages use and any 测字 might write; the rooms open on matching views.

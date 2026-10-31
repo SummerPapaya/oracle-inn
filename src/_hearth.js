@@ -6,7 +6,7 @@
  * 卢恩符文, one, three (the Norns) or nine runes cast on the cloth; and 新年浇锡, tin melted in a ladle over the fire,
  * poured into cold water and held up to the candle, its shadow on the white of the chimney breast read as an old saying.
  */
-const HEARTH_ASSETS = 'hearth/', HEARTH_PRE = 'hearth_10300532';
+const HEARTH_ASSETS = 'hearth/', HEARTH_PRE = 'hearth_10311835';
 const HEARTH_VIEW = {
   orbit: { at: V(0, 3.2, 0.3), narrowAt: V(0, 4.3, 0.3), orbit: { yaw: 0, pitch: 0.3, dist: 31, narrow: 1.2 }, yaw: 0.8, pitch: 0.2, fov: [44, 28] },
   inside: { eye: V(0, 2.25, 2.6), at: V(0, 1.5, -0.6), yaw: 0.7, pitch: 0.42, fov: [72, 50] },
@@ -316,8 +316,9 @@ function hearthLadle(s, rest) {
   const g = new THREE.Group();
   const bowl = new THREE.Mesh(new THREE.SphereGeometry(0.055, 20, 10, 0, TAU, Math.PI / 2, Math.PI / 2), iron); bowl.material.side = THREE.DoubleSide;
   const rim = new THREE.Mesh(new THREE.TorusGeometry(0.055, 0.004, 6, 24).rotateX(Math.PI / 2), iron);
-  const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.5, 6).rotateZ(Math.PI / 2 - 0.25).translate(0.3, 0.06, 0), iron);
-  const grip = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.012, 0.16, 8).rotateZ(Math.PI / 2 - 0.25).translate(0.6, 0.135, 0), wood);
+  // the handle runs from the rim up and away to the wooden grip (tilted -(π/2 - 0.25) about z, so its near end meets the rim)
+  const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.5, 6).rotateZ(0.25 - Math.PI / 2).translate(0.3, 0.06, 0), iron);
+  const grip = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.012, 0.16, 8).rotateZ(0.25 - Math.PI / 2).translate(0.6, 0.135, 0), wood);
   // the tin in the bowl: a little horseshoe first, then a bright pool as it melts
   const shoe = new THREE.Mesh(new THREE.TorusGeometry(0.022, 0.0075, 8, 20, Math.PI * 1.35).rotateX(Math.PI / 2).rotateY(0.6), new THREE.MeshStandardMaterial({ color: 0xd0d4dc, metalness: 0.35, roughness: 0.3, emissive: 0x24262c }));
   shoe.position.y = -0.03;

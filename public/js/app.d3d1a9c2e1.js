@@ -3896,7 +3896,7 @@ async function buildHut() {
   candleLight = new THREE.PointLight(0xffb060, 9, 9, 1.5); candleLight.position.set(fx + 3.9, FLOOR + 8.4, fz + 1.2); scene.add(candleLight);
   // in the nook between the fireplace and the bookcase, where it shows on a narrow screen too once you look that way
   catBed(fx + 3.5, FLOOR, fz - 3.9);
-  sleepyCat = catAsleep(fx + 3.5, FLOOR + 0.3, fz - 3.9, 0.38, 0.66);                // curled with her face to the room, her head at the bookcase end
+  sleepyCat = catAsleep(fx + 3.5, FLOOR + 0.3, fz - 3.9, 0.38, 0.79);                // curled with her face to the room, her head at the bookcase end
   prop(sleepyCat.g, '小白猫 · 摸摸它', () => { catAnswer(); burstAt(sparks, sleepyCat.g.getWorldPosition(V(0, 0, 0)).add(V(0, 0.9, 0)), 18, { speed: 0.3, up: 0.5, size: 0.05, color: new THREE.Color(1.8, 0.9, 1.1) }); });
   garland(V(fx + 1.75, FLOOR + 12.6, fz - 3.2), V(fx + 1.75, FLOOR + 12.6, fz + 3.2), 1.2, 13);
 
@@ -4640,7 +4640,7 @@ function catAsleep(x, y, z, ry, sc = 1) {
   const tip = tailCurve.getPointAt(1); furry(new THREE.SphereGeometry(0.05, 16, 12).translate(tip.x, tip.y, tip.z), tailG, 0.028);
   // the head, chin down on her forepaws and turned to the room: a smooth round egg of a head, a raised nose bridge to a
   // small nose, puffy whisker pads, and the fur a little longer at the cheeks and under the chin
-  const head0 = group(-0.6, 0.3, 0.38, -Math.PI / 2 - 0.35, g); head0.rotation.z = -0.18; head0.rotation.x = 0.22; head0.userData.y0 = head0.position.y; head0.scale.setScalar(1.15);
+  const head0 = group(-0.62, 0.33, 0.42, -Math.PI / 2 - 0.35, g); head0.rotation.z = -0.18; head0.rotation.x = 0.22; head0.userData.y0 = head0.position.y; head0.scale.setScalar(1.32);
   const head = group(0, 0, 0, 0, head0); head.rotation.z = 0.12;
   const face = (px, py, pz) => {
     let d = sdEll(px, py, pz, [-0.02, 0.03, 0], [0.19, 0.17, 0.19]);                              // a round crown, broad at the temples
@@ -8773,7 +8773,7 @@ const TIN_FINISH = [
  * 卢恩符文, one, three (the Norns) or nine runes cast on the cloth; and 新年浇锡, tin melted in a ladle over the fire,
  * poured into cold water and held up to the candle, its shadow on the white of the chimney breast read as an old saying.
  */
-const HEARTH_ASSETS = 'hearth/', HEARTH_PRE = 'hearth_10300532';
+const HEARTH_ASSETS = 'hearth/', HEARTH_PRE = 'hearth_10311835';
 const HEARTH_VIEW = {
   orbit: { at: V(0, 3.2, 0.3), narrowAt: V(0, 4.3, 0.3), orbit: { yaw: 0, pitch: 0.3, dist: 31, narrow: 1.2 }, yaw: 0.8, pitch: 0.2, fov: [44, 28] },
   inside: { eye: V(0, 2.25, 2.6), at: V(0, 1.5, -0.6), yaw: 0.7, pitch: 0.42, fov: [72, 50] },
@@ -9083,8 +9083,9 @@ function hearthLadle(s, rest) {
   const g = new THREE.Group();
   const bowl = new THREE.Mesh(new THREE.SphereGeometry(0.055, 20, 10, 0, TAU, Math.PI / 2, Math.PI / 2), iron); bowl.material.side = THREE.DoubleSide;
   const rim = new THREE.Mesh(new THREE.TorusGeometry(0.055, 0.004, 6, 24).rotateX(Math.PI / 2), iron);
-  const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.5, 6).rotateZ(Math.PI / 2 - 0.25).translate(0.3, 0.06, 0), iron);
-  const grip = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.012, 0.16, 8).rotateZ(Math.PI / 2 - 0.25).translate(0.6, 0.135, 0), wood);
+  // the handle runs from the rim up and away to the wooden grip (tilted -(π/2 - 0.25) about z, so its near end meets the rim)
+  const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.5, 6).rotateZ(0.25 - Math.PI / 2).translate(0.3, 0.06, 0), iron);
+  const grip = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.012, 0.16, 8).rotateZ(0.25 - Math.PI / 2).translate(0.6, 0.135, 0), wood);
   // the tin in the bowl: a little horseshoe first, then a bright pool as it melts
   const shoe = new THREE.Mesh(new THREE.TorusGeometry(0.022, 0.0075, 8, 20, Math.PI * 1.35).rotateX(Math.PI / 2).rotateY(0.6), new THREE.MeshStandardMaterial({ color: 0xd0d4dc, metalness: 0.35, roughness: 0.3, emissive: 0x24262c }));
   shoe.position.y = -0.03;

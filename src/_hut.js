@@ -191,7 +191,7 @@ async function buildHut() {
   candleLight = new THREE.PointLight(0xffb060, 9, 9, 1.5); candleLight.position.set(fx + 3.9, FLOOR + 8.4, fz + 1.2); scene.add(candleLight);
   // in the nook between the fireplace and the bookcase, where it shows on a narrow screen too once you look that way
   catBed(fx + 3.5, FLOOR, fz - 3.9);
-  sleepyCat = catAsleep(fx + 3.5, FLOOR + 0.3, fz - 3.9, 0.38, 0.66);                // curled with her face to the room, her head at the bookcase end
+  sleepyCat = catAsleep(fx + 3.5, FLOOR + 0.3, fz - 3.9, 0.38, 0.79);                // curled with her face to the room, her head at the bookcase end
   prop(sleepyCat.g, '小白猫 · 摸摸它', () => { catAnswer(); burstAt(sparks, sleepyCat.g.getWorldPosition(V(0, 0, 0)).add(V(0, 0.9, 0)), 18, { speed: 0.3, up: 0.5, size: 0.05, color: new THREE.Color(1.8, 0.9, 1.1) }); });
   garland(V(fx + 1.75, FLOOR + 12.6, fz - 3.2), V(fx + 1.75, FLOOR + 12.6, fz + 3.2), 1.2, 13);
 
@@ -935,7 +935,7 @@ function catAsleep(x, y, z, ry, sc = 1) {
   const tip = tailCurve.getPointAt(1); furry(new THREE.SphereGeometry(0.05, 16, 12).translate(tip.x, tip.y, tip.z), tailG, 0.028);
   // the head, chin down on her forepaws and turned to the room: a smooth round egg of a head, a raised nose bridge to a
   // small nose, puffy whisker pads, and the fur a little longer at the cheeks and under the chin
-  const head0 = group(-0.6, 0.3, 0.38, -Math.PI / 2 - 0.35, g); head0.rotation.z = -0.18; head0.rotation.x = 0.22; head0.userData.y0 = head0.position.y; head0.scale.setScalar(1.15);
+  const head0 = group(-0.62, 0.33, 0.42, -Math.PI / 2 - 0.35, g); head0.rotation.z = -0.18; head0.rotation.x = 0.22; head0.userData.y0 = head0.position.y; head0.scale.setScalar(1.32);
   const head = group(0, 0, 0, 0, head0); head.rotation.z = 0.12;
   const face = (px, py, pz) => {
     let d = sdEll(px, py, pz, [-0.02, 0.03, 0], [0.19, 0.17, 0.19]);                              // a round crown, broad at the temples
